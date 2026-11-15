@@ -39,7 +39,7 @@ spotless {
 
 // Gemensam byggkonfiguration för alla moduler (:ui-theme, :ui-common, :ui-components, :ui-testing) – enda stället. Modulfilerna har bara det som är unikt.
 val javaVersion = JavaVersion.VERSION_17
-val githubPackages = "https://maven.pkg.github.com/ParTee71/android-ui"
+val githubPackages = "https://maven.pkg.github.com/Kodhast/android-ui"
 
 subprojects {
     group = rootProject.property("group").toString()
@@ -73,7 +73,7 @@ subprojects {
             }
         }
 
-        // Publicering: GitHub Packages, se.partee71.ui:<modulnamn>:<version ur gradle.properties>.
+        // Publicering: GitHub Packages, se.kodhast.ui:<modulnamn>:<version ur gradle.properties>.
         // Inloggningen kommer från miljön (CI: GITHUB_ACTOR/GITHUB_TOKEN, lokalt GPR_USER/GPR_TOKEN) – aldrig från repot.
         apply(plugin = "maven-publish")
         afterEvaluate {
@@ -84,8 +84,8 @@ subprojects {
                         artifactId = project.name
                         pom {
                             name.set(project.name)
-                            description.set("Delade Compose-komponenter för ParTee71:s Android-appar")
-                            url.set("https://github.com/ParTee71/android-ui")
+                            description.set("Delade Compose-komponenter för Kodhästs Android-appar")
+                            url.set("https://github.com/Kodhast/android-ui")
                         }
                     }
                 }

@@ -6,7 +6,7 @@ plugins {
 
 // Kompilering, SDK-nivåer, testflaggor och publicering står i rotens build.gradle.kts.
 android {
-    namespace = "se.partee71.ui.components"
+    namespace = "se.kodhast.ui.components"
 }
 
 roborazzi {

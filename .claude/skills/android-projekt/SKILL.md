@@ -9,7 +9,7 @@ Reglerna står i [CLAUDE.md](../../../CLAUDE.md). Här står bara det pluginens 
 
 ## Arbetsflöde (android:implement-issue)
 
-- Repo `partee71/android-ui`, basgren **`main`** (inte `master`).
+- Repo `Kodhast/android-ui`, basgren **`main`** (inte `master`).
 - Före push: `export LC_ALL=C.UTF-8` och `./gradlew testDebugUnitTest verifyRoborazziDebug cpdCheck`,
   plus `./gradlew spotlessApply`. CI (`ci.yml`) kör samma sak i ett jobb.
 - Ny komponent eller parameter: Robolectric-test, Roborazzi-skärmdump (ljust + mörkt) och raden i
@@ -33,5 +33,5 @@ app). **Agent · modell · effort** som i `android:ai-model-choice`.
   varje PR som ändrar biblioteket (major = brytande API, minor = ny komponent/parameter, patch = fix).
 - Publicering: `publish.yml` på `main`, via `workflow_dispatch` (skapar taggen `v<version>`) eller en
   pushad tagg. Resultatet är paketen i GitHub Packages och taggen; ingen GitHub Release skapas.
-  Länka taggen (`https://github.com/partee71/android-ui/tree/v<version>`) och körningen.
+  Länka taggen (`https://github.com/Kodhast/android-ui/tree/v<version>`) och körningen.
 - Ingen APK och ingen signering.
