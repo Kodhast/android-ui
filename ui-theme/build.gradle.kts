@@ -5,7 +5,7 @@ plugins {
 
 // Kompilering, SDK-nivåer, testflaggor och publicering står i rotens build.gradle.kts.
 android {
-    namespace = "se.partee71.ui.theme"
+    namespace = "se.kodhast.ui.theme"
 }
 
 dependencies {

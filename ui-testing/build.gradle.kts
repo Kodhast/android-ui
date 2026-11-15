@@ -7,7 +7,7 @@ plugins {
 // Kontraktstesterna för ramarna: apparna lägger till artefakten som testImplementation och kör
 // kontrakten mot sina egna skärmar (Robolectric). Modulens egna tester kör dem mot bibliotekets ramar.
 android {
-    namespace = "se.partee71.ui.testing"
+    namespace = "se.kodhast.ui.testing"
 }
 
 dependencies {

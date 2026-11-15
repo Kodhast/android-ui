@@ -6,7 +6,7 @@ plugins {
 // Kompilering, SDK-nivåer, testflaggor och publicering står i rotens build.gradle.kts.
 // Ren logik utan utseende: listtillstånd, formulärlogik och felen ramarna visar. Komposablerna ligger i ui-components.
 android {
-    namespace = "se.partee71.ui.common"
+    namespace = "se.kodhast.ui.common"
 }
 
 dependencies {

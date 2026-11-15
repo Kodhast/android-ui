@@ -1,0 +1,104 @@
+package se.kodhast.ui.components
+
+import androidx.annotation.DrawableRes
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonColors
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import se.kodhast.ui.theme.AppTheme
+import se.kodhast.ui.theme.Spacing
+
+/** Knappstorlekarna för [QuantityStepper]. */
+object QuantityStepperDefaults {
+    /** ReseApoteket: knapparna ryms i en lägre stepper. */
+    val ButtonSize: Dp = 44.dp
+
+    /** Full tryckyta, 48 dp (Dagboken). */
+    val TouchTargetButtonSize: Dp = 48.dp
+}
+
+/**
+ * Knappstorleken i [QuantityStepper] (parametern `buttonSize`). Standard [QuantityStepperDefaults.ButtonSize]
+ * (ReseApoteket); Dagboken sätter [QuantityStepperDefaults.TouchTargetButtonSize] en gång i sitt tema.
+ */
+val LocalQuantityStepperButtonSize = compositionLocalOf { QuantityStepperDefaults.ButtonSize }
+
+/**
+ * Antal ± inom [range]. [label] beskriver vad som räknas ("doser per dag") och läses av
+ * TalkBack på knapparna ("Minska doser per dag") och på värdet ("2 doser per dag"). [step] är
+ * hur mycket ett tryck ändrar (t.ex. 5 för minuter). [valueText] visar värdet som text med sin
+ * enhet ("4 h", "Ingen spärr" för 0); TalkBack läser då [label] och texten ("minsta tid mellan
+ * doser 4 h") – [label] ska alltså inte ha någon enhet. Utan [valueText] visas talet och TalkBack
+ * läser "2 doser per dag". [buttonSize] är knapparnas storlek ([QuantityStepperDefaults]; standard
+ * [LocalQuantityStepperButtonSize]).
+ */
+@Composable
+fun QuantityStepper(
+    value: Int,
+    onValueChange: (Int) -> Unit,
+    label: String,
+    modifier: Modifier = Modifier,
+    range: IntRange = 0..999,
+    enabled: Boolean = true,
+    step: Int = 1,
+    valueText: (@Composable (Int) -> String)? = null,
+    buttonSize: Dp = LocalQuantityStepperButtonSize.current
+) {
+    val colors = IconButtonDefaults.filledIconButtonColors(
+        containerColor = AppTheme.extendedColors.card,
+        contentColor = MaterialTheme.colorScheme.onSurface
+    )
+    Row(
+        modifier.background(AppTheme.extendedColors.rowTint, AppTheme.shapes.pill).padding(Spacing.xs),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Spacing.xs)
+    ) {
+        StepButton(R.drawable.ic_remove, stringResource(R.string.decrease_format, label), enabled && value > range.first, buttonSize, colors) {
+            onValueChange((value - step).coerceIn(range))
+        }
+        val shown = valueText?.invoke(value)
+        Text(
+            shown ?: value.toString(),
+            style = AppTheme.typography.quantity,
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.widthIn(min = VALUE_WIDTH).semantics {
+                contentDescription = if (shown == null) "$value $label" else "$label $shown"
+                liveRegion = LiveRegionMode.Polite
+            }
+        )
+        StepButton(R.drawable.ic_add, stringResource(R.string.increase_format, label), enabled && value < range.last, buttonSize, colors) {
+            onValueChange((value + step).coerceIn(range))
+        }
+    }
+}
+
+@Composable
+private fun StepButton(@DrawableRes icon: Int, description: String, enabled: Boolean, size: Dp, colors: IconButtonColors, onClick: () -> Unit) {
+    FilledIconButton(onClick = onClick, modifier = Modifier.size(size), enabled = enabled, colors = colors) {
+        Icon(painterResource(icon), description)
+    }
+}
+
+private val VALUE_WIDTH = 48.dp
