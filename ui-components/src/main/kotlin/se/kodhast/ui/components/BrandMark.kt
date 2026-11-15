@@ -41,7 +41,7 @@ fun BrandMark(
 
 /** Standardvärden för [BrandMark]. */
 object BrandMarkDefaults {
-    /** Profilens minsta storlek för märket. */
+    /** Standardstorleken, profilens minsta för märket; anroparens storlek i `modifier` går före. */
     val Size: Dp = 16.dp
 }
 

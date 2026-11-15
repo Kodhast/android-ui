@@ -1,9 +1,12 @@
 package se.kodhast.ui.components
 
+import android.provider.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
+import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -80,6 +83,34 @@ class BrandBehaviorTest {
     fun `prickladdningen läses som Laddar`() {
         show(AppBrandStyle(dotLoading = true)) { AppLoading() }
         rule.onNodeWithContentDescription("Laddar").assertExists()
+    }
+
+    @Test
+    fun `prickladdningen hoppar med animeringar på`() {
+        assertEquals(false, dotsStandStill(), "kontroll: utan avstängda animeringar ska prickarna röra sig")
+    }
+
+    @Test
+    fun `prickladdningen står still när systemets animeringar är avstängda`() {
+        Settings.Global.putFloat(RuntimeEnvironment.getApplication().contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 0f)
+        assertEquals(true, dotsStandStill())
+        rule.onNodeWithContentDescription("Laddar").assertExists()
+    }
+
+    /** Två bilder av prickladdningen med en fast tid emellan – lika bilder betyder att prickarna står still. */
+    private fun dotsStandStill(): Boolean {
+        rule.mainClock.autoAdvance = false
+        show(AppBrandStyle(dotLoading = true)) { AppLoading() }
+        rule.waitForIdle()
+        val before = rule.onNodeWithContentDescription("Laddar").captureToImage().toPixelMap()
+        rule.mainClock.advanceTimeBy(MID_JUMP)
+        rule.waitForIdle()
+        val after = rule.onNodeWithContentDescription("Laddar").captureToImage().toPixelMap()
+        return (0 until before.width).all { x -> (0 until before.height).all { y -> before[x, y] == after[x, y] } }
+    }
+
+    private companion object {
+        const val MID_JUMP = 225L
     }
 
     @Test
