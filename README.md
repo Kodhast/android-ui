@@ -5,7 +5,7 @@ eventuellt Fonder): ett tema-API och de delade komponenterna, så att samma elem
 beter sig likadant i alla appar och bara finns på ett ställe. Varje app behåller sina egna
 färger, former och typsnitt och skickar in dem i temat.
 
-**Version:** 1.0.0 · Material 3 `1.5.0-beta01` (Expressive) · Compose BOM `2026.09.00` ·
+**Version:** 1.1.0 · Material 3 `1.5.0-beta01` (Expressive) · Compose BOM `2026.09.00` ·
 Kotlin `2.4.20` · AGP `9.4.1` · compileSdk 37 · minSdk 30.
 
 ## Moduler
@@ -39,8 +39,8 @@ dependencyResolutionManagement {
 }
 ```
 
-och i versionskatalogen/byggfilen `implementation("se.kodhast.ui:ui-components:1.0.0")` och
-`testImplementation("se.kodhast.ui:ui-testing:1.0.0")`.
+och i versionskatalogen/byggfilen `implementation("se.kodhast.ui:ui-components:1.1.0")` och
+`testImplementation("se.kodhast.ui:ui-testing:1.1.0")`.
 
 - **CI i appen:** `GITHUB_TOKEN` räcker när paketet gett apprepot läsåtkomst
   (paketets inställningar → *Manage Actions access*) och jobbet har `permissions: packages: read`.
@@ -187,13 +187,14 @@ inte använder ramen rätt.
 | `AppFilterChip` | Filterchip; `icon`, `onLongClick`, `value` (värde efter etiketten), `emphasized` (det aktiva bland flera valda), `pending` (`ChipPending`: väntande läge, tonat med streckad kant, ikon och tilläggstext) | `chipColors()` är publik för egna chips |
 | `AppFloatingToolbar` | Toppnivånavigeringen: flytande flikar; `action` (`ToolbarAction`, huvudknapp i `secondary` till höger – Dagboken), `ToolbarItem.badgeCount` (märke med antal i `secondary` på en ovald flik, läses "Beslut, 3 nya" – Fonder). `LocalBottomClearance`, `FloatingToolbarClearance`, `NoBottomClearance` | – |
 | `AppIconButton` | Ikonknapp, minst 48 dp, alltid `contentDescription`; `tone` (platta och ikon för Tonal, ikonen för Plain; standard Material-färgerna) | – |
-| `AppLoading` | Expressive laddningsindikator mitt på ytan | – |
+| `AppLoading` | Expressive laddningsindikator mitt på ytan; med `AppBrandStyle(dotLoading = true)` Kodhästs två prickar som hoppar | – |
 | `AppMenu` | Menyn bakom ⋮ (`AppMenuItem`: `icon`, `destructive`, `section` (rubrik), `checked` (kryssrad som håller menyn öppen), `supporting`/`supportingTone` (undertext), `muted` (dämpad etikett)) | `section`, `checked` från Dagboken; `asSplitMenu()` från ReseApoteket |
 | `AppMenuPopup` | Själva menyn, för egna knappar som öppnar en meny | Publik (Dagboken använder den direkt) |
 | `AppSegmentedChoice` | Ett val av få alternativ som segmentknappar | – |
 | `AppSnackbarHost` | Den enda platsen där meddelanden visas | – |
 | `AppTextField` | Det enda textfältet; `maxLength` (`AppTextFieldDefaults.SHORT_MAX_LENGTH` 200 / `LONG_MAX_LENGTH` 2000), `maxLines`, `suffix`, `valueIsPlaceholder` | Dagboken anger `maxLength = 5000` för långa fält |
 | `AppTopBar` | Skärmrubriken, stor eller liten; tillbakapilen `TopBarBackStyle(variant, tone)` via `LocalTopBarBackStyle` (eller parametern `backStyle`), som också ramarna följer | Synkindikatorn är appens: den sätts som `LocalTopBarStatus` (eller parametern `status`). `titleModifier` läggs på rubriken (också via `EntityDetailScreen`). Standardpilen är den tonade plattan; Fonder: `TopBarBackStyle(variant = IconButtonVariant.Plain)` |
+| `BrandMark` | Kodhästs märke: hästen (`horseColor`, standard `onSurfaceVariant`) och de två prickarna (`dotsColor`, standard `primary`), dekor utan semantik; storlek med `modifier`, minst `BrandMarkDefaults.Size` 16 dp | Ny (android-ui #28) |
 | `CardSegment` | Ett segment i ett sammanfogat kort (`top`, `bottom`), `contentColor`, `onClick`, `style`; med kontur delar bitarna skiljelinje | Ersätter Fonders `AppCardGroupPosition` |
 | `CheckRow` | Kryssrad med morfande kryss; `onClick` (krysset blir egen knapp), `accent`, `note`, `menu` (långtryck + ⋮, går före bubblan), `below`, `enabled`, `done`/`tinted` (standard `checked`: överstruken och tonad) | Dagbokens `note`, `menu`, `below`, `enabled`; Fonder `done = false, tinted = false` för "ta med" |
 | `CollapsibleHeader` | Titelraden i det som fälls ihop: hela raden växlar, minst 48 dp, läses som knapp ("Fäll ut"/"Fäll ihop") med läget som `stateDescription`, chevronen sist fjädrar ett halvt varv. `expandLabels(expanded)` (`ExpandLabels`: `action`, `state`) och `chevronRotation(expanded)` för egna chevronknappar | Var intern (hopfällbara grupper i listramen); ersätter Dagbokens `CollapsibleHeader`, `expandLabels` och `chevronRotation` |
@@ -207,7 +208,7 @@ inte använder ramen rätt.
 | `DeleteConfirmDialog` | Permanent radering av en `DeleteAction` (titel, text, "Radera" i felfärg); titeln t.ex. `R.string.delete_title_format` ("Radera %s?") | Var appens egen (`DeleteAction` från `EntityEditScreen`) |
 | `DiscardChangesDialog` | "Släng ändringar?" – "Släng" / "Fortsätt redigera" | Var appens egen |
 | `EmojiPicker` | Välj en emoji ur `emojis` med `ChoiceGrid`s ring | Listan krävs – apparnas listor (`PERSON_EMOJIS`, `DEFAULT_EMOJIS`) stannar i appen; ReseApotekets egen markering ersätts av ringen |
-| `EmptyState` | Tomt läge med ikon, rubrik, text och knapp; `compact` (Dagboken); `actions: List<EmptyAction>` (en eller flera knappar i full bredd, `label`, `onClick`, `icon`, `variant`) | Fonders tomma lägen med flera val |
+| `EmptyState` | Tomt läge med ikon, rubrik, text och knapp; `compact` (Dagboken); `actions: List<EmptyAction>` (en eller flera knappar i full bredd, `label`, `onClick`, `icon`, `variant`); med `AppBrandStyle(emptyStateMark = true)` `BrandMark` i ikonrutan, bara i fullstort läge utan fel | Fonders tomma lägen med flera val |
 | `EntityDetailScreen` | Detaljramen: huvud, sektioner, Redigera och meny; underskärm med `title`, flikläge med `onBack = null`; `onRefresh`/`refreshing` | Union av apparnas; se Ramarna |
 | `EntityEditScreen` | Redigeringsramen med `EditorState`: Spara, "Släng ändringar?", sparfel, arkivera/återställ/radera, `formError`, tangentbordet | Union av apparnas; se Ramarna |
 | `EntityListScreen` | Listramen: laddar, tomt, fel, grupper i kort, kolumner efter bredd, arkivering, `filter`, `footer`, `onRefresh`/`refreshing` | Union av apparnas; se Ramarna |
@@ -221,13 +222,14 @@ inte använder ramen rätt.
 | `LabeledGroup` | Etikett, hjälptext och innehåll; `helperAbove` (Dagboken) | – |
 | `LeadingSlot` | 48 dp-ruta för det ledande elementet, så att titlarna linjerar | – |
 | `LoadErrorState` | Läsfel med "Försök igen" (bara om `retryable`) | Tar `UiError` |
+| `MakerMark` | Kodhästs signatur: `BrandMark` och "En kodhäst-app" (`text`, sträng `maker_mark`) i `caption` och `onSurfaceVariant`, en nod som läses som texten | Ny (android-ui #28) |
 | `MessageSnackbar` | Visar en text en gång i `AppSnackbarHost` | – |
 | `MorphingCheck` | Krysset som morfar från ring till kaka med bock (bara visning) | – |
 | `NoteIndicator` | Anteckningsikon som visar anteckningen i en dialog | – |
 | `PausableRow` | Rad som kan pausas: typ som pill, nedtonad "Pausat"; `pillTone` krävs | Tonen är appens (ReseApoteket `Tone.Blue`, Dagboken `Tone.Neutral`) |
 | `PickerField` | Fält som öppnar en väljare; `emptyLabel`, `contentLabel` | – |
 | `QuantityStepper` | − värde +; `step`, `valueText`, `buttonSize` (standard `LocalQuantityStepperButtonSize`: `QuantityStepperDefaults.ButtonSize` 44 dp, `TouchTargetButtonSize` 48 dp) | Dagboken sätter `TouchTargetButtonSize` en gång i sitt tema |
-| `SectionHeader` | Sektionsrubrik med antal; `countTone`; laddningsindikator med `working` | – |
+| `SectionHeader` | Sektionsrubrik med antal; `countTone`; laddningsindikator med `working`; med `AppBrandStyle(sectionDots = true)` två prickar i `primary` före titeln när ikonrutan saknas | – |
 | `SuggestionField` | Textfält med förslag (`Suggestion`) i ett kort under, antalet läses upp | – |
 | `SwipeBackground` | Det som syns bakom en svept rad: `icon` och `label` i högerkanten, `colors` (`ToneColors`, standard primärtonen), `shape` (standard `row`) | Ersätter bakgrunden i Dagbokens `SwipeToDelete` (`ic_delete`, felfärgen, `card`) |
 | `SwipeToHide` | Arkivera/dölj med svep åt vänster, och samma åtgärd för TalkBack; bakgrunden är `SwipeBackground` med `icon` och `colors` (standard arkivera i primärtonen) | – |
@@ -271,6 +273,7 @@ pusha taggar och använder därför den manuella vägen.
 
 | Version | Ändring |
 |---|---|
+| 1.1.0 | Kodhäst-delarna (#28): `BrandMark` (märket) och `MakerMark` (signaturen "En kodhäst-app"), och `AppBrandStyle(sectionDots, dotLoading, emptyStateMark)` med `LocalAppBrandStyle`, som slår på prickar före sektionsrubriker utan ikonruta, prickar som laddning i `AppLoading` och sektionsrubrikens `working`, och märket i `EmptyState`. Allt är avstängt som standard: utseendet är oförändrat tills appen slår på det, och inga befintliga skärmdumpar är omtagna. Nytt `res/drawable/kodhast_branding.xml` (ordmärket till startskärmen, 200 × 80 dp) med färgerna `kodhast_branding_text` och `kodhast_branding_dots` (standard Material 3:s `onSurface`), som appen ersätter i `values/` och `values-night/` |
 | 1.0.0 | Repot har flyttat till organisationen Kodhast. Gruppen och Kotlin-paketen heter nu `se.kodhast.ui` (förut `se.partee71.ui`), och adressen är `https://maven.pkg.github.com/Kodhast/android-ui`. API, beteende och utseende är oförändrade: inga skärmdumpar är omtagna. Versionen är brytande eftersom apparna måste byta grupp och importer |
 | 0.10.0 | `AppTopBar` och `EntityDetailScreen` får `titleModifier`, som läggs på toppradens rubrik (efter rubriksemantiken) – t.ex. för att Fonder ska kunna göra fondnamnet kopierbart. Standard ingenting, utseendet är oförändrat |
 | 0.9.3 | `AppFilterChip` är alltid en rad högt: en lång etikett kortas med ellips i stället för att trycka ihop värdet eller den väntande texten (t.ex. "tagen 06:37") så att chipet blev en hög oval. Korta etiketter ser ut som förut |

@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
@@ -28,7 +29,8 @@ import se.kodhast.ui.theme.Tone
  * bara räknaren – en statuspill ("Krävs", "Kontrollerad") bredvid en ikonruta i sektionens ton;
  * standard samma ton som sektionen. Med [working] visar rubriken en liten laddningsindikator efter
  * titeln medan sektionen hämtar data (Fonders kort); TalkBack läser [workingDescription], standard
- * "Uppdaterar <titel>".
+ * "Uppdaterar <titel>". Med `AppBrandStyle.sectionDots` ([LocalAppBrandStyle]) står Kodhästs två prickar
+ * i `primary` före titeln när rubriken saknar ikonruta; titeln ändras inte.
  */
 @Composable
 fun SectionHeader(
@@ -51,6 +53,8 @@ fun SectionHeader(
             Box(Modifier.size(TILE).background(colors.container, AppTheme.shapes.smallTile), contentAlignment = Alignment.Center) {
                 Icon(painterResource(icon), contentDescription = null, tint = colors.content, modifier = Modifier.size(ICON))
             }
+        } else if (LocalAppBrandStyle.current.sectionDots) {
+            BrandDots(MaterialTheme.colorScheme.primary, Modifier.size(DOTS_WIDTH, DOTS_HEIGHT).testTag(SECTION_DOTS_TAG))
         }
         Text(
             title,
@@ -69,3 +73,8 @@ fun SectionHeader(
 private val TILE = 32.dp
 private val ICON = 18.dp
 private val WORKING = 24.dp
+private val DOTS_WIDTH = 18.dp
+private val DOTS_HEIGHT = 6.dp
+
+/** Prickarna före titeln i [SectionHeader] (`AppBrandStyle.sectionDots`), för tester. */
+internal const val SECTION_DOTS_TAG = "section-dots"

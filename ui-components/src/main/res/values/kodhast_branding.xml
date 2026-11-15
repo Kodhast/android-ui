@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Färgerna till ordmärket i @drawable/kodhast_branding. Standard är Material 3:s grundtema för
+  onSurface (beslut i android-ui #28); appen ersätter dem med sin onSurface och sin primary i
+  values/ och values-night/. Bibliotekets enda färgvärden – Compose-koden har inga.
+-->
+<resources>
+    <color name="kodhast_branding_text">#FF1D1B20</color>
+    <color name="kodhast_branding_dots">#FF1D1B20</color>
+</resources>

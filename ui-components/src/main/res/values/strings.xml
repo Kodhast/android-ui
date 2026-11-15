@@ -6,6 +6,8 @@
 <resources>
     <string name="more_options">Fler val</string>
     <string name="loading">Laddar</string>
+    <!-- MakerMark: Kodhästs signatur -->
+    <string name="maker_mark">En kodhäst-app</string>
     <string name="section_working">Uppdaterar %1$s</string>
     <string name="back">Tillbaka</string>
     <string name="archive">Arkivera</string>

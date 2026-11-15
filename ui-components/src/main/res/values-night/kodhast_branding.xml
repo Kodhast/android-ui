@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Mörkt läge för ordmärkets färger: Material 3:s grundtema för onSurface. Se values/kodhast_branding.xml. -->
+<resources>
+    <color name="kodhast_branding_text">#FFE6E0E9</color>
+    <color name="kodhast_branding_dots">#FFE6E0E9</color>
+</resources>
