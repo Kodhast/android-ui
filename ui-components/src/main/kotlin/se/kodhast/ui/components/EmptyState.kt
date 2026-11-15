@@ -16,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -32,6 +33,8 @@ import se.kodhast.ui.theme.Spacing
  * en yta inuti ett kort – t.ex. ett diagrams tomma läge ("För lite data än").
  * [actions] är en eller flera knappar under [action], i full bredd och i den ordning de står
  * ("Ny transaktion", "Importera avräkningsnota"); standard inga.
+ * Med `AppBrandStyle.emptyStateMark` ([LocalAppBrandStyle]) visar ikonrutan [BrandMark] i stället för
+ * [icon] – bara i fullstort läge utan fel; [isError] och [compact] visar alltid [icon].
  */
 @Composable
 fun EmptyState(
@@ -113,12 +116,16 @@ private fun Message(@DrawableRes icon: Int, title: String, message: String, isEr
             Modifier.size(if (compact) COMPACT_ICON_TILE else ICON_TILE).background(tile, if (compact) AppTheme.shapes.smallTile else AppTheme.shapes.iconTile),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                painterResource(icon),
-                contentDescription = null,
-                tint = onTile,
-                modifier = Modifier.size(if (compact) COMPACT_ICON else ICON)
-            )
+            if (LocalAppBrandStyle.current.emptyStateMark && !isError && !compact) {
+                BrandMark(Modifier.size(ICON).testTag(EMPTY_STATE_MARK_TAG), horseColor = onTile)
+            } else {
+                Icon(
+                    painterResource(icon),
+                    contentDescription = null,
+                    tint = onTile,
+                    modifier = Modifier.size(if (compact) COMPACT_ICON else ICON)
+                )
+            }
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
             Text(
@@ -142,3 +149,6 @@ private val ICON_TILE = 120.dp
 private val ICON = 56.dp
 private val COMPACT_ICON_TILE = 48.dp
 private val COMPACT_ICON = 24.dp
+
+/** Märket i ikonrutan i [EmptyState] (`AppBrandStyle.emptyStateMark`), för tester. */
+internal const val EMPTY_STATE_MARK_TAG = "empty-state-mark"
