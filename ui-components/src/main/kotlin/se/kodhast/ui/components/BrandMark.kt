@@ -16,8 +16,9 @@ import androidx.compose.ui.unit.dp
 /**
  * Kodhästs märke: den täljda hästen med två prickar över ryggen, som två banor som färgas var för
  * sig – [horseColor] (standard `onSurfaceVariant`) och [dotsColor] (standard `primary`). Dekor utan
- * semantik; texten bredvid (t.ex. [MakerMark]) bär det som läses. Storlek med [modifier], standard
- * [BrandMarkDefaults.Size]; märket hålls kvadratiskt och centrerat.
+ * semantik; texten bredvid (t.ex. [MakerMark]) bär det som läses. Storlek med `Modifier.size` i [modifier]
+ * (båda axlarna; en axel ensam ger 16 dp på den andra), standard [BrandMarkDefaults.Size]. Märket
+ * ritas kvadratiskt och centrerat i ytan.
  *
  * Formen är profilens `kodhast-marke.svg` (viewport 64 × 64) och ritas inte om.
  */

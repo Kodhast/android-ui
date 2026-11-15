@@ -1,11 +1,19 @@
 package se.kodhast.ui.components
 
 import android.provider.Settings
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toPixelMap
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assert
+import androidx.compose.ui.test.assertHeightIsEqualTo
+import androidx.compose.ui.test.assertWidthIsEqualTo
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
@@ -13,9 +21,11 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.unit.dp
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -29,6 +39,11 @@ class BrandBehaviorTest {
 
     @get:Rule
     val rule = createComposeRule()
+
+    @After
+    fun restoreAnimations() {
+        Settings.Global.putFloat(RuntimeEnvironment.getApplication().contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f)
+    }
 
     private fun show(style: AppBrandStyle = AppBrandStyle(), content: @Composable () -> Unit) = rule.setContent {
         TestTheme { CompositionLocalProvider(LocalAppBrandStyle provides style, content = content) }
@@ -82,7 +97,20 @@ class BrandBehaviorTest {
     @Test
     fun `prickladdningen läses som Laddar`() {
         show(AppBrandStyle(dotLoading = true)) { AppLoading() }
-        rule.onNodeWithContentDescription("Laddar").assertExists()
+        rule.onNodeWithContentDescription("Laddar")
+            .assert(SemanticsMatcher.expectValue(SemanticsProperties.ProgressBarRangeInfo, ProgressBarRangeInfo.Indeterminate))
+    }
+
+    @Test
+    fun `märket tar storleken från modifier`() {
+        show { BrandMark(Modifier.size(LARGE).testTag("mark")) }
+        rule.onNodeWithTag("mark").assertWidthIsEqualTo(LARGE).assertHeightIsEqualTo(LARGE)
+    }
+
+    @Test
+    fun `märket är 16 dp utan storlek`() {
+        show { BrandMark(Modifier.testTag("mark")) }
+        rule.onNodeWithTag("mark").assertWidthIsEqualTo(BrandMarkDefaults.Size).assertHeightIsEqualTo(BrandMarkDefaults.Size)
     }
 
     @Test
@@ -111,6 +139,7 @@ class BrandBehaviorTest {
 
     private companion object {
         const val MID_JUMP = 225L
+        val LARGE = 64.dp
     }
 
     @Test

@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.progressSemantics
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LoadingIndicator
@@ -34,7 +35,7 @@ fun AppLoading(modifier: Modifier = Modifier) {
     Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         val indicator = Modifier.semantics { contentDescription = description }
         if (LocalAppBrandStyle.current.dotLoading) {
-            BrandDots(MaterialTheme.colorScheme.primary, indicator.size(DOTS_WIDTH, DOTS_HEIGHT), bouncing = true)
+            BrandDots(MaterialTheme.colorScheme.primary, indicator.progressSemantics().size(DOTS_WIDTH, DOTS_HEIGHT), bouncing = true)
         } else {
             LoadingIndicator(indicator)
         }
@@ -49,7 +50,7 @@ fun AppLoading(modifier: Modifier = Modifier) {
 internal fun InlineLoading(description: String, color: Color, modifier: Modifier = Modifier) {
     val indicator = modifier.semantics { contentDescription = description }
     if (LocalAppBrandStyle.current.dotLoading) {
-        BrandDots(color, indicator, bouncing = true)
+        BrandDots(color, indicator.progressSemantics(), bouncing = true)
     } else {
         LoadingIndicator(indicator, color = color)
     }
@@ -64,7 +65,7 @@ const val ENTITY_REFRESH_TAG = "entity-refresh"
 
 /**
  * Dra för att uppdatera runt [content] när [onRefresh] finns – annars bara en `Box` med innehållet.
- * Indikatorn är samma Expressive-laddningsindikator som [AppLoading], i en behållare överst, och syns så
+ * Indikatorn är Expressive-laddningsindikatorn (även med `AppBrandStyle.dotLoading`), i en behållare överst, och syns så
  * länge [refreshing] är sant. Gesten kräver rullbart innehåll (ramarnas lista och sektioner).
  */
 @Composable
