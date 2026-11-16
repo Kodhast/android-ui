@@ -62,6 +62,7 @@ fun AppTheme(
     typeScale: Typography,                                     // appens typskala med appens typsnitt
     typography: AppTypography = AppTypography.from(typeScale), // de namngivna stilarna
     motionScheme: MotionScheme = MotionScheme.expressive(),
+    depth: AppDepth? = null,                                   // djup och tryckkänsla; null = platt
     content: @Composable () -> Unit
 )
 
@@ -69,6 +70,7 @@ AppTheme.extendedColors   // card, rowTint, toolbar, onToolbar, tones, accents
 AppTheme.shapes           // card, cardSegment(top, bottom), row, pill, field, menu, sheet, smallTile, iconTile
 AppTheme.typography       // screenTitle, bigNumber, headline, sectionTitle, quantity, itemTitle, itemSubtitle, body, pill, caption, button
 AppTheme.tone(tone)       // ToneColors(container, content)
+AppTheme.depth            // AppDepth?: highlight, sheen, shadow, cardEdge, cardShadow, pressedScale
 Spacing.xs … Spacing.xxl  // 4, 8, 12, 16, 24, 32 dp
 ```
 
@@ -79,6 +81,12 @@ Spacing.xs … Spacing.xxl  // 4, 8, 12, 16, 24, 32 dp
   har apparnas gemensamma värden som standard.
 - **Accentfärger:** `ExtendedColors.accents` är appens dekorativa färgserie (personfärger,
   valbara färger) – används av `Confetti`.
+- **Djup (#35):** med `depth = AppDepth(…)` får knappar en ljuskant upptill, ett svagt skimmer och
+  en tonad skugga, och sjunker in (krymper till `pressedScale`, skuggan tonar bort) när de trycks.
+  Valda chips, segment och verktygsradens flik får ljuskanten och skimret, tonade ikonknappar en
+  liten skugga, och kort en mjuk skugga och en hårfin kant (`cardEdge`; inte på tonade kort eller kort
+  med egen kontur). Bitar av ett kort (`CardSegment`) ritas som ett kort utan skarvar. Färgerna ger
+  appen per tema; utan `depth` är allt som förut.
 - Det som bara en app har (t.ex. Dagbokens energiskala, sömnstadier och känslotoner, `IconSize`)
   stannar i appen.
 
@@ -274,6 +282,7 @@ pusha taggar och använder därför den manuella vägen.
 
 | Version | Ändring |
 |---|---|
+| 1.3.0 | Djup och tryckkänsla, del 1 av #35: `AppTheme(depth = AppDepth(…))` ger knappar, ikonknappar, valda chips och segment, verktygsradens valda flik och kort ljuskant, skimmer, skugga och nedtryckt läge (se Djup under ui-theme). Standard `depth = null` bevarar dagens utseende; inga befintliga skärmdumpar är omtagna |
 | 1.2.0 | För Fonder (#33): `ToolbarAction` får `menu` (`List<AppMenuItem>`), så att huvudknappen i `AppFloatingToolbar` fäller ut en meny i stället för att anropa `onClick`; knappen läses då "Hopfälld"/"Utfälld". Dra för att uppdatera blir publik som `AppPullToRefresh` (förut intern i ramarna), för skärmar utan ram. Befintliga konstruktoranrop (`ToolbarAction(label, icon) { … }`) och utseendet är oförändrade (destrukturering och positionell `copy` av `ToolbarAction` ändras, eftersom `menu` står före `onClick`; ingen app använder dem); inga befintliga skärmdumpar är omtagna |
 | 1.1.0 | Kodhäst-delarna (#28): `BrandMark` (märket) och `MakerMark` (signaturen "En kodhäst-app"), och `AppBrandStyle(sectionDots, dotLoading, emptyStateMark)` med `LocalAppBrandStyle`, som slår på prickar före sektionsrubriker utan ikonruta, prickar som laddning i `AppLoading` och sektionsrubrikens `working`, och märket i `EmptyState`. Allt är avstängt som standard: utseendet är oförändrat tills appen slår på det, och inga befintliga skärmdumpar är omtagna. Nytt `res/drawable/kodhast_branding.xml` (ordmärket till startskärmen, 200 × 80 dp) med färgerna `kodhast_branding_text` och `kodhast_branding_dots` (standard Material 3:s `onSurface`), som appen ersätter i `values/` och `values-night/` |
 | 1.0.0 | Repot har flyttat till organisationen Kodhast. Gruppen och Kotlin-paketen heter nu `se.kodhast.ui` (förut `se.partee71.ui`), och adressen är `https://maven.pkg.github.com/Kodhast/android-ui`. API, beteende och utseende är oförändrade: inga skärmdumpar är omtagna. Versionen är brytande eftersom apparna måste byta grupp och importer |

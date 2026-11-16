@@ -1,6 +1,7 @@
 package se.kodhast.ui.components
 
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -17,6 +18,7 @@ import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
@@ -55,7 +57,8 @@ data class ChipPending(@param:DrawableRes val icon: Int, val text: String, val d
  * [pending] ger det väntande läget ([ChipPending]). Standardvärdena bevarar det vanliga chipet.
  *
  * Chipet är alltid en rad högt: en etikett som inte får plats kortas med ellips (hela etiketten läses
- * fortfarande av TalkBack), och värdet och tilläggstexten bryts aldrig.
+ * fortfarande av TalkBack), och värdet och tilläggstexten bryts aldrig. Med temats djup krymper chipet
+ * nedtryckt och ett valt chip får skimmer, ljuskant och en liten skugga.
  */
 @Composable
 fun AppFilterChip(
@@ -77,6 +80,8 @@ fun AppFilterChip(
     val chipModifier = Modifier
         .heightIn(min = CHIP_HEIGHT)
         .longPress(onLongClickLabel, onLongClick)
+    val interactionSource = remember { MutableInteractionSource() }
+    val depth = AppTheme.depth
     val chip = @Composable { chipModifier: Modifier ->
         FilterChip(
             selected = selected,
@@ -100,19 +105,32 @@ fun AppFilterChip(
                 emphasized -> emphasizedChipColors()
                 else -> chipColors()
             },
-            border = if (pending != null) null else FilterChipDefaults.filterChipBorder(enabled = enabled, selected = selected)
+            border = if (pending != null) null else FilterChipDefaults.filterChipBorder(enabled = enabled, selected = selected),
+            interactionSource = interactionSource
         )
     }
-    if (pending == null) {
+    if (pending == null && depth == null) {
         chip(modifier.then(chipModifier))
     } else {
-        // Tryckytan (48 dp) läggs runt chipet här i stället för inuti FilterChip, så att den streckade kanten
-        // ritas runt själva chipet och inte runt tryckytan.
-        Box(modifier.minimumInteractiveComponentSize(), contentAlignment = Alignment.Center) {
-            CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
-                chip(chipModifier.semantics { stateDescription = pending.description }.dashedOutline(shape, dashColor))
-            }
+        // Tryckytan (48 dp) läggs runt chipet här i stället för inuti FilterChip, så att den streckade kanten och
+        // djupet ritas runt själva chipet och inte runt tryckytan.
+        val depthModifier = if (depth == null) {
+            Modifier
+        } else {
+            val lift = rememberLift(interactionSource, enabled)
+            val liftValue = { lift.value }
+            Modifier
+                .pressScale(depth, liftValue)
+                .then(
+                    if (selected && enabled && pending == null) {
+                        Modifier.raisedShadow(shape, depth.shadow, Lift.Selected, liftValue).sheen(shape, depth, liftValue)
+                    } else {
+                        Modifier
+                    }
+                )
         }
+        val pendingModifier = pending?.let { Modifier.semantics { stateDescription = it.description }.dashedOutline(shape, dashColor) } ?: Modifier
+        DepthTouchTarget(modifier) { target -> chip(target.then(depthModifier).then(chipModifier).then(pendingModifier)) }
     }
 }
 

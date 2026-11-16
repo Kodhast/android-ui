@@ -1,9 +1,11 @@
 package se.kodhast.ui.components
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -13,6 +15,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -57,7 +60,9 @@ val LocalAppCardStyle = staticCompositionLocalOf { AppCardStyle() }
  * sektionston – t.ex. grönt när allt är klart. [contentColor] sätts som innehållsfärg i kortet, så
  * att ikoner utan egen färg tar kortets färg även utanför en skärmram (Dagboken: `onSurface`);
  * standard ärvs den omgivande. Med [onClick] är hela kortet en klickbar yta som TalkBack läser som
- * en nod. [style] är appens kortstil (kontur, luft), standard [LocalAppCardStyle].
+ * en nod. [style] är appens kortstil (kontur, luft), standard [LocalAppCardStyle]. Med temats djup får kortet en
+ * mjuk skugga och en hårfin kant (inte ett tonat kort, och inte om stilen har en egen kontur), och ett klickbart
+ * kort krymper lite nedtryckt.
  */
 @Composable
 fun AppCard(
@@ -98,15 +103,29 @@ fun CardSegment(
     content: @Composable ColumnScope.() -> Unit
 ) {
     val shape = AppTheme.shapes.cardSegment(top, bottom)
+    val depth = AppTheme.depth
     val border = style.border
+    // Med temats djup får ett kort i kortfärgen en hårfin kant om stilen inte har en egen; ett tonat kort ingen.
+    val edge = depth?.cardEdge?.takeIf { border == null && color == AppTheme.extendedColors.card }
+    val interactionSource = remember { MutableInteractionSource() }
+    val depthModifier = if (depth == null) {
+        Modifier
+    } else {
+        val lift = rememberLift(interactionSource, onClick != null)
+        val liftValue = { lift.value }
+        Modifier
+            .pressScale(depth, liftValue, CARD_PRESS)
+            .cardDepth(shape, depth.cardShadow, edge, top, bottom)
+    }
     val segment: @Composable () -> Unit = {
         Column(
             (if (border != null && !top) Modifier.sharedEdge(border.width) else Modifier)
                 .then(modifier)
+                .then(depthModifier)
                 .fillMaxWidth()
                 .background(color, shape)
                 .then(if (border != null) Modifier.border(border, shape) else Modifier)
-                .then(if (onClick != null) Modifier.clip(shape).clickable(onClick = onClick) else Modifier)
+                .then(if (onClick != null) Modifier.clip(shape).clickable(interactionSource, LocalIndication.current, onClick = onClick) else Modifier)
                 .padding(
                     start = style.padding,
                     end = style.padding,
@@ -119,6 +138,9 @@ fun CardSegment(
     }
     if (contentColor == null) segment() else CompositionLocalProvider(LocalContentColor provides contentColor, content = segment)
 }
+
+/** Ett klickbart kort krymper hälften så mycket som en knapp nedtryckt – det är större. */
+private const val CARD_PRESS = 0.5f
 
 /** Drar upp biten [width] så att dess övre kontur ligger på bitens ovanför. Ytterst, så att anroparens mått mäts innanför. */
 private fun Modifier.sharedEdge(width: Dp): Modifier = layout { measurable, constraints ->

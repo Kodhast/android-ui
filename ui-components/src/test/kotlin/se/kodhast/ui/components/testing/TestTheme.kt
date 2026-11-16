@@ -11,6 +11,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import se.kodhast.ui.theme.AppDepth
 import se.kodhast.ui.theme.AppShapes
 import se.kodhast.ui.theme.AppTheme
 import se.kodhast.ui.theme.ExtendedColors
@@ -142,6 +143,23 @@ object TestPalette {
         accents = accents
     )
 
+    /** Djupet i ReseApotekets ton: kopparbrun skugga i ljust, ljuskant och svag svart skugga i mörkt. */
+    val lightDepth = AppDepth(
+        highlight = Color.White.copy(alpha = 0.30f),
+        sheen = Color.White.copy(alpha = 0.12f),
+        shadow = Color(0xFF7A2E18).copy(alpha = 0.34f),
+        cardEdge = Color(0xFF7A2E18).copy(alpha = 0.07f),
+        cardShadow = Color(0xFF7A2E18).copy(alpha = 0.18f)
+    )
+
+    val darkDepth = AppDepth(
+        highlight = Color.White.copy(alpha = 0.40f),
+        sheen = Color.White.copy(alpha = 0.14f),
+        shadow = Color.Black.copy(alpha = 0.55f),
+        cardEdge = Color.White.copy(alpha = 0.07f),
+        cardShadow = Color.Black.copy(alpha = 0.55f)
+    )
+
     val shapes = AppShapes(cardRadius = 28.dp)
 
     private fun heading(size: Int, line: Int, spacing: Double = 0.0) = TextStyle(fontWeight = FontWeight.ExtraBold, fontSize = size.sp, lineHeight = line.sp, letterSpacing = spacing.em)
@@ -164,14 +182,21 @@ object TestPalette {
     )
 }
 
-/** [AppTheme] med testpaletten, ljust eller mörkt. */
+/** [AppTheme] med testpaletten, ljust eller mörkt; med [depth] testpalettens djup. */
 @Composable
-fun TestTheme(darkTheme: Boolean = false, content: @Composable () -> Unit) {
+fun TestTheme(darkTheme: Boolean = false, depth: Boolean = false, content: @Composable () -> Unit) {
     AppTheme(
         colorScheme = if (darkTheme) TestPalette.dark else TestPalette.light,
         extendedColors = if (darkTheme) TestPalette.darkExtended else TestPalette.lightExtended,
         shapes = TestPalette.shapes,
         typeScale = TestPalette.typeScale,
+        depth = if (!depth) {
+            null
+        } else if (darkTheme) {
+            TestPalette.darkDepth
+        } else {
+            TestPalette.lightDepth
+        },
         content = content
     )
 }
