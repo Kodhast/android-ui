@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.Snapshot
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.junit4.ComposeContentTestRule
@@ -75,6 +76,8 @@ private fun ComposeContentTestRule.captureThemes(
     setContent { TestTheme(darkTheme = dark, depth = depth, content = content) }
     for ((suffix, isDark) in themes) {
         dark = isDark
+        // Temabytet görs utanför kompositionen; utan detta ser en stillastående klocka det aldrig.
+        Snapshot.sendApplyNotifications()
         settle()
         capture("${name}_$suffix.png")
     }
