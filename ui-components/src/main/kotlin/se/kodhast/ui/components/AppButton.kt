@@ -1,6 +1,7 @@
 package se.kodhast.ui.components
 
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -13,10 +14,14 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -77,7 +82,9 @@ val LocalAppButtonStyle = staticCompositionLocalOf { AppButtonStyle() }
  * för rubrikraden (t.ex. "Spara" i `EntityEditScreen`); tryckytan är ändå minst 48 dp.
  * [contentDescription] läses av TalkBack i stället för etiketten – för en knapp som upprepas med samma
  * korta etikett ("Följ") och ska säga vad den gäller; `null` läser etiketten. [style] är appens
- * knappstil (höjd, formmorf, tonad färg), standard [LocalAppButtonStyle].
+ * knappstil (höjd, formmorf, tonad färg), standard [LocalAppButtonStyle]. Med temats djup (`AppTheme.depth`)
+ * krymper knappen nedtryckt, och de fyllda och tonade får skugga, skimmer och ljuskant som sjunker bort när
+ * knappen trycks – inte när den är inaktiv eller arbetar.
  */
 @Composable
 fun AppButton(
@@ -93,7 +100,7 @@ fun AppButton(
     style: AppButtonStyle = LocalAppButtonStyle.current
 ) {
     val described = contentDescription?.let { modifier.semantics { this.contentDescription = it } } ?: modifier
-    val sized = described.heightIn(min = if (compact) AppButtonDefaults.CompactHeight else style.minHeight)
+    val minHeight = if (compact) AppButtonDefaults.CompactHeight else style.minHeight
     val active = enabled && !loading
     val content: @Composable RowScope.() -> Unit = { ButtonContent(text, icon, loading) }
     // Varianterna är Material 3:s knappar med sina standardvärden – samma som Button, FilledTonalButton,
@@ -120,14 +127,45 @@ fun AppButton(
         ButtonVariant.Outlined, ButtonVariant.Text -> null
     }
     val border = if (variant == ButtonVariant.Outlined) ButtonDefaults.outlinedButtonBorder(active) else null
-    if (style.morph) {
-        // Formmorfens knappar har Expressive-luften efter höjden – samma som Material 3:s standard där.
-        Button(onClick, ButtonDefaults.shapes(), sized, active, colors, elevation, border, ButtonDefaults.contentPaddingFor(ButtonDefaults.MinHeight), content = content)
+    val interactionSource = remember { MutableInteractionSource() }
+    val depth = AppTheme.depth
+    val button: @Composable (Modifier) -> Unit = { sized ->
+        if (style.morph) {
+            // Formmorfens knappar har Expressive-luften efter höjden – samma som Material 3:s standard där.
+            Button(onClick, ButtonDefaults.shapes(), sized, active, colors, elevation, border, ButtonDefaults.contentPaddingFor(ButtonDefaults.MinHeight), interactionSource, content)
+        } else {
+            val padding = if (variant == ButtonVariant.Text) ButtonDefaults.TextButtonContentPadding else ButtonDefaults.ContentPadding
+            Button(onClick, sized, active, AppTheme.shapes.pill, colors, elevation, border, padding, interactionSource, content)
+        }
+    }
+    if (depth == null) {
+        button(described.heightIn(min = minHeight))
     } else {
-        val padding = if (variant == ButtonVariant.Text) ButtonDefaults.TextButtonContentPadding else ButtonDefaults.ContentPadding
-        Button(onClick, sized, active, AppTheme.shapes.pill, colors, elevation, border, padding, content = content)
+        val lift = rememberLift(interactionSource, active)
+        val liftValue = { lift.value }
+        val raised = active && variant in RAISED
+        val shape = AppTheme.shapes.pill
+        val decorated = Modifier
+            .pressScale(depth, liftValue)
+            .then(
+                if (raised) {
+                    val strength = if (variant == ButtonVariant.Secondary) SECONDARY_SHADOW else 1f
+                    Modifier.raisedShadow(shape, depth.shadow, Lift.Button, liftValue, strength).sheen(shape, depth, liftValue)
+                } else {
+                    Modifier
+                }
+            )
+            .heightIn(min = minHeight)
+        val description = contentDescription?.let { Modifier.semantics { this.contentDescription = it } } ?: Modifier
+        DepthTouchTarget(modifier) { target -> button(target.then(description).then(decorated)) }
     }
 }
+
+/** De fyllda knapparna, som får skugga, skimmer och ljuskant med djupet; konturerade och textknappar bara krymper. */
+private val RAISED = setOf(ButtonVariant.Primary, ButtonVariant.Secondary, ButtonVariant.Destructive)
+
+/** En tonad knapp lyfter hälften så mycket som en fylld – den är ett andrahandsval. */
+private const val SECONDARY_SHADOW = 0.5f
 
 /** En knapp som arbetar är inaktiv men behåller sina färger – den ser upptagen ut, inte avstängd. */
 private fun ButtonColors.busy(loading: Boolean) = if (loading) copy(disabledContainerColor = containerColor, disabledContentColor = contentColor) else this

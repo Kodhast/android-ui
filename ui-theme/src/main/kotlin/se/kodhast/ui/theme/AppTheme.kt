@@ -14,6 +14,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
  * Temat som komponenterna läser: Material 3 Expressive med appens [colorScheme], [typeScale] och
  * [motionScheme], plus appens [extendedColors], [shapes] och namngivna [typography]. Appen väljer
  * ljust eller mörkt och skickar in rätt färger; biblioteket har inga egna färger eller typsnitt.
+ * [depth] ger knappar, kort och valda element djup och tryckkänsla ([AppDepth]); standard `null` = platt.
  */
 @Composable
 fun AppTheme(
@@ -23,12 +24,14 @@ fun AppTheme(
     typeScale: Typography,
     typography: AppTypography = remember(typeScale) { AppTypography.from(typeScale) },
     motionScheme: MotionScheme = MotionScheme.expressive(),
+    depth: AppDepth? = null,
     content: @Composable () -> Unit
 ) {
     CompositionLocalProvider(
         LocalExtendedColors provides extendedColors,
         LocalAppShapes provides shapes,
-        LocalAppTypography provides typography
+        LocalAppTypography provides typography,
+        LocalAppDepth provides depth
     ) {
         MaterialExpressiveTheme(
             colorScheme = colorScheme,
@@ -53,6 +56,11 @@ object AppTheme {
         @Composable @ReadOnlyComposable
         get() = LocalAppTypography.current
 
+    /** Djupet ([AppDepth]); `null` = platt. */
+    val depth: AppDepth?
+        @Composable @ReadOnlyComposable
+        get() = LocalAppDepth.current
+
     /** Färgerna för en [Tone] i aktuellt tema. */
     @Composable
     @ReadOnlyComposable
@@ -64,3 +72,4 @@ private fun missing(what: String): Nothing = error("$what saknas – lägg inneh
 internal val LocalExtendedColors = staticCompositionLocalOf<ExtendedColors> { missing("ExtendedColors") }
 internal val LocalAppShapes = staticCompositionLocalOf<AppShapes> { missing("AppShapes") }
 internal val LocalAppTypography = staticCompositionLocalOf<AppTypography> { missing("AppTypography") }
+internal val LocalAppDepth = staticCompositionLocalOf<AppDepth?> { null }

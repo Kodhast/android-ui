@@ -77,7 +77,8 @@ val LocalBottomClearance = compositionLocalOf { NoBottomClearance }
 /**
  * Toppnivånavigeringen: en flytande verktygsrad där vald flik visar ikon och namn och övriga bara ikon
  * (med namnet för TalkBack). [action] lägger en gör-något-knapp i `secondary` till höger om flikarna;
- * utan den (standard) visas bara flikarna.
+ * utan den (standard) visas bara flikarna. Med temats djup kastar raden en skugga och den valda fliken får
+ * skimmer och ljuskant.
  */
 @Composable
 fun AppFloatingToolbar(
@@ -96,14 +97,23 @@ fun AppFloatingToolbar(
             ToolbarTab(item, selected = index == selectedIndex, onClick = { onSelect(index) })
         }
     }
+    // Med temats djup kastar raden en skugga – den flyter över innehållet.
+    val raised = AppTheme.depth != null
     if (action == null) {
-        HorizontalFloatingToolbar(expanded = true, modifier = modifier, colors = colors, content = tabs)
+        HorizontalFloatingToolbar(
+            expanded = true,
+            modifier = modifier,
+            colors = colors,
+            expandedShadowElevation = if (raised) TOOLBAR_ELEVATION else FloatingToolbarDefaults.ContainerExpandedElevation,
+            content = tabs
+        )
     } else {
         HorizontalFloatingToolbar(
             expanded = true,
             floatingActionButton = { ToolbarActionButton(action) },
             modifier = modifier,
             colors = colors,
+            expandedShadowElevation = if (raised) TOOLBAR_ELEVATION else FloatingToolbarDefaults.ContainerExpandedElevationWithFab,
             content = tabs
         )
     }
@@ -133,12 +143,14 @@ private fun ToolbarTab(item: ToolbarItem, selected: Boolean, onClick: () -> Unit
     // Märket syns bara på en ovald flik; antalet läses med flikens namn, inte en gång till.
     val badge = item.badgeCount?.takeIf { it > 0 && !selected }
     val description = badge?.let { stringResource(R.string.toolbar_badge_format, item.label, it) } ?: item.label
+    val depth = AppTheme.depth
     Row(
         Modifier
             .heightIn(min = TAB_HEIGHT)
             .widthIn(min = TAB_HEIGHT)
             .clip(AppTheme.shapes.pill)
             .background(background)
+            .then(if (depth != null && selected) Modifier.sheen(AppTheme.shapes.pill, depth) else Modifier)
             .selectable(selected = selected, role = Role.Tab, onClick = onClick)
             .semantics { contentDescription = description }
             .animateContentSize(MaterialTheme.motionScheme.defaultSpatialSpec())
@@ -169,6 +181,9 @@ private fun ToolbarBadge(count: Int) {
 }
 
 private val TAB_HEIGHT = 48.dp
+
+/** Verktygsradens höjd med temats djup – en tydlig men mjuk skugga under raden. */
+private val TOOLBAR_ELEVATION = 6.dp
 private val ICON = 22.dp
 private val BADGE = 18.dp
 private val BADGE_PADDING = 5.dp
