@@ -19,6 +19,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,6 +32,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import se.kodhast.ui.theme.AppTheme
@@ -39,8 +44,23 @@ import se.kodhast.ui.theme.Spacing
  */
 data class ToolbarItem(val label: String, @param:DrawableRes val icon: Int, val badgeCount: Int? = null)
 
-/** Huvudknappen bredvid flikarna i [AppFloatingToolbar], t.ex. plusknappen som loggar. */
-data class ToolbarAction(val label: String, @param:DrawableRes val icon: Int, val onClick: () -> Unit)
+/**
+ * Huvudknappen bredvid flikarna i [AppFloatingToolbar], t.ex. plusknappen som loggar. Med [menu] öppnar knappen
+ * en meny ([AppMenuPopup]) med valen i stället för att anropa [onClick] (Fonders plusmeny); ett val eller bakåt
+ * stänger den. Utan meny (standard) anropar knappen [onClick] (Dagboken).
+ */
+data class ToolbarAction(
+    val label: String,
+    @param:DrawableRes val icon: Int,
+    val menu: List<AppMenuItem>,
+    val onClick: () -> Unit
+) {
+    /** Knappen som anropar [onClick]. */
+    constructor(label: String, @DrawableRes icon: Int, onClick: () -> Unit) : this(label, icon, emptyList(), onClick)
+
+    /** Knappen som öppnar [menu]. */
+    constructor(label: String, @DrawableRes icon: Int, menu: List<AppMenuItem>) : this(label, icon, menu, {})
+}
 
 /** Plats som verktygsraden tar inklusive marginal. */
 val FloatingToolbarClearance: Dp = 96.dp
@@ -81,17 +101,28 @@ fun AppFloatingToolbar(
     } else {
         HorizontalFloatingToolbar(
             expanded = true,
-            floatingActionButton = {
-                FloatingToolbarDefaults.StandardFloatingActionButton(
-                    onClick = action.onClick,
-                    containerColor = MaterialTheme.colorScheme.secondary,
-                    contentColor = MaterialTheme.colorScheme.onSecondary
-                ) { Icon(painterResource(action.icon), contentDescription = action.label) }
-            },
+            floatingActionButton = { ToolbarActionButton(action) },
             modifier = modifier,
             colors = colors,
             content = tabs
         )
+    }
+}
+
+/** Huvudknappen; med meny läses den som utfälld eller hopfälld och menyn förankras vid knappen. */
+@Composable
+private fun ToolbarActionButton(action: ToolbarAction) {
+    var menuOpen by remember { mutableStateOf(false) }
+    val hasMenu = action.menu.isNotEmpty()
+    val state = expandLabels(menuOpen).state
+    Box {
+        FloatingToolbarDefaults.StandardFloatingActionButton(
+            onClick = { if (hasMenu) menuOpen = true else action.onClick() },
+            modifier = if (hasMenu) Modifier.semantics { stateDescription = state } else Modifier,
+            containerColor = MaterialTheme.colorScheme.secondary,
+            contentColor = MaterialTheme.colorScheme.onSecondary
+        ) { Icon(painterResource(action.icon), contentDescription = action.label) }
+        if (hasMenu) AppMenuPopup(action.menu, menuOpen, onDismiss = { menuOpen = false })
     }
 }
 

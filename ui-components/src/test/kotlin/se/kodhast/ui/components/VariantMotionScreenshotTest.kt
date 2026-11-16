@@ -80,4 +80,17 @@ class VariantMotionScreenshotTest {
             }
         }
     }
+
+    @Test
+    fun `AppPullToRefresh - uppdaterar`() = rule.captureLightAndDark("AppPullToRefresh_uppdaterar") {
+        // Fonders Översikt: en skärm utan ram lägger dra-för-att-uppdatera runt sitt innehåll.
+        AppPullToRefresh(refreshing = true, onRefresh = {}) {
+            SampleSheet {
+                AppCard {
+                    ItemRow("Global Index", subtitle = "312,40 kr · +1,2 %")
+                    ItemRow("Räntefond", subtitle = "104,10 kr · +0,1 %")
+                }
+            }
+        }
+    }
 }

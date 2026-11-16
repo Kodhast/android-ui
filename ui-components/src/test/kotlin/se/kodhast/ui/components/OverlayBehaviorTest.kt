@@ -313,6 +313,40 @@ class OverlayBehaviorTest {
     }
 
     @Test
+    fun `huvudknappen med meny fäller ut valen, läser läget och stänger efter ett val`() {
+        val picked = mutableListOf<String>()
+        show {
+            AppFloatingToolbar(
+                listOf(ToolbarItem("Översikt", R.drawable.ic_clock), ToolbarItem("Innehav", R.drawable.ic_box)),
+                0,
+                {},
+                action = ToolbarAction(
+                    "Lägg till",
+                    R.drawable.ic_add,
+                    listOf(AppMenuItem("Köp", { picked += "köp" }), AppMenuItem("Sälj", { picked += "sälj" }))
+                )
+            )
+        }
+        rule.onNodeWithContentDescription("Lägg till").assert(SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, "Hopfälld"))
+        rule.onNodeWithText("Köp").assertDoesNotExist()
+        rule.onNodeWithContentDescription("Lägg till").performClick()
+        rule.onNodeWithText("Sälj").performClick()
+        assertEquals(listOf("sälj"), picked)
+        rule.onNodeWithText("Köp").assertDoesNotExist()
+        rule.onNodeWithContentDescription("Lägg till").performClick()
+        rule.onNodeWithText("Köp").assertExists()
+        Espresso.pressBack()
+        rule.onNodeWithText("Köp").assertDoesNotExist()
+        assertEquals(listOf("sälj"), picked)
+    }
+
+    @Test
+    fun `huvudknappen utan meny har inget läge`() {
+        show { AppFloatingToolbar(listOf(ToolbarItem("Idag", R.drawable.ic_clock)), 0, {}, action = ToolbarAction("Logga", R.drawable.ic_add) {}) }
+        rule.onNodeWithContentDescription("Logga").assert(SemanticsMatcher.keyNotDefined(SemanticsProperties.StateDescription))
+    }
+
+    @Test
     fun `emojiväljaren läser varje emoji som ett radioval och väljer`() {
         var picked by mutableStateOf("🦊")
         show { EmojiPicker(picked, { picked = it }, listOf("🦊", "🐻", "🐰")) }

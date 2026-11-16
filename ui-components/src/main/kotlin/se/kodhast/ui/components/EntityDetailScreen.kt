@@ -110,7 +110,7 @@ fun <T> EntityDetailScreen(
             }
         }
     ) { padding ->
-        RefreshBox(refreshing, onRefresh, Modifier.fillMaxSize().padding(padding)) {
+        AppPullToRefresh(refreshing, onRefresh, Modifier.fillMaxSize().padding(padding)) {
             when (state) {
                 DetailUiState.Loading -> AppLoading(Modifier.padding(bottom = clearance))
 
