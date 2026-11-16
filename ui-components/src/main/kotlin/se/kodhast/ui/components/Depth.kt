@@ -4,16 +4,13 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.interaction.InteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.drawWithContent
@@ -39,6 +36,7 @@ import androidx.compose.ui.platform.LocalGraphicsContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.isSpecified
 import se.kodhast.ui.theme.AppDepth
 import se.kodhast.ui.theme.AppTheme
 
@@ -237,21 +235,25 @@ internal fun Modifier.focusHalo(shape: Shape, color: Color, visible: () -> Float
 
 /**
  * Tryckytan (48 dp) i layouten runt elementet, medan djupet ritas på själva elementet – annars hamnar
- * ljuskanten och skuggan på tryckytan runt något lägre (`compact`). [modifier] (storlek och plats) sitter
- * på tryckytan; elementet får dess bredd men sin egen höjd, centrerat.
+ * ljuskanten och skuggan på tryckytan runt något lägre (`compact`). Tryckytan är en layoutmodifierare först i
+ * elementets egen kedja, inte en omslutande ruta: [modifier] (storlek, plats, `weight` och anroparens semantik som
+ * `stateDescription` eller `testTag`) hamnar då på samma nod som elementets klick och roll. Elementet får tryckytans
+ * bredd men sin egen höjd, centrerat; det som följer i kedjan (djupet, klicket) ser elementets eget mått.
  */
 @Composable
 internal fun DepthTouchTarget(modifier: Modifier = Modifier, content: @Composable (Modifier) -> Unit) {
-    Box(modifier.minimumInteractiveComponentSize(), contentAlignment = Alignment.Center, propagateMinConstraints = true) {
-        CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
-            content(
-                Modifier.layout { measurable, constraints ->
-                    val placeable = measurable.measure(constraints.copy(minHeight = 0))
-                    layout(placeable.width, placeable.height) { placeable.place(0, 0) }
-                }
-            )
-        }
+    val minSize = LocalMinimumInteractiveComponentSize.current
+    CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
+        content(modifier.touchTarget(minSize))
     }
+}
+
+private fun Modifier.touchTarget(minSize: Dp): Modifier = layout { measurable, constraints ->
+    val placeable = measurable.measure(constraints.copy(minHeight = 0))
+    val min = if (minSize.isSpecified) minSize.roundToPx() else 0
+    val width = maxOf(placeable.width, min).coerceIn(constraints.minWidth, constraints.maxWidth)
+    val height = maxOf(placeable.height, min).coerceIn(constraints.minHeight, constraints.maxHeight)
+    layout(width, height) { placeable.place((width - placeable.width) / 2, (height - placeable.height) / 2) }
 }
 
 /** Ljuskantens tjocklek och var skimret har tonat ut (andel av höjden – ovanför en knapps text). */

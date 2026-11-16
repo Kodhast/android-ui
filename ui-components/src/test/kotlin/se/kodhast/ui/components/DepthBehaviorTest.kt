@@ -1,5 +1,6 @@
 package se.kodhast.ui.components
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -9,6 +10,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.assert
@@ -83,12 +86,27 @@ class DepthBehaviorTest {
     fun `knappar, chips och segment med djup tar 48 dp plats i layouten`() {
         show {
             Column {
-                AppButton("Spara", {}, Modifier.testTag("knapp"), compact = true)
-                AppFilterChip("Tablett", false, {}, Modifier.testTag("chip"))
-                AppSegmentedChoice(listOf("Ljust", "Mörkt"), 0, {}, Modifier.testTag("segment"))
+                // Rutan runt varje element mäter platsen i layouten; elementets egen nod har sitt eget mått.
+                Box(Modifier.testTag("knapp")) { AppButton("Spara", {}, compact = true) }
+                Box(Modifier.testTag("chip")) { AppFilterChip("Tablett", false, {}) }
+                Box(Modifier.testTag("segment")) { AppSegmentedChoice(listOf("Ljust", "Mörkt"), 0, {}) }
             }
         }
         listOf("knapp", "chip", "segment").forEach { rule.onNodeWithTag(it, useUnmergedTree = true).assertHeightIsAtLeast(48.dp) }
+    }
+
+    @Test
+    fun `anroparens semantik hamnar på det klickbara elementet med djup`() {
+        // Dagboken sätter stateDescription på ett chip via modifier; med djup hamnade den på en ruta utanför chipet.
+        fun state(text: String) = SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, text)
+        show {
+            Column {
+                AppFilterChip("Imigran", selected = false, onClick = {}, modifier = Modifier.semantics { stateDescription = "Bara idag" })
+                AppButton("Spara", {}, modifier = Modifier.testTag("knapp"))
+            }
+        }
+        rule.onNodeWithText("Imigran").assert(state("Bara idag")).assert(hasClickAction())
+        rule.onNodeWithTag("knapp").assert(hasClickAction())
     }
 
     @Test
@@ -142,7 +160,7 @@ class DepthBehaviorTest {
     @Test
     fun `växeln med djup slås om och har 48 dp tryckyta`() {
         var on by mutableStateOf(false)
-        show { SwitchControl(on, { on = it }, Modifier.testTag("växel"), label = "Påminn") }
+        show { Box(Modifier.testTag("växel")) { SwitchControl(on, { on = it }, label = "Påminn") } }
         rule.onNodeWithContentDescription("Påminn").assertTouchHeightIsEqualTo(48.dp).performClick()
         assertTrue(on)
         rule.onNodeWithTag("växel", useUnmergedTree = true).assertHeightIsAtLeast(48.dp)
