@@ -1,6 +1,8 @@
 package se.kodhast.ui.components
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
@@ -8,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import se.kodhast.ui.theme.AppTheme
 
 /**
  * Inställningsrad med växel: hela raden är tryckytan, TalkBack läser den som en växel. Med [onClick] är
@@ -48,9 +51,26 @@ fun SwitchRow(
 /**
  * Själva växeln – en gång för [SwitchRow] och appens kort med reglage. Utan [onCheckedChange] är den en
  * ren indikator (raden växlar och läser upp den); med är den en egen kontroll som TalkBack läser som [label].
- * [enabled] = false visar läget i Material 3:s inaktiva färger.
+ * [enabled] = false visar läget i Material 3:s inaktiva färger. Med temats djup är spåret sänkt och knoppen
+ * i påslaget läge har en liten skugga; tryckytan på 48 dp ligger då runt växeln i layouten.
  */
 @Composable
 fun SwitchControl(checked: Boolean, onCheckedChange: ((Boolean) -> Unit)?, modifier: Modifier = Modifier, label: String? = null, enabled: Boolean = true) {
-    Switch(checked = checked, onCheckedChange = onCheckedChange, modifier = if (label == null) modifier else modifier.semantics { contentDescription = label }, enabled = enabled)
+    val described = if (label == null) Modifier else Modifier.semantics { contentDescription = label }
+    val depth = AppTheme.depth
+    if (depth == null) {
+        Switch(checked = checked, onCheckedChange = onCheckedChange, modifier = modifier.then(described), enabled = enabled)
+        return
+    }
+    val pill = AppTheme.shapes.pill
+    // Knoppens skugga ritas i knoppen men bara utanför den, så att den faller på spåret.
+    val knob: (@Composable () -> Unit)? = if (checked && enabled) {
+        { Box(Modifier.fillMaxSize().outerShadow(pill, depth.shadow)) }
+    } else {
+        null
+    }
+    val switch = @Composable { placed: Modifier ->
+        Switch(checked, onCheckedChange, placed.then(described).sunken(pill, depth.shadow, over = true), thumbContent = knob, enabled = enabled)
+    }
+    if (onCheckedChange == null) switch(modifier) else DepthTouchTarget(modifier) { switch(it) }
 }

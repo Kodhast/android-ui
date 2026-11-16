@@ -69,7 +69,7 @@ fun List<AppMenuItem>.asSplitMenu(): (@Composable (expanded: Boolean, onDismiss:
 
 /**
  * Själva menyn, förankrad i omgivande `Box` – delas av [AppMenu], [AddSplitButton], [CheckRow] och appens
- * egna knappar som öppnar en meny.
+ * egna knappar som öppnar en meny. Med temats djup får menyn kortens hårfina kant.
  */
 @Composable
 fun AppMenuPopup(items: List<AppMenuItem>, expanded: Boolean, onDismiss: () -> Unit, modifier: Modifier = Modifier) {
@@ -78,7 +78,8 @@ fun AppMenuPopup(items: List<AppMenuItem>, expanded: Boolean, onDismiss: () -> U
         onDismissRequest = onDismiss,
         modifier = modifier,
         shape = AppTheme.shapes.menu,
-        containerColor = AppTheme.extendedColors.card
+        containerColor = AppTheme.extendedColors.card,
+        border = AppTheme.depth?.edgeStroke()
     ) {
         items.forEachIndexed { index, item ->
             val section = item.section

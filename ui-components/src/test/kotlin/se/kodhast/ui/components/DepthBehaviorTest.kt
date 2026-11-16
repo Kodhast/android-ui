@@ -8,7 +8,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.SemanticsNodeInteraction
+import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.assertTouchHeightIsEqualTo
@@ -18,6 +21,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.unit.dp
 import kotlin.test.assertEquals
@@ -26,6 +30,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import se.kodhast.ui.components.testing.SampleSwatches
 import se.kodhast.ui.components.testing.TestTheme
 
 /** Temats djup (`AppTheme.depth`): tryckytor och klick som förut, och att knappen krymper bara när den kan tryckas. */
@@ -117,6 +122,57 @@ class DepthBehaviorTest {
         show { AppIconButton(R.drawable.ic_arrow_back, "Tillbaka", { clicks++ }, variant = IconButtonVariant.Tonal) }
         rule.onNodeWithContentDescription("Tillbaka").assertTouchHeightIsEqualTo(48.dp).performClick()
         assertEquals(1, clicks)
+    }
+
+    @Test
+    fun `stegarens knappar med djup ändrar värdet och krymper nedtryckta`() {
+        var value by mutableIntStateOf(2)
+        show { QuantityStepper(value, { value = it }, "doser per dag") }
+        rule.onNodeWithContentDescription("Öka doser per dag").performClick()
+        assertEquals(3, value)
+        assertTrue(pressedWidthRatio(rule.onNodeWithContentDescription("Minska doser per dag")) < 0.95f)
+    }
+
+    @Test
+    fun `stegarens inaktiva knapp krymper inte med djup`() {
+        show { QuantityStepper(0, {}, "doser per dag") }
+        assertEquals(1f, pressedWidthRatio(rule.onNodeWithContentDescription("Minska doser per dag")))
+    }
+
+    @Test
+    fun `växeln med djup slås om och har 48 dp tryckyta`() {
+        var on by mutableStateOf(false)
+        show { SwitchControl(on, { on = it }, Modifier.testTag("växel"), label = "Påminn") }
+        rule.onNodeWithContentDescription("Påminn").assertTouchHeightIsEqualTo(48.dp).performClick()
+        assertTrue(on)
+        rule.onNodeWithTag("växel", useUnmergedTree = true).assertHeightIsAtLeast(48.dp)
+    }
+
+    @Test
+    fun `raden med växel och djup slås om`() {
+        var on by mutableStateOf(true)
+        show { SwitchRow("Påminn kvällen innan", on, { on = it }) }
+        rule.onNodeWithText("Påminn kvällen innan").performClick()
+        assertEquals(false, on)
+    }
+
+    @Test
+    fun `fältet med djup tar emot text och visar fel`() {
+        var text by mutableStateOf("")
+        show { AppTextField(text, { text = it }, "Dos", error = "Fyll i dosen".takeIf { text.isEmpty() }) }
+        rule.onNodeWithText("Dos").assert(SemanticsMatcher.keyIsDefined(SemanticsProperties.Error))
+        rule.onNodeWithText("Dos").performTextInput("2")
+        assertEquals("2", text)
+        rule.onNodeWithText("Dos").assert(SemanticsMatcher.keyNotDefined(SemanticsProperties.Error))
+    }
+
+    @Test
+    fun `färgväljaren med djup byter val`() {
+        var selected by mutableStateOf(SampleSwatches.hexes.first())
+        show { ColorSwatchPicker(SampleSwatches.hexes, selected, { selected = it }, SampleSwatches::color, { SampleSwatches.label(it) }, SwatchMarker.GridRing) }
+        val second = SampleSwatches.hexes[1]
+        rule.onNodeWithContentDescription(SampleSwatches.label(second)).performClick()
+        assertEquals(second, selected)
     }
 
     private companion object {

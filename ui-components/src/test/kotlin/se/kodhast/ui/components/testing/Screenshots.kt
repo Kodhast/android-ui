@@ -32,23 +32,25 @@ fun captureLightAndDark(name: String, depth: Boolean = false, content: @Composab
  * Som [captureLightAndDark], men i en compose-regel: innehållet sätts en gång och byter bara
  * tema, så att effekter som redan körts (t.ex. en visad snackbar) finns med i båda bilderna.
  * [settle] väntar in varje bild; en tidsbegränsad snackbar kräver en fast tid i stället för
- * `waitForIdle`, som annars spolar fram tills den försvunnit.
+ * `waitForIdle`, som annars spolar fram tills den försvunnit. Med [depth] i testtemats djup.
  */
 fun ComposeContentTestRule.captureLightAndDark(
     name: String,
     settle: ComposeContentTestRule.() -> Unit = { waitForIdle() },
+    depth: Boolean = false,
     content: @Composable () -> Unit
-) = captureThemes(name, settle, content) { onRoot().captureRoboImage(it) }
+) = captureThemes(name, settle, depth, content) { onRoot().captureRoboImage(it) }
 
 /**
  * Som [captureLightAndDark], men fotograferar hela skärmen – för dialoger, menyer och sheets,
  * som ritas i egna fönster ovanpå innehållet. [open] körs före bilderna (t.ex. [clickWithoutRipple]
- * på knappen som öppnar menyn).
+ * på knappen som öppnar menyn). Med [depth] i testtemats djup.
  */
 @OptIn(ExperimentalRoborazziApi::class)
 fun ComposeContentTestRule.captureScreenLightAndDark(
     name: String,
     open: ComposeContentTestRule.() -> Unit = {},
+    depth: Boolean = false,
     content: @Composable () -> Unit
 ) {
     var opened = false
@@ -59,17 +61,18 @@ fun ComposeContentTestRule.captureScreenLightAndDark(
             opened = true
             waitForIdle()
         }
-    }, content) { captureScreenRoboImage(it) }
+    }, depth, content) { captureScreenRoboImage(it) }
 }
 
 private fun ComposeContentTestRule.captureThemes(
     name: String,
     settle: ComposeContentTestRule.() -> Unit,
+    depth: Boolean,
     content: @Composable () -> Unit,
     capture: (String) -> Unit
 ) {
     var dark by mutableStateOf(false)
-    setContent { TestTheme(darkTheme = dark, content = content) }
+    setContent { TestTheme(darkTheme = dark, depth = depth, content = content) }
     for ((suffix, isDark) in themes) {
         dark = isDark
         settle()
