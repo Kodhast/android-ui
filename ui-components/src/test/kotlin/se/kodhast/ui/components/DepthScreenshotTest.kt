@@ -118,6 +118,20 @@ class DepthScreenshotTest {
         }
     }
 
+    @Test
+    fun `AppCard - skimmer upptill på kort och översta biten, inte på tonat eller konturerat`() = captureLightAndDark("AppCard_djup_skimmer", depth = true, cardSheen = true) {
+        SampleSheet {
+            AppCard(onClick = {}) {
+                ItemRow("Resa till Kreta", subtitle = "12–19 juni · 3 personer", navigates = true)
+                ItemRow("Packlistan", subtitle = "14 av 20 packade")
+            }
+            Column3Segments()
+            AppCard(tone = Tone.Green) { ItemRow("Allt packat", subtitle = "Inget saknas") }
+            val outlined = AppCardStyle(border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant))
+            AppCard(style = outlined) { Text("Egen kontur: inget skimmer", style = AppTheme.typography.body) }
+        }
+    }
+
     @Composable
     private fun Column3Segments() {
         Column {

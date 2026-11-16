@@ -147,6 +147,17 @@ internal fun Modifier.cardDepth(shape: Shape, shadow: Color, edge: Color?, top: 
 }
 
 /**
+ * Kortets skimmer ([AppDepth.cardSheen]): tonar från [color] till genomskinligt över de översta
+ * [CARD_SHEEN_HEIGHT], klippt till formen. Ritas på ytan men bakom innehållet, så att texten inte tonas.
+ */
+internal fun Modifier.cardSheen(shape: Shape, color: Color): Modifier = drawWithCache {
+    val body = Path().apply { addOutline(shape.createOutline(size, layoutDirection, this@drawWithCache)) }
+    val height = minOf(CARD_SHEEN_HEIGHT.toPx(), size.height)
+    val brush = Brush.verticalGradient(0f to color, 1f to color.copy(alpha = 0f), endY = CARD_SHEEN_HEIGHT.toPx())
+    onDrawBehind { clipPath(body) { drawRect(brush, size = Size(size.width, height)) } }
+}
+
+/**
  * Skugga bara utanför [shape] – för det som inte täcker hela sin form: en bock som tonar in, en vald ring med
  * luft innanför, reglagets knopp. En vanlig skugga skulle synas genom det genomskinliga. Tonar med [lift].
  */
@@ -276,6 +287,9 @@ private val EDGE: Dp = 1.dp
 private val CARD_RADIUS: Dp = 18.dp
 private val CARD_SPREAD: Dp = (-6).dp
 private const val CARD_NEAR_ALPHA = 0.35f
+
+/** Kortets skimmer upptill ([AppDepth.cardSheen]): hur långt ned det tonar ut. */
+private val CARD_SHEEN_HEIGHT: Dp = 64.dp
 
 /** Ett valt chip eller segment lyfter mindre än en knapp. */
 private const val SELECTED_ALPHA = 0.6f

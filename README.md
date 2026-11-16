@@ -70,7 +70,7 @@ AppTheme.extendedColors   // card, rowTint, toolbar, onToolbar, tones, accents
 AppTheme.shapes           // card, cardSegment(top, bottom), row, pill, field, menu, sheet, smallTile, iconTile
 AppTheme.typography       // screenTitle, bigNumber, headline, sectionTitle, quantity, itemTitle, itemSubtitle, body, pill, caption, button
 AppTheme.tone(tone)       // ToneColors(container, content)
-AppTheme.depth            // AppDepth?: highlight, sheen, shadow, cardEdge, cardShadow, pressedScale
+AppTheme.depth            // AppDepth?: highlight, sheen, shadow, cardEdge, cardShadow, pressedScale, cardSheen
 Spacing.xs … Spacing.xxl  // 4, 8, 12, 16, 24, 32 dp
 ```
 
@@ -85,7 +85,8 @@ Spacing.xs … Spacing.xxl  // 4, 8, 12, 16, 24, 32 dp
   en tonad skugga, och sjunker in (krymper till `pressedScale`, skuggan tonar bort) när de trycks.
   Valda chips, segment och verktygsradens flik får ljuskanten och skimret, tonade ikonknappar en
   liten skugga, och kort en mjuk skugga och en hårfin kant (`cardEdge`; inte på tonade kort eller kort
-  med egen kontur). Bitar av ett kort (`CardSegment`) ritas som ett kort utan skarvar. Den ifyllda
+  med egen kontur). Med `cardSheen` får samma kort ett svagt skimmer som tonar ut över de översta 64 dp
+  (i en lista av bitar bara den översta; standard `null` = inget). Bitar av ett kort (`CardSegment`) ritas som ett kort utan skarvar. Den ifyllda
   bocken i `MorphingCheck`/`CheckRow` får ljuskant och en liten skugga; `QuantityStepper` får ett sänkt
   spår och upphöjda knappar som krymper nedtryckta; `SwitchControl`/`SwitchRow` ett sänkt spår och en
   liten skugga under den påslagna knoppen; det valda i `ChoiceGrid` med ring (`ColorSwatchPicker`,
@@ -289,6 +290,7 @@ pusha taggar och använder därför den manuella vägen.
 
 | Version | Ändring |
 |---|---|
+| 1.5.0 | Kortens skimmer (#40): `AppDepth(cardSheen = …)` ger kort i kortfärgen ett svagt skimmer som tonar ut över de översta 64 dp – inte tonade kort eller kort med egen kontur, och i en lista av bitar bara den översta. Standard `null` bevarar dagens utseende; inga befintliga skärmdumpar är omtagna |
 | 1.4.1 | Rättning för #35: med djup satt sig `modifier` på knappar, chips och segmentval på en ruta utanför elementet, så att en apps semantik (`stateDescription`, `testTag`) inte hamnade på den klickbara noden och TalkBack inte läste den. Tryckytan är nu en layoutmodifierare i elementets egen kedja; utseendet är oförändrat och inga skärmdumpar är omtagna |
 | 1.4.0 | Djup och tryckkänsla, del 2 av #35: med `AppTheme.depth` får kryssets bock, stegaren, växeln, det valda i färg- och emojiväljaren, fältet i fokus (fokusring), meddelandet, menyn och dialogerna djup (se Djup under ui-theme). `AppTextField` byggs nu på `BasicTextField` med Material 3:s `DecorationBox`, så att fokusringen kan ritas utanför kanten – utseende och beteende utan djup är desamma. Standard `depth = null` bevarar dagens utseende; inga befintliga skärmdumpar är omtagna |
 | 1.3.0 | Djup och tryckkänsla, del 1 av #35: `AppTheme(depth = AppDepth(…))` ger knappar, ikonknappar, valda chips och segment, verktygsradens valda flik och kort ljuskant, skimmer, skugga och nedtryckt läge (se Djup under ui-theme). Standard `depth = null` bevarar dagens utseende; inga befintliga skärmdumpar är omtagna |

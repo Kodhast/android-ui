@@ -62,7 +62,7 @@ val LocalAppCardStyle = staticCompositionLocalOf { AppCardStyle() }
  * standard ärvs den omgivande. Med [onClick] är hela kortet en klickbar yta som TalkBack läser som
  * en nod. [style] är appens kortstil (kontur, luft), standard [LocalAppCardStyle]. Med temats djup får kortet en
  * mjuk skugga och en hårfin kant (inte ett tonat kort, och inte om stilen har en egen kontur), och ett klickbart
- * kort krymper lite nedtryckt.
+ * kort krymper lite nedtryckt. Med temats `cardSheen` får samma kort ett svagt skimmer upptill.
  */
 @Composable
 fun AppCard(
@@ -106,7 +106,10 @@ fun CardSegment(
     val depth = AppTheme.depth
     val border = style.border
     // Med temats djup får ett kort i kortfärgen en hårfin kant om stilen inte har en egen; ett tonat kort ingen.
-    val edge = depth?.cardEdge?.takeIf { border == null && color == AppTheme.extendedColors.card }
+    val plain = border == null && color == AppTheme.extendedColors.card
+    val edge = depth?.cardEdge?.takeIf { plain }
+    // Skimret upptill bara på kortets översta bit, så att en lista av bitar ser ut som ett kort.
+    val sheen = depth?.cardSheen?.takeIf { plain && top }
     val interactionSource = remember { MutableInteractionSource() }
     val depthModifier = if (depth == null) {
         Modifier
@@ -124,6 +127,7 @@ fun CardSegment(
                 .then(depthModifier)
                 .fillMaxWidth()
                 .background(color, shape)
+                .then(if (sheen != null) Modifier.cardSheen(shape, sheen) else Modifier)
                 .then(if (border != null) Modifier.border(border, shape) else Modifier)
                 .then(if (onClick != null) Modifier.clip(shape).clickable(interactionSource, LocalIndication.current, onClick = onClick) else Modifier)
                 .padding(
