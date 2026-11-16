@@ -6,6 +6,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TimePickerDialog
+import androidx.compose.material3.TimePickerDialogDefaults
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -51,13 +52,13 @@ fun TimeField(
     }
 }
 
-/** Tidsväljaren (24 timmar) med [title], OK och Avbryt – för [TimeField] och appens egna tidsrader. */
+/** Tidsväljaren (24 timmar) med [title], OK och Avbryt – för [TimeField] och appens egna tidsrader. Med temats djup får den kanten som [ConfirmDialog]. */
 @Composable
 fun TimePickerPopup(time: LocalTime, title: String, onPick: (LocalTime) -> Unit, onDismiss: () -> Unit, modifier: Modifier = Modifier) {
     val state = rememberTimePickerState(initialHour = time.hour, initialMinute = time.minute, is24Hour = true)
     TimePickerDialog(
         onDismissRequest = onDismiss,
-        modifier = modifier,
+        modifier = modifier.floating(TimePickerDialogDefaults.shape, shadow = false),
         confirmButton = { AppButton(stringResource(R.string.ok), onClick = { onPick(LocalTime(state.hour, state.minute)) }, variant = ButtonVariant.Text) },
         title = { Text(title, style = AppTheme.typography.sectionTitle) },
         dismissButton = { AppButton(stringResource(R.string.cancel), onDismiss, variant = ButtonVariant.Text) },

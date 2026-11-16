@@ -11,6 +11,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.toPath
+import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -24,11 +25,13 @@ import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.graphics.shapes.Morph
+import se.kodhast.ui.theme.AppTheme
 
 /**
  * Det formmorfande krysset – en ring som fjädrar till en fylld "kaka" med bock när [checked].
  * Bara visning, utan semantik: raden som visar det bär rollen ([CheckRow] är en kryssruta, appens
- * egna rader t.ex. ett loggat tillfälle). Läggs i en [LeadingSlot], så att titlarna linjerar.
+ * egna rader t.ex. ett loggat tillfälle). Läggs i en [LeadingSlot], så att titlarna linjerar. Med temats
+ * djup får den ifyllda kakan ljuskant, skimmer och en liten skugga, som tonar in med fyllningen.
  */
 @Composable
 fun MorphingCheck(checked: Boolean, modifier: Modifier = Modifier) {
@@ -39,7 +42,12 @@ fun MorphingCheck(checked: Boolean, modifier: Modifier = Modifier) {
     )
     val morph = remember { Morph(MaterialShapes.Circle, MaterialShapes.Cookie9Sided) }
     val color = MaterialTheme.colorScheme.primary
+    val depth = AppTheme.depth
+    val filled = MaterialShapes.Cookie9Sided.toShape()
+    val lift = { progress }
     Box(modifier.size(SIZE), contentAlignment = Alignment.Center) {
+        // Kakan ritas innanför ringens halva linjebredd; djupet följer dess form.
+        if (depth != null) Box(Modifier.size(SIZE - STROKE).outerShadow(filled, depth.shadow, lift))
         Canvas(Modifier.size(SIZE)) {
             val path = morph.toPath(progress)
             val stroke = STROKE.toPx()
@@ -52,6 +60,7 @@ fun MorphingCheck(checked: Boolean, modifier: Modifier = Modifier) {
                 }
             }
         }
+        if (depth != null) Box(Modifier.size(SIZE - STROKE).sheen(filled, depth, lift))
         Icon(
             painterResource(R.drawable.ic_check),
             contentDescription = null,

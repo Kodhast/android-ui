@@ -1,31 +1,44 @@
 package se.kodhast.ui.components
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.LocalRippleConfiguration
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.requestFocus
 import androidx.compose.ui.unit.dp
 import com.github.takahirom.roborazzi.captureRoboImage
+import kotlinx.datetime.LocalTime
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import se.kodhast.ui.components.testing.Green
 import se.kodhast.ui.components.testing.SampleSheet
+import se.kodhast.ui.components.testing.SampleSwatches
 import se.kodhast.ui.components.testing.TestTheme
 import se.kodhast.ui.components.testing.captureLightAndDark
+import se.kodhast.ui.components.testing.captureScreenLightAndDark
+import se.kodhast.ui.components.testing.clickWithoutRipple
 import se.kodhast.ui.theme.AppTheme
 import se.kodhast.ui.theme.Spacing
 import se.kodhast.ui.theme.Tone
@@ -132,8 +145,95 @@ class DepthScreenshotTest {
         }
     }
 
+    @Test
+    fun `kontroller med djup`() = captureLightAndDark("Kontroller_djup", depth = true) {
+        SampleSheet {
+            AppCard {
+                CheckRow("Alvedon 500 mg", checked = false, onCheckedChange = {}, subtitle = "9 tabletter")
+                CheckRow("Solkräm", checked = true, onCheckedChange = {}, subtitle = "1 tub")
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
+                QuantityStepper(2, {}, "doser per dag")
+                QuantityStepper(0, {}, "tabletter")
+            }
+            AppCard {
+                SwitchRow("Påminn kvällen innan", checked = true, onCheckedChange = {})
+                SwitchRow("Visa packade sist", checked = false, onCheckedChange = {})
+                SwitchRow("Påminnelse 08:00", checked = true, onCheckedChange = {}, onClick = {})
+            }
+            ColorSwatchPicker(SampleSwatches.hexes, "#3B7EA1", {}, SampleSwatches::color, { SampleSwatches.label(it) }, SwatchMarker.GridRing)
+            EmojiPicker("🐻", {}, listOf("🦊", "🐻", "🐰", "🦉"))
+        }
+    }
+
+    /** Fältet i fokus: klockan står still, och bilderna tas en hel blinkperiod isär, så att markören syns lika i båda. */
+    @Test
+    fun `fältet i fokus med djup`() {
+        rule.mainClock.autoAdvance = false
+        var focused = false
+        rule.captureLightAndDark("AppTextField_djup_fokus", depth = true, settle = {
+            if (!focused) {
+                onNodeWithTag("namn").requestFocus()
+                focused = true
+                mainClock.advanceTimeBy(FOCUS_MILLIS)
+            } else {
+                mainClock.advanceTimeBy(BLINK_MILLIS)
+            }
+        }) {
+            SampleSheet {
+                AppTextField("Solkräm", {}, "Namn", Modifier.testTag("namn"))
+                AppTextField("", {}, "Dos", error = "Fyll i dosen")
+                AppTextField("Kreta", {}, "Resmål")
+            }
+        }
+    }
+
+    @Test
+    fun `meddelande med djup, ljust`() = captureSnackbar(dark = false)
+
+    @Test
+    fun `meddelande med djup, mörkt`() = captureSnackbar(dark = true)
+
+    /** Ett tema per test: ett temabyte i samma komposition slår inte igenom medan meddelandet visas. */
+    private fun captureSnackbar(dark: Boolean) {
+        rule.mainClock.autoAdvance = false
+        rule.setContent {
+            TestTheme(darkTheme = dark, depth = true) {
+                val host = remember { SnackbarHostState() }
+                UndoSnackbar(UndoRequest("1", "Solkräm"), host, onUndo = {}, onDismissed = {})
+                Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background), contentAlignment = Alignment.BottomCenter) { AppSnackbarHost(host) }
+            }
+        }
+        rule.mainClock.advanceTimeBy(SHOWN_MILLIS)
+        rule.onRoot().captureRoboImage("AppSnackbarHost_djup_${if (dark) "dark" else "light"}.png")
+    }
+
+    @Test
+    fun `meny med djup`() = rule.captureScreenLightAndDark("AppMenu_djup", open = { onNodeWithContentDescription("Fler val").clickWithoutRipple() }, depth = true) {
+        Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(Spacing.l), contentAlignment = Alignment.TopEnd) {
+            AppMenu(listOf(AppMenuItem("Redigera", {}), AppMenuItem("Flytta till resa", {}), AppMenuItem("Radera", {}, R.drawable.ic_remove, destructive = true)))
+        }
+    }
+
+    @Test
+    fun `dialog med djup`() = rule.captureScreenLightAndDark("ConfirmDialog_djup", depth = true) {
+        Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+            DeleteConfirmDialog(DeleteAction("Radera Solkräm?", "Den försvinner från alla resor.") {}, onDismiss = {})
+        }
+    }
+
+    @Test
+    fun `tidsväljaren med djup`() = rule.captureScreenLightAndDark("TimePickerPopup_djup", depth = true) {
+        Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+            TimePickerPopup(LocalTime(8, 0), "Välj tid", {}, {})
+        }
+    }
+
     private companion object {
         const val SETTLE_MILLIS = 1_000L
+        const val SHOWN_MILLIS = 600L
+        const val FOCUS_MILLIS = 250L
+        const val BLINK_MILLIS = 1_000L
         val TABS = listOf(ToolbarItem("Resor", R.drawable.ic_box), ToolbarItem("Idag", R.drawable.ic_clock), ToolbarItem("Lägg till", R.drawable.ic_add))
     }
 }

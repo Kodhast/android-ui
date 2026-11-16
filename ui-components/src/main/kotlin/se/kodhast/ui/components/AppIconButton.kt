@@ -76,5 +76,5 @@ fun AppIconButton(
     }
 }
 
-/** En liten ikonknapp krymper mer än en bred knapp för att trycket ska synas (0,97 → 0,92). */
-private const val ICON_PRESS = 8f / 3f
+/** En liten ikonknapp (och stegarens knoppar) krymper mer än en bred knapp för att trycket ska synas (0,97 → 0,92). */
+internal const val ICON_PRESS = 8f / 3f

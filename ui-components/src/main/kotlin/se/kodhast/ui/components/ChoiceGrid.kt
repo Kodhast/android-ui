@@ -32,7 +32,7 @@ import se.kodhast.ui.theme.Spacing
  * som är valt. [cell] ritar innehållet och får veta om det är valt. Med [selectionRing] äger
  * rutnätet valmarkeringen – en ring i primärfärgen runt den valda cellen, med luft mellan ringen och
  * innehållet (Dagboken); standard ritar [cell] sin egen markering. [ringColor] är ringens färg. [columns]
- * under 1 räknas som 1.
+ * under 1 räknas som 1. Med temats djup och [selectionRing] lyfts det valda med en liten skugga runt ringen.
  */
 @Composable
 fun <T> ChoiceGrid(
@@ -46,6 +46,7 @@ fun <T> ChoiceGrid(
     ringColor: Color = MaterialTheme.colorScheme.primary,
     cell: @Composable (item: T, selected: Boolean) -> Unit
 ) {
+    val depth = AppTheme.depth
     BoxWithConstraints(modifier.fillMaxWidth()) {
         // Så många per rad som får plats med full tryckyta, högst [columns].
         val perRow = (maxWidth / TOUCH_TARGET).toInt().coerceIn(1, columns.coerceAtLeast(1))
@@ -63,7 +64,13 @@ fun <T> ChoiceGrid(
                                 .semantics { contentDescription = description },
                             contentAlignment = Alignment.Center
                         ) {
-                            val ring = if (selectionRing && isSelected) Modifier.border(RING, ringColor, AppTheme.shapes.pill).padding(RING_GAP) else Modifier
+                            val pill = AppTheme.shapes.pill
+                            val ring = if (selectionRing && isSelected) {
+                                val lifted = if (depth != null) Modifier.outerShadow(pill, depth.shadow) else Modifier
+                                lifted.border(RING, ringColor, pill).padding(RING_GAP)
+                            } else {
+                                Modifier
+                            }
                             Box(Modifier.size(CELL).then(ring), contentAlignment = Alignment.Center) { cell(item, isSelected) }
                         }
                     }

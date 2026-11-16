@@ -10,9 +10,10 @@ import androidx.compose.ui.graphics.Color
  *
  * - [highlight]: ljuskanten, 1 dp innanför överkanten på knappar och valda element.
  * - [sheen]: skimret överst på fyllda knappar och valda element; tonar ut ovanför texten.
- * - [shadow]: skuggan under knappar och valda element, tonad i appens färg.
- * - [cardEdge]: hårfin kant runt kort utan egen kontur – i mörkt den ljusa kant som ger kortet djup.
- * - [cardShadow]: kortens mjuka skugga.
+ * - [shadow]: skuggan under knappar och valda element, tonad i appens färg; också det sänkta spåret i stegaren och växeln.
+ * - [cardEdge]: hårfin kant runt kort utan egen kontur – i mörkt den ljusa kant som ger kortet djup. Samma kant
+ *   runt meddelandet, menyn och dialogerna.
+ * - [cardShadow]: kortens mjuka skugga, och skuggan under det som flyter (meddelandet).
  * - [pressedScale]: hur stor en knapp är nedtryckt (0,97 = krymper 3 %).
  */
 @Immutable

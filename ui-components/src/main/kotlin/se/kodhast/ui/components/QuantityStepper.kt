@@ -2,6 +2,7 @@ package se.kodhast.ui.components
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -15,6 +16,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -51,7 +53,8 @@ val LocalQuantityStepperButtonSize = compositionLocalOf { QuantityStepperDefault
  * enhet ("4 h", "Ingen spärr" för 0); TalkBack läser då [label] och texten ("minsta tid mellan
  * doser 4 h") – [label] ska alltså inte ha någon enhet. Utan [valueText] visas talet och TalkBack
  * läser "2 doser per dag". [buttonSize] är knapparnas storlek ([QuantityStepperDefaults]; standard
- * [LocalQuantityStepperButtonSize]).
+ * [LocalQuantityStepperButtonSize]). Med temats djup är spåret sänkt och knapparna upphöjda knoppar som
+ * krymper nedtryckta, som ikonknapparna.
  */
 @Composable
 fun QuantityStepper(
@@ -69,8 +72,10 @@ fun QuantityStepper(
         containerColor = AppTheme.extendedColors.card,
         contentColor = MaterialTheme.colorScheme.onSurface
     )
+    val depth = AppTheme.depth
+    val track = modifier.background(AppTheme.extendedColors.rowTint, AppTheme.shapes.pill)
     Row(
-        modifier.background(AppTheme.extendedColors.rowTint, AppTheme.shapes.pill).padding(Spacing.xs),
+        (if (depth == null) track else track.sunken(AppTheme.shapes.pill, depth.shadow)).padding(Spacing.xs),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.xs)
     ) {
@@ -96,7 +101,19 @@ fun QuantityStepper(
 
 @Composable
 private fun StepButton(@DrawableRes icon: Int, description: String, enabled: Boolean, size: Dp, colors: IconButtonColors, onClick: () -> Unit) {
-    FilledIconButton(onClick = onClick, modifier = Modifier.size(size), enabled = enabled, colors = colors) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val depth = AppTheme.depth
+    val knob = if (depth == null) {
+        Modifier
+    } else {
+        val lift = rememberLift(interactionSource, enabled)
+        val liftValue = { lift.value }
+        val shape = AppTheme.shapes.pill
+        Modifier
+            .pressScale(depth, liftValue, ICON_PRESS)
+            .then(if (enabled) Modifier.raisedShadow(shape, depth.shadow, Lift.Selected, liftValue).sheen(shape, depth, liftValue) else Modifier)
+    }
+    FilledIconButton(onClick = onClick, modifier = Modifier.size(size).then(knob), enabled = enabled, colors = colors, interactionSource = interactionSource) {
         Icon(painterResource(icon), description)
     }
 }

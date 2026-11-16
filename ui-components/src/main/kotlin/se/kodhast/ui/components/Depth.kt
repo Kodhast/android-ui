@@ -1,6 +1,7 @@
 package se.kodhast.ui.components
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.interaction.InteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
@@ -20,6 +21,7 @@ import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.ClipOp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathOperation
@@ -38,6 +40,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import se.kodhast.ui.theme.AppDepth
+import se.kodhast.ui.theme.AppTheme
 
 // Djupet (AppTheme.depth, android-ui #35) ritas bara här, så att knappar, chips, flikar och kort ser likadana ut.
 
@@ -146,6 +149,93 @@ internal fun Modifier.cardDepth(shape: Shape, shadow: Color, edge: Color?, top: 
 }
 
 /**
+ * Skugga bara utanför [shape] – för det som inte täcker hela sin form: en bock som tonar in, en vald ring med
+ * luft innanför, reglagets knopp. En vanlig skugga skulle synas genom det genomskinliga. Tonar med [lift].
+ */
+@Composable
+internal fun Modifier.outerShadow(shape: Shape, color: Color, lift: () -> Float = { 1f }): Modifier {
+    val shadows = LocalGraphicsContext.current.shadowContext
+    val painter = remember(shadows, shape, color) {
+        shadows.createDropShadowPainter(shape, Shadow(NEAR_RADIUS, color, offset = DpOffset(0.dp, NEAR_OFFSET), alpha = SELECTED_ALPHA))
+    }
+    return drawWithCache {
+        val body = Path().apply { addOutline(shape.createOutline(size, layoutDirection, this@drawWithCache)) }
+        onDrawBehind {
+            val alpha = lift().coerceIn(0f, 1f)
+            if (alpha > 0f) clipPath(body, ClipOp.Difference) { with(painter) { draw(size, alpha) } }
+        }
+    }
+}
+
+/**
+ * Ett sänkt spår ([QuantityStepper], reglaget): en svag inre skugga upptill i [color]. [over] = ritas ovanpå
+ * innehållet (reglaget, vars spår är innehållet); annars bakom (stegarens knappar ligger ovanpå).
+ */
+@Composable
+internal fun Modifier.sunken(shape: Shape, color: Color, over: Boolean = false): Modifier {
+    val shadows = LocalGraphicsContext.current.shadowContext
+    val painter = remember(shadows, shape, color) {
+        shadows.createInnerShadowPainter(shape, Shadow(SUNKEN_RADIUS, color, offset = DpOffset(0.dp, SUNKEN_OFFSET), alpha = SUNKEN_ALPHA))
+    }
+    return drawWithContent {
+        if (over) drawContent()
+        with(painter) { draw(size) }
+        if (!over) drawContent()
+    }
+}
+
+/**
+ * Det som flyter över innehållet (snackbar, dialog): en tonad skugga i två lager i [AppDepth.cardShadow] och
+ * kortens hårfina kant ([AppDepth.cardEdge]) ovanpå ytan. [inset] = luften som komponenten själv lägger runt
+ * sin yta innanför modifieraren (Material 3:s snackbar). [shadow] = false: bara kanten – för en dialog, vars
+ * fönster klipper skuggan och vars bakgrund redan är nedtonad.
+ */
+@Composable
+internal fun Modifier.floatingDepth(shape: Shape, depth: AppDepth, inset: Dp = 0.dp, shadow: Boolean = true): Modifier {
+    val shadows = LocalGraphicsContext.current.shadowContext
+    val near = remember(shadows, shape, depth.cardShadow) {
+        shadows.createDropShadowPainter(shape, Shadow(FLOAT_NEAR_RADIUS, depth.cardShadow, offset = DpOffset(0.dp, FLOAT_NEAR_OFFSET), alpha = CARD_NEAR_ALPHA))
+    }
+    val far = remember(shadows, shape, depth.cardShadow) {
+        shadows.createDropShadowPainter(shape, Shadow(FLOAT_RADIUS, depth.cardShadow, spread = FLOAT_SPREAD, offset = DpOffset(0.dp, FLOAT_OFFSET)))
+    }
+    return drawWithContent {
+        val gap = inset.toPx()
+        val surface = Size(size.width - 2 * gap, size.height - 2 * gap)
+        if (shadow) {
+            translate(gap, gap) {
+                with(far) { draw(surface) }
+                with(near) { draw(surface) }
+            }
+        }
+        drawContent()
+        val width = EDGE.toPx()
+        val outline = shape.createOutline(Size(surface.width - width, surface.height - width), layoutDirection, this)
+        translate(gap + width / 2, gap + width / 2) { drawOutline(outline, depth.cardEdge, style = Stroke(width)) }
+    }
+}
+
+/** Kortens hårfina kant som ram – för ytor med egen kantparameter (menyn). */
+internal fun AppDepth.edgeStroke(): BorderStroke = BorderStroke(EDGE, cardEdge)
+
+/** Ett element som flyter med temats djup ([floatingDepth]), annars oförändrat. */
+@Composable
+internal fun Modifier.floating(shape: Shape, inset: Dp = 0.dp, shadow: Boolean = true): Modifier = AppTheme.depth?.let { floatingDepth(shape, it, inset, shadow) } ?: this
+
+/**
+ * Fältets fokusring: en mjuk ring ([HALO] bred) i [color] utanför fältets kant. [visible] tonar den (0–1).
+ * Ritas bakom fältet, utanför dess yta, och tar ingen plats i layouten.
+ */
+internal fun Modifier.focusHalo(shape: Shape, color: Color, visible: () -> Float): Modifier = drawWithCache {
+    val width = HALO.toPx()
+    val outline = shape.createOutline(Size(size.width + width, size.height + width), layoutDirection, this)
+    onDrawBehind {
+        val alpha = visible().coerceIn(0f, 1f)
+        if (alpha > 0f) translate(-width / 2, -width / 2) { drawOutline(outline, color, alpha = alpha, style = Stroke(width)) }
+    }
+}
+
+/**
  * Tryckytan (48 dp) i layouten runt elementet, medan djupet ritas på själva elementet – annars hamnar
  * ljuskanten och skuggan på tryckytan runt något lägre (`compact`). [modifier] (storlek och plats) sitter
  * på tryckytan; elementet får dess bredd men sin egen höjd, centrerat.
@@ -187,3 +277,18 @@ private const val CARD_NEAR_ALPHA = 0.35f
 
 /** Ett valt chip eller segment lyfter mindre än en knapp. */
 private const val SELECTED_ALPHA = 0.6f
+
+/** Det sänkta spåret: en kort inre skugga upptill, svagare än knapparnas. */
+private val SUNKEN_RADIUS: Dp = 3.dp
+private val SUNKEN_OFFSET: Dp = 1.dp
+private const val SUNKEN_ALPHA = 0.5f
+
+/** Det som flyter: en nära skugga och en lång, mjuk – längre än kortens, eftersom ytan ligger högre. */
+private val FLOAT_NEAR_RADIUS: Dp = 4.dp
+private val FLOAT_NEAR_OFFSET: Dp = 2.dp
+private val FLOAT_RADIUS: Dp = 24.dp
+private val FLOAT_SPREAD: Dp = (-8).dp
+private val FLOAT_OFFSET: Dp = 10.dp
+
+/** Fokusringens bredd utanför fältets kant. */
+private val HALO: Dp = 4.dp
