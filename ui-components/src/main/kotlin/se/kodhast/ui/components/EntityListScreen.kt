@@ -159,7 +159,7 @@ fun <T> EntityListScreen(
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
             filter?.let { Box(Modifier.padding(start = Spacing.l, end = Spacing.l, bottom = Spacing.m)) { it() } }
-            RefreshBox(refreshing, onRefresh, Modifier.fillMaxWidth().weight(1f)) {
+            AppPullToRefresh(refreshing, onRefresh, Modifier.fillMaxWidth().weight(1f)) {
                 when (state) {
                     ListUiState.Loading -> AppLoading()
 

@@ -119,6 +119,33 @@ class OverlayScreenshotTest {
     }
 
     @Test
+    fun `AppFloatingToolbar - huvudknapp med meny`() = rule.captureScreenLightAndDark(
+        "AppFloatingToolbar_huvudknapp_meny",
+        open = { onNodeWithContentDescription("Lägg till").clickWithoutRipple() }
+    ) {
+        // Fonder: plusknappen fäller ut de fyra sätten att lägga till.
+        Background {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
+                AppFloatingToolbar(
+                    listOf(ToolbarItem("Översikt", R.drawable.ic_clock), ToolbarItem("Innehav", R.drawable.ic_box), ToolbarItem("Beslut", R.drawable.ic_check)),
+                    1,
+                    {},
+                    action = ToolbarAction(
+                        "Lägg till",
+                        R.drawable.ic_add,
+                        listOf(
+                            AppMenuItem("Registrera köp", {}),
+                            AppMenuItem("Registrera sälj", {}),
+                            AppMenuItem("Importera innehav", {}),
+                            AppMenuItem("Importera ordrar", {})
+                        )
+                    )
+                )
+            }
+        }
+    }
+
+    @Test
     fun `ConfirmDialog - bekräftelse`() = rule.captureScreenLightAndDark("ConfirmDialog_standard") {
         Background { ConfirmDialog("Räkna om listan?", "Det du ändrat för hand ersätts.", "Räkna om", {}, {}, dismissLabel = "Behåll listan") }
     }

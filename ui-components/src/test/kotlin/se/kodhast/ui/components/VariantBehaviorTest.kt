@@ -5,6 +5,9 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -305,6 +308,25 @@ class VariantBehaviorTest {
         assertEquals(1, refreshes)
         withRefresh = 0
         rule.onNodeWithTag(ENTITY_REFRESH_TAG).assertDoesNotExist()
+    }
+
+    @Test
+    fun `dra-för-att-uppdatera utan ram anropar onRefresh, och utan onRefresh finns ingen gest`() {
+        var refreshes = 0
+        var withRefresh by mutableIntStateOf(1)
+        rule.setContent {
+            TestTheme {
+                AppPullToRefresh(refreshing = false, onRefresh = if (withRefresh == 1) ({ refreshes++ }) else null) {
+                    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) { ItemRow("Global Index") }
+                }
+            }
+        }
+        rule.onNodeWithTag(ENTITY_REFRESH_TAG).performTouchInput { swipeDown() }
+        rule.waitForIdle()
+        assertEquals(1, refreshes)
+        withRefresh = 0
+        rule.onNodeWithTag(ENTITY_REFRESH_TAG).assertDoesNotExist()
+        rule.onNodeWithText("Global Index").assertExists()
     }
 
     @Test

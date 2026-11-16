@@ -60,16 +60,18 @@ internal fun InlineLoading(description: String, color: Color, modifier: Modifier
 private val DOTS_WIDTH = 48.dp
 private val DOTS_HEIGHT = 28.dp
 
-/** Ytan som dras ned för att uppdatera i `EntityListScreen` och `EntityDetailScreen` (finns bara med `onRefresh`). */
+/** Ytan som dras ned för att uppdatera: [AppPullToRefresh], också i `EntityListScreen` och `EntityDetailScreen` (finns bara med `onRefresh`). */
 const val ENTITY_REFRESH_TAG = "entity-refresh"
 
 /**
- * Dra för att uppdatera runt [content] när [onRefresh] finns – annars bara en `Box` med innehållet.
- * Indikatorn är Expressive-laddningsindikatorn (även med `AppBrandStyle.dotLoading`), i en behållare överst, och syns så
- * länge [refreshing] är sant. Gesten kräver rullbart innehåll (ramarnas lista och sektioner).
+ * Dra för att uppdatera runt [content] när [onRefresh] finns – annars bara en `Box` med innehållet. Ramarna
+ * använder den med sina `refreshing`/`onRefresh`; en skärm utan ram (Fonders Översikt, Innehav, Beslut) lägger
+ * den själv runt sitt rullbara innehåll. Indikatorn är Expressive-laddningsindikatorn (även med
+ * `AppBrandStyle.dotLoading`), i en behållare överst, och syns så länge [refreshing] är sant. Gesten kräver
+ * rullbart innehåll. Ytan har taggen [ENTITY_REFRESH_TAG].
  */
 @Composable
-internal fun RefreshBox(refreshing: Boolean, onRefresh: (() -> Unit)?, modifier: Modifier = Modifier, content: @Composable BoxScope.() -> Unit) {
+fun AppPullToRefresh(refreshing: Boolean, onRefresh: (() -> Unit)?, modifier: Modifier = Modifier, content: @Composable BoxScope.() -> Unit) {
     if (onRefresh == null) {
         Box(modifier, content = content)
         return

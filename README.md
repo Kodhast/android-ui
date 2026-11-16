@@ -142,7 +142,7 @@ EntityDetailScreen(state: DetailUiState<T>, header: ((T) -> DetailHeader)?, onBa
 | Hopfällbar grupp | rubriken minst 48 dp, läses som knapp ("Fäll ut"/"Fäll ihop"), chevronen fjädrar | nytt | som förut |
 | Knappar i tomt läge utan lägg till | `EmptyContent.actions: List<EmptyAction>` (standard inga); står under lägg till-knappen, eller ensamma med `add = null` | – | – (Fonder: flikarna med plusmeny, "Ny transaktion" + "Importera avräkningsnota") |
 | Läsfelets rubrik | `errorTitle` (standard `null` = "Kunde inte hämta listan") | – | – |
-| Dra för att uppdatera | `onRefresh` (standard `null` = ingen gest) och `refreshing` i listan och detaljen; Expressive-indikatorn överst, ytan har taggen `ENTITY_REFRESH_TAG` | – | – (Fonder: Fondsök, Portfölj, Fonddetalj) |
+| Dra för att uppdatera | `onRefresh` (standard `null` = ingen gest) och `refreshing` i listan och detaljen; Expressive-indikatorn överst, ytan har taggen `ENTITY_REFRESH_TAG`; samma yta finns fristående som `AppPullToRefresh` | – | – (Fonder: Fondsök, Portfölj, Fonddetalj; Översikt, Innehav och Beslut med `AppPullToRefresh`) |
 
 - **Arkivering:** `ArchiveActions(scope, errors, setArchived, undoFormat, errorMessage)` är logiken i
   listans ViewModel (svep, Ångra, "Visa arkiverade", `offerUndo` för annat än arkivering);
@@ -185,11 +185,12 @@ inte använder ramen rätt.
 | `AppCard` | Kortet: `tone`, `contentColor` (standard `null`: ärver omgivande `LocalContentColor`; Dagboken `onSurface`), `onClick` (hela kortet en nod). Appens kortstil `AppCardStyle(border, padding, segmentGap, contentSpacing)` med `LocalAppCardStyle` (eller `style`); ett tonat kort har ingen kontur | ReseApotekets `ApotekCard` heter nu `AppCard`. Fonder: kontur 1 dp `outlineVariant`, `padding = Spacing.l`, `contentSpacing = 0.dp`; Filled/Error är Fonders egna toner |
 | `AppDivider` | Avdelare mellan rader i ett kort | – |
 | `AppFilterChip` | Filterchip; `icon`, `onLongClick`, `value` (värde efter etiketten), `emphasized` (det aktiva bland flera valda), `pending` (`ChipPending`: väntande läge, tonat med streckad kant, ikon och tilläggstext) | `chipColors()` är publik för egna chips |
-| `AppFloatingToolbar` | Toppnivånavigeringen: flytande flikar; `action` (`ToolbarAction`, huvudknapp i `secondary` till höger – Dagboken), `ToolbarItem.badgeCount` (märke med antal i `secondary` på en ovald flik, läses "Beslut, 3 nya" – Fonder). `LocalBottomClearance`, `FloatingToolbarClearance`, `NoBottomClearance` | – |
+| `AppFloatingToolbar` | Toppnivånavigeringen: flytande flikar; `action` (`ToolbarAction`, huvudknapp i `secondary` till höger – Dagboken; med `menu: List<AppMenuItem>` fäller knappen ut en meny och läses "Hopfälld"/"Utfälld" – Fonders plusknapp), `ToolbarItem.badgeCount` (märke med antal i `secondary` på en ovald flik, läses "Beslut, 3 nya" – Fonder). `LocalBottomClearance`, `FloatingToolbarClearance`, `NoBottomClearance` | – |
 | `AppIconButton` | Ikonknapp, minst 48 dp, alltid `contentDescription`; `tone` (platta och ikon för Tonal, ikonen för Plain; standard Material-färgerna) | – |
 | `AppLoading` | Expressive laddningsindikator mitt på ytan; med `AppBrandStyle(dotLoading = true)` Kodhästs två prickar som hoppar | – |
 | `AppMenu` | Menyn bakom ⋮ (`AppMenuItem`: `icon`, `destructive`, `section` (rubrik), `checked` (kryssrad som håller menyn öppen), `supporting`/`supportingTone` (undertext), `muted` (dämpad etikett)) | `section`, `checked` från Dagboken; `asSplitMenu()` från ReseApoteket |
 | `AppMenuPopup` | Själva menyn, för egna knappar som öppnar en meny | Publik (Dagboken använder den direkt) |
+| `AppPullToRefresh` | Dra för att uppdatera runt eget rullbart innehåll, för skärmar utan ram: `refreshing`, `onRefresh` (`null` = ingen gest); samma yta och tagg (`ENTITY_REFRESH_TAG`) som i ramarna | Fonder: Översikt, Innehav, Beslut |
 | `AppSegmentedChoice` | Ett val av få alternativ som segmentknappar | – |
 | `AppSnackbarHost` | Den enda platsen där meddelanden visas | – |
 | `AppTextField` | Det enda textfältet; `maxLength` (`AppTextFieldDefaults.SHORT_MAX_LENGTH` 200 / `LONG_MAX_LENGTH` 2000), `maxLines`, `suffix`, `valueIsPlaceholder` | Dagboken anger `maxLength = 5000` för långa fält |
@@ -273,6 +274,7 @@ pusha taggar och använder därför den manuella vägen.
 
 | Version | Ändring |
 |---|---|
+| 1.2.0 | För Fonder (#33): `ToolbarAction` får `menu` (`List<AppMenuItem>`), så att huvudknappen i `AppFloatingToolbar` fäller ut en meny i stället för att anropa `onClick`; knappen läses då "Hopfälld"/"Utfälld". Dra för att uppdatera blir publik som `AppPullToRefresh` (förut intern i ramarna), för skärmar utan ram. Befintliga konstruktoranrop (`ToolbarAction(label, icon) { … }`) och utseendet är oförändrade (destrukturering och positionell `copy` av `ToolbarAction` ändras, eftersom `menu` står före `onClick`; ingen app använder dem); inga befintliga skärmdumpar är omtagna |
 | 1.1.0 | Kodhäst-delarna (#28): `BrandMark` (märket) och `MakerMark` (signaturen "En kodhäst-app"), och `AppBrandStyle(sectionDots, dotLoading, emptyStateMark)` med `LocalAppBrandStyle`, som slår på prickar före sektionsrubriker utan ikonruta, prickar som laddning i `AppLoading` och sektionsrubrikens `working`, och märket i `EmptyState`. Allt är avstängt som standard: utseendet är oförändrat tills appen slår på det, och inga befintliga skärmdumpar är omtagna. Nytt `res/drawable/kodhast_branding.xml` (ordmärket till startskärmen, 200 × 80 dp) med färgerna `kodhast_branding_text` och `kodhast_branding_dots` (standard Material 3:s `onSurface`), som appen ersätter i `values/` och `values-night/` |
 | 1.0.0 | Repot har flyttat till organisationen Kodhast. Gruppen och Kotlin-paketen heter nu `se.kodhast.ui` (förut `se.partee71.ui`), och adressen är `https://maven.pkg.github.com/Kodhast/android-ui`. API, beteende och utseende är oförändrade: inga skärmdumpar är omtagna. Versionen är brytande eftersom apparna måste byta grupp och importer |
 | 0.10.0 | `AppTopBar` och `EntityDetailScreen` får `titleModifier`, som läggs på toppradens rubrik (efter rubriksemantiken) – t.ex. för att Fonder ska kunna göra fondnamnet kopierbart. Standard ingenting, utseendet är oförändrat |
