@@ -160,6 +160,10 @@ object TestPalette {
         cardShadow = Color.Black.copy(alpha = 0.55f)
     )
 
+    /** Kortens skimmer upptill i testpalettens ton (bara med `cardSheen` i [TestTheme]). */
+    val lightCardSheen = Color(0xFF7A2E18).copy(alpha = 0.05f)
+    val darkCardSheen = Color.White.copy(alpha = 0.05f)
+
     val shapes = AppShapes(cardRadius = 28.dp)
 
     private fun heading(size: Int, line: Int, spacing: Double = 0.0) = TextStyle(fontWeight = FontWeight.ExtraBold, fontSize = size.sp, lineHeight = line.sp, letterSpacing = spacing.em)
@@ -182,9 +186,9 @@ object TestPalette {
     )
 }
 
-/** [AppTheme] med testpaletten, ljust eller mörkt; med [depth] testpalettens djup. */
+/** [AppTheme] med testpaletten, ljust eller mörkt; med [depth] testpalettens djup, med [cardSheen] också kortens skimmer. */
 @Composable
-fun TestTheme(darkTheme: Boolean = false, depth: Boolean = false, content: @Composable () -> Unit) {
+fun TestTheme(darkTheme: Boolean = false, depth: Boolean = false, cardSheen: Boolean = false, content: @Composable () -> Unit) {
     AppTheme(
         colorScheme = if (darkTheme) TestPalette.dark else TestPalette.light,
         extendedColors = if (darkTheme) TestPalette.darkExtended else TestPalette.lightExtended,
@@ -193,10 +197,12 @@ fun TestTheme(darkTheme: Boolean = false, depth: Boolean = false, content: @Comp
         depth = if (!depth) {
             null
         } else if (darkTheme) {
-            TestPalette.darkDepth
+            TestPalette.darkDepth.withCardSheen(cardSheen, TestPalette.darkCardSheen)
         } else {
-            TestPalette.lightDepth
+            TestPalette.lightDepth.withCardSheen(cardSheen, TestPalette.lightCardSheen)
         },
         content = content
     )
 }
+
+private fun AppDepth.withCardSheen(on: Boolean, color: Color): AppDepth = if (on) copy(cardSheen = color) else this

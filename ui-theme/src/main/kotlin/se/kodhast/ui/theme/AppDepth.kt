@@ -15,6 +15,8 @@ import androidx.compose.ui.graphics.Color
  *   runt meddelandet, menyn och dialogerna.
  * - [cardShadow]: kortens mjuka skugga, och skuggan under det som flyter (meddelandet).
  * - [pressedScale]: hur stor en knapp är nedtryckt (0,97 = krymper 3 %).
+ * - [cardSheen]: ett svagt skimmer de översta 64 dp på kort i kortfärgen, som tonar ut nedåt (Dagboken: teal);
+ *   `null` = inget. Inte på tonade kort eller kort med egen kontur, och i en lista av bitar bara på den översta.
  */
 @Immutable
 data class AppDepth(
@@ -23,5 +25,6 @@ data class AppDepth(
     val shadow: Color,
     val cardEdge: Color,
     val cardShadow: Color,
-    val pressedScale: Float = 0.97f
+    val pressedScale: Float = 0.97f,
+    val cardSheen: Color? = null
 )

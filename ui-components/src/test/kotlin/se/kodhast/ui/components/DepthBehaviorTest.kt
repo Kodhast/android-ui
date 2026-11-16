@@ -8,6 +8,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.semantics
@@ -28,6 +29,7 @@ import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.unit.dp
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -35,6 +37,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import se.kodhast.ui.components.testing.SampleSwatches
 import se.kodhast.ui.components.testing.TestTheme
+import se.kodhast.ui.theme.AppDepth
 
 /** Temats djup (`AppTheme.depth`): tryckytor och klick som förut, och att knappen krymper bara när den kan tryckas. */
 @RunWith(RobolectricTestRunner::class)
@@ -132,6 +135,21 @@ class DepthBehaviorTest {
         rule.onNodeWithTag("kort").performClick()
         assertEquals(1, clicks)
         assertTrue(pressedWidthRatio(rule.onNodeWithTag("kort")) < 1f)
+    }
+
+    @Test
+    fun `det klickbara kortet med skimmer anropar onClick`() {
+        var clicks = 0
+        rule.setContent {
+            TestTheme(depth = true, cardSheen = true) { AppCard(Modifier.testTag("kort"), onClick = { clicks++ }) { ItemRow("Resa till Kreta") } }
+        }
+        rule.onNodeWithTag("kort").performClick()
+        assertEquals(1, clicks)
+    }
+
+    @Test
+    fun `kortens skimmer är av som standard`() {
+        assertNull(AppDepth(Color.White, Color.White, Color.Black, Color.Black, Color.Black).cardSheen)
     }
 
     @Test

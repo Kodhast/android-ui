@@ -21,10 +21,10 @@ private val themes = listOf("light" to false, "dark" to true)
  * `<name>_light.png` och `<name>_dark.png` i Roborazzis outputDir (skill testing-strategy).
  * [name] följer `<Komponent>_<variant>`. Med [depth] i testtemats djup.
  */
-fun captureLightAndDark(name: String, depth: Boolean = false, content: @Composable () -> Unit) {
+fun captureLightAndDark(name: String, depth: Boolean = false, cardSheen: Boolean = false, content: @Composable () -> Unit) {
     for ((suffix, dark) in themes) {
         captureRoboImage("${name}_$suffix.png") {
-            TestTheme(darkTheme = dark, depth = depth, content = content)
+            TestTheme(darkTheme = dark, depth = depth, cardSheen = cardSheen, content = content)
         }
     }
 }
