@@ -228,10 +228,9 @@ private fun HeaderTitle(title: String, state: TopAppBarState, syncing: Boolean, 
                     .size(DOTS_WIDTH, DOTS_HEIGHT)
                     .testTag(HEADER_DOTS_TAG)
                     .clearAndSetSemantics {
-                        if (syncing) {
-                            contentDescription = pending
-                            liveRegion = LiveRegionMode.Polite
-                        }
+                        // Alltid en live-region, så att TalkBack säger texten när den dyker upp.
+                        liveRegion = LiveRegionMode.Polite
+                        if (syncing) contentDescription = pending
                     },
                 bouncing = syncing
             )

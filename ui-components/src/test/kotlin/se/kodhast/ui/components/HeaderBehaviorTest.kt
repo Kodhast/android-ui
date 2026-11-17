@@ -18,6 +18,7 @@ import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertHeightIsEqualTo
 import androidx.compose.ui.test.getBoundsInRoot
+import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isHeading
 import androidx.compose.ui.test.junit4.v2.createComposeRule
@@ -28,11 +29,14 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeUp
 import androidx.compose.ui.unit.dp
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toPersistentList
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -122,7 +126,6 @@ class HeaderBehaviorTest {
         show(style = AppBrandStyle(headerDots = true)) { SampleHeader(collapsed = 1f) }
         val dots = rule.onNodeWithTag(HEADER_DOTS_TAG, useUnmergedTree = true).fetchSemanticsNode()
         assertNull(dots.config.getOrNull(SemanticsProperties.ContentDescription))
-        assertNull(dots.config.getOrNull(SemanticsProperties.LiveRegion))
     }
 
     @Test
@@ -220,6 +223,24 @@ class HeaderBehaviorTest {
     }
 
     @Test
+    fun `listramen med identitet fälls ihop till 64 dp med kortfärg när listan rullas`() {
+        var card = Color.Unspecified
+        val rows = (1..40).map { "Rad $it" }.toPersistentList()
+        show {
+            card = se.kodhast.ui.theme.AppTheme.extendedColors.card
+            CompositionLocalProvider(LocalAppIdentity provides identity) {
+                EntityListScreen("Dagbok", ListUiState.Content(rows), EMPTY, add = null, key = { it }) { ItemRow(it) }
+            }
+        }
+        rule.onNodeWithTag(APP_HEADER_TAG).assertHeightIsEqualTo(EXPANDED)
+        rule.onNode(hasScrollAction()).performTouchInput { swipeUp() }
+        rule.onNode(hasScrollAction()).performTouchInput { swipeUp() }
+        rule.waitForIdle()
+        rule.onNodeWithTag(APP_HEADER_TAG).assertHeightIsEqualTo(COLLAPSED)
+        assertSameColor(card, rule.onNodeWithTag(APP_HEADER_TAG).pixelAt(rule.density, 200.dp, 32.dp), "kortfärg när innehåll ligger under")
+    }
+
+    @Test
     fun `listramen med identitet men som underskärm har den lilla toppraden`() {
         show {
             CompositionLocalProvider(LocalAppIdentity provides identity) {
@@ -264,7 +285,7 @@ internal fun SampleHeader(
     syncing: Boolean = false,
     account: @Composable () -> Unit = { AccountAvatar("Anna Berg", onClick = {}, online = true) }
 ) {
-    val limit = with(LocalDensity.current) { -(144 - 64).dp.toPx() }
+    val limit = with(LocalDensity.current) { (COLLAPSED - EXPANDED).toPx() }
     val state = rememberTopAppBarState(initialHeightOffsetLimit = limit, initialHeightOffset = limit * collapsed, initialContentOffset = if (overlapped) -1f else 0f)
     AppHeader(
         title,
