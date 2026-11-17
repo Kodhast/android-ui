@@ -103,7 +103,8 @@ data class ListSubgroup(val title: String, val color: Color)
  * [filter] står fast under rubriken i alla lägen – även tomt och fel – för ett val av vilken lista som
  * visas. [topBarSize] = [TopBarSize.Small] för en underskärm med samma lilla topprad som formulären.
  * [footer] står sist i listan, efter grupperna, och under budskapet i det tomma tillståndet ("Visa äldre").
- * Med [onRefresh] dras listan ned för att uppdatera, med indikatorn överst så länge [refreshing] är sant;
+ * En flik ([onBack] = `null`, [TopBarSize.Large]) har [AppHeader] i stället för den stora toppraden när appen
+ * satt [LocalAppIdentity]. Med [onRefresh] dras listan ned för att uppdatera, med indikatorn överst så länge [refreshing] är sant;
  * utan (standard) finns ingen gest.
  *
  * @param group grupp för en rad; grupperna visas i den ordning de först förekommer.
@@ -142,12 +143,18 @@ fun <T> EntityListScreen(
         modifier = modifier.fillMaxSize().nestedScroll(scroll.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            AppTopBar(title, size = topBarSize, subtitle = subtitle, onBack = onBack, scrollBehavior = scroll) {
+            val allActions: @Composable RowScope.() -> Unit = {
                 actions()
                 archive?.takeIf { it.showToggle }?.let {
                     val label = stringResource(if (it.showing) R.string.hide_archived else R.string.show_archived)
                     AppMenu(listOf(AppMenuItem(label, { it.onEvent(ArchiveEvent.ToggleArchived) }, R.drawable.ic_unarchive)))
                 }
+            }
+            // Flikläget får Kodhäst-sidhuvudet bara när appen satt sin identitet; annars dagens topprad.
+            if (onBack == null && topBarSize == TopBarSize.Large && LocalAppIdentity.current != null) {
+                AppHeader(title, scroll, subtitle = subtitle, actions = allActions)
+            } else {
+                AppTopBar(title, size = topBarSize, subtitle = subtitle, onBack = onBack, scrollBehavior = scroll, actions = allActions)
             }
         },
         snackbarHost = { AppSnackbarHost(snackbar, Modifier.padding(bottom = clearance)) },

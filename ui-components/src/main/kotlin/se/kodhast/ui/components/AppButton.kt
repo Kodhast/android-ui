@@ -1,6 +1,7 @@
 package se.kodhast.ui.components
 
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -98,11 +99,27 @@ fun AppButton(
     compact: Boolean = false,
     contentDescription: String? = null,
     style: AppButtonStyle = LocalAppButtonStyle.current
+) = ButtonBase(text, onClick, variant, icon, enabled, loading, compact, contentDescription, style, tintIcon = true, modifier = modifier)
+
+/** [AppButton], där [tintIcon] = false ritar ikonen i sina egna färger (Googles "G" i [SignInButton]). */
+@Composable
+internal fun ButtonBase(
+    text: String,
+    onClick: () -> Unit,
+    variant: ButtonVariant,
+    @DrawableRes icon: Int?,
+    enabled: Boolean,
+    loading: Boolean,
+    compact: Boolean,
+    contentDescription: String?,
+    style: AppButtonStyle,
+    tintIcon: Boolean,
+    modifier: Modifier = Modifier
 ) {
     val described = contentDescription?.let { modifier.semantics { this.contentDescription = it } } ?: modifier
     val minHeight = if (compact) AppButtonDefaults.CompactHeight else style.minHeight
     val active = enabled && !loading
-    val content: @Composable RowScope.() -> Unit = { ButtonContent(text, icon, loading) }
+    val content: @Composable RowScope.() -> Unit = { ButtonContent(text, icon, loading, tintIcon) }
     // Varianterna är Material 3:s knappar med sina standardvärden – samma som Button, FilledTonalButton,
     // OutlinedButton och TextButton skickar vidare till Button.
     val colors = when (variant) {
@@ -171,7 +188,7 @@ private const val SECONDARY_SHADOW = 0.5f
 private fun ButtonColors.busy(loading: Boolean) = if (loading) copy(disabledContainerColor = containerColor, disabledContentColor = contentColor) else this
 
 @Composable
-private fun ButtonContent(text: String, @DrawableRes icon: Int?, loading: Boolean) {
+private fun ButtonContent(text: String, @DrawableRes icon: Int?, loading: Boolean, tintIcon: Boolean) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         when {
             loading -> CircularProgressIndicator(
@@ -180,7 +197,9 @@ private fun ButtonContent(text: String, @DrawableRes icon: Int?, loading: Boolea
                 strokeWidth = 2.5.dp
             )
 
-            icon != null -> Icon(painterResource(icon), contentDescription = null, modifier = Modifier.size(ICON_SIZE))
+            icon != null && tintIcon -> Icon(painterResource(icon), contentDescription = null, modifier = Modifier.size(ICON_SIZE))
+
+            icon != null -> Image(painterResource(icon), contentDescription = null, modifier = Modifier.size(ICON_SIZE))
         }
         if (loading || icon != null) Spacer(Modifier.width(Spacing.s))
         Text(text, style = AppTheme.typography.button)

@@ -52,4 +52,10 @@
     <string name="collapsed">Hopfälld</string>
     <!-- Flik med märke, för TalkBack: "Beslut, 3 nya" -->
     <string name="toolbar_badge_format">%1$s, %2$d nya</string>
+    <!-- AppHeader och AccountAvatar -->
+    <string name="account_open">Konto och inställningar</string>
+    <string name="online">Ansluten</string>
+    <string name="offline">Utan anslutning</string>
+    <string name="sync_pending">Ändringar väntar på servern</string>
+    <string name="sign_in">Logga in</string>
 </resources>
