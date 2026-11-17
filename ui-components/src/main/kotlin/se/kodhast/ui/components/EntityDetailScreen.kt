@@ -53,7 +53,7 @@ data class DetailHeader(val title: String, val subtitle: String? = null)
  *
  * **Flikläge** ([onBack] = `null`): stor topprad som fälls ihop vid rullning, med [title], [subtitle] och
  * [actions], ingen tillbakapil, och plats för verktygsraden ([LocalBottomClearance]) under innehållet och
- * meddelandena. [snackbar] är skärmens meddelandeyta – skärmen kan visa egna meddelanden (Ångra,
+ * meddelandena; med appens [LocalAppIdentity] är toppraden [AppHeader]. [snackbar] är skärmens meddelandeyta – skärmen kan visa egna meddelanden (Ångra,
  * bekräftelser) i samma yta som felen. Med [onRefresh] dras skärmen ned för att uppdatera, med indikatorn
  * överst så länge [refreshing] är sant; utan (standard) finns ingen gest.
  *
@@ -93,20 +93,27 @@ fun <T> EntityDetailScreen(
         containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = { AppSnackbarHost(snackbar, Modifier.padding(bottom = clearance)) },
         topBar = {
-            AppTopBar(
-                title.orEmpty(),
-                size = if (tab) TopBarSize.Large else TopBarSize.Small,
-                subtitle = subtitle,
-                onBack = onBack,
-                scrollBehavior = if (tab) scroll else null,
-                titleModifier = titleModifier
-            ) {
+            val allActions: @Composable RowScope.() -> Unit = {
                 actions()
                 if (state is DetailUiState.Content) {
                     onEdit?.let { AppIconButton(R.drawable.ic_edit, stringResource(R.string.edit), it) }
                     val items = menu(state.value)
                     if (items.isNotEmpty()) AppMenu(items)
                 }
+            }
+            // Flikläget får Kodhäst-sidhuvudet bara när appen satt sin identitet; annars dagens topprad.
+            if (tab && LocalAppIdentity.current != null) {
+                AppHeader(title.orEmpty(), scroll, subtitle = subtitle, titleModifier = titleModifier, actions = allActions)
+            } else {
+                AppTopBar(
+                    title.orEmpty(),
+                    size = if (tab) TopBarSize.Large else TopBarSize.Small,
+                    subtitle = subtitle,
+                    onBack = onBack,
+                    scrollBehavior = if (tab) scroll else null,
+                    titleModifier = titleModifier,
+                    actions = allActions
+                )
             }
         }
     ) { padding ->

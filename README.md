@@ -66,11 +66,11 @@ fun AppTheme(
     content: @Composable () -> Unit
 )
 
-AppTheme.extendedColors   // card, rowTint, toolbar, onToolbar, tones, accents
+AppTheme.extendedColors   // card, rowTint, toolbar, onToolbar, tones, accents, online
 AppTheme.shapes           // card, cardSegment(top, bottom), row, pill, field, menu, sheet, smallTile, iconTile
 AppTheme.typography       // screenTitle, bigNumber, headline, sectionTitle, quantity, itemTitle, itemSubtitle, body, pill, caption, button
 AppTheme.tone(tone)       // ToneColors(container, content)
-AppTheme.depth            // AppDepth?: highlight, sheen, shadow, cardEdge, cardShadow, pressedScale, cardSheen
+AppTheme.depth            // AppDepth?: highlight, sheen, shadow, cardEdge, cardShadow, pressedScale, cardSheen, headerShadow
 Spacing.xs … Spacing.xxl  // 4, 8, 12, 16, 24, 32 dp
 ```
 
@@ -81,6 +81,8 @@ Spacing.xs … Spacing.xxl  // 4, 8, 12, 16, 24, 32 dp
   har apparnas gemensamma värden som standard.
 - **Accentfärger:** `ExtendedColors.accents` är appens dekorativa färgserie (personfärger,
   valbara färger) – används av `Confetti`.
+- **Ansluten:** `ExtendedColors.online` är pluppen på `AccountAvatar(online = true)`; standard `null` =
+  `colorScheme.primary` (Dagboken sätter sin gröna).
 - **Djup (#35):** med `depth = AppDepth(…)` får knappar en ljuskant upptill, ett svagt skimmer och
   en tonad skugga, och sjunker in (krymper till `pressedScale`, skuggan tonar bort) när de trycks.
   Valda chips, segment och verktygsradens flik får ljuskanten och skimret, tonade ikonknappar en
@@ -158,6 +160,7 @@ EntityDetailScreen(state: DetailUiState<T>, header: ((T) -> DetailHeader)?, onBa
 | Hopfällbar grupp | rubriken minst 48 dp, läses som knapp ("Fäll ut"/"Fäll ihop"), chevronen fjädrar | nytt | som förut |
 | Knappar i tomt läge utan lägg till | `EmptyContent.actions: List<EmptyAction>` (standard inga); står under lägg till-knappen, eller ensamma med `add = null` | – | – (Fonder: flikarna med plusmeny, "Ny transaktion" + "Importera avräkningsnota") |
 | Läsfelets rubrik | `errorTitle` (standard `null` = "Kunde inte hämta listan") | – | – |
+| Kodhäst-sidhuvudet | Flikläget (lista utan `onBack` med `TopBarSize.Large`, detalj med `onBack = null`) ritar `AppHeader` när appen satt `LocalAppIdentity`; utan den dagens stora topprad | – | – (först Dagboken #435) |
 | Dra för att uppdatera | `onRefresh` (standard `null` = ingen gest) och `refreshing` i listan och detaljen; Expressive-indikatorn överst, ytan har taggen `ENTITY_REFRESH_TAG`; samma yta finns fristående som `AppPullToRefresh` | – | – (Fonder: Fondsök, Portfölj, Fonddetalj; Översikt, Innehav och Beslut med `AppPullToRefresh`) |
 
 - **Arkivering:** `ArchiveActions(scope, errors, setArchived, undoFormat, errorMessage)` är logiken i
@@ -165,6 +168,53 @@ EntityDetailScreen(state: DetailUiState<T>, header: ((T) -> DetailHeader)?, onBa
   `visible(source) { it.archived }` filtrerar och `collectAsListArchive()` ger listans `ListArchive`.
   Raderna sveps med `SwipeToHide`; `UndoSnackbar` visas av listramen.
 - **Lägg till-knappens tagg:** `ENTITY_LIST_ADD_TAG`, som kontraktet använder för att pröva att knappen saknas.
+
+## Sidhuvudet (Kodhäst)
+
+`AppHeader` (#42) är det gemensamma sidhuvudet på apparnas flikar, och det som gör en app till en
+Kodhäst-app. Det är byggt för **varje** app, också kommande: inget i det är Dagbokens. Ikonen, namnet,
+färgerna, typsnitten och kontot kommer från appen; en app som inte sätter något ser ut som förut.
+
+- **Vila (högst upp), 144 dp:** appikonen (40 dp) och appnamnet överst, kontot längst till höger; under dem
+  fliknamnet stort (`screenTitle`) och undertiteln. Sidans färg, ingen skugga.
+- **Rullat, 64 dp:** ikonen (32 dp), fliknamnet (`sectionTitle`) bredvid den och kontot. Kortens färg och en
+  skugga (`AppDepth.headerShadow`, standard `cardShadow`; utan djup en hårfin linje i `outlineVariant`)
+  när innehåll ligger under. Rak nederkant.
+- **Däremellan** krymper raden med fingret och samma rubrik flyttas upp till ikonen; raden fälls ut igen
+  först högst upp (`exitUntilCollapsedScrollBehavior`). Rubriken är alltid flikens namn – det appen vill
+  säga mer (en hälsning, ett datum) står i undertiteln.
+
+**Så slår en app på det** – en gång, runt appens innehåll (temat eller navigationen):
+
+```kotlin
+CompositionLocalProvider(
+    LocalAppIdentity provides AppIdentity(R.drawable.ic_app_header, stringResource(R.string.app_name)),
+    LocalAppBrandStyle provides AppBrandStyle(headerDots = true),          // Kodhästs prickar före rubriken
+    LocalTopBarSyncing provides syncing,                                   // prickarna hoppar medan ändringar väntar
+    LocalTopBarAccount provides {
+        if (user != null) {
+            AccountAvatar(user.name, onClick = openAccount, online = online) { AppPhoto(user.photoUrl) }
+        } else {
+            SignInButton(onClick = signIn)
+        }
+    }
+) { content() }
+```
+
+1. **Ikonen** är en vektor eller bitmapp i appens `res/drawable` – inte den adaptiva startikonen.
+2. **Färgerna:** `ExtendedColors(online = …)` om pluppen inte ska vara `primary`;
+   `AppDepth(headerShadow = …)` om sidhuvudets skugga ska skilja sig från kortens.
+3. **Kontot är appens:** inloggningen, fotot (en slot – biblioteket har inget bildberoende; Dagboken cachar
+   det på disk med Coil så att det syns utan nät), anslutningsläget (`online`: `true` plupp, `false` ingen,
+   `null` inget läge) och vad trycket öppnar.
+4. **Skärmarna:** flikar på ramarna får sidhuvudet av sig själva. En flik utan ram anropar
+   `AppHeader(title, scrollBehavior)` med `TopAppBarDefaults.exitUntilCollapsedScrollBehavior()` och
+   `Modifier.nestedScroll(scrollBehavior.nestedScrollConnection)` på skärmen. Underskärmar behåller
+   `AppTopBar(size = TopBarSize.Small)`.
+5. **Synken:** med `headerDots` visas den av prickarna (TalkBack: "Ändringar väntar på servern"); en app
+   som behåller en egen indikator sätter den som `LocalTopBarStatus` som förut.
+6. **Tester:** appens kontraktstester körs med appens tema – sätts identiteten där, prövas ramarna med
+   sidhuvudet. Skärmdumparna tas om i appens PR.
 
 ## ui-testing – kontraktstesterna
 
@@ -195,6 +245,7 @@ inte använder ramen rätt.
 
 | Komponent | Vad | Skillnad mot apparnas tidigare version |
 |---|---|---|
+| `AccountAvatar` | Kontots avatar: `name` (initialer, "Anna Berg" → "AB"; utan namn en person-ikon), `onClick` (`null` = bara en bild utan semantik), `online` (`true` plupp i `ExtendedColors.online` och "Ansluten", `false` "Utan anslutning", `null` inget läge), `photo` (slot ovanpå initialerna). 36 dp i 48 dp tryckyta, "Konto och inställningar" | Flyttad från Dagboken (#42); fotot är en slot – Coil och cachen stannar i appen |
 | `AddSplitButton` | "Lägg till ▾" – huvudåtgärd och pil med fler val | Menyn är en lucka: `menu = items.asSplitMenu()` (ReseApoteket) i stället för Dagbokens `menuItems` |
 | `AppBottomSheet` | Ark med rubrik; innehållet rullar alltid. `error` (`UiError`), `dirty` ("Släng ändringar?" vid bakåt, svep och tryck utanför), `canDismiss`, `hide`, `footer` (knappraden står fast i botten) | Dagbokens parametrar; ReseApotekets rullning gäller också med `footer` |
 | `AppButton` | Den enda knappen: Primary, Secondary, Outlined, Text, Destructive; `loading`, `compact`, `contentDescription`. Appens knappstil `AppButtonStyle(minHeight, morph, secondaryTone)` sätts en gång med `LocalAppButtonStyle` (eller parametern `style`); `AppButtonDefaults.MinHeight` 56 dp / `CompactHeight` 40 dp | Fonder: `AppButtonStyle(minHeight = 40.dp, morph = true, secondaryTone = Tone.Primary)`; standard bevarar ReseApoteket och Dagboken |
@@ -202,6 +253,7 @@ inte använder ramen rätt.
 | `AppDivider` | Avdelare mellan rader i ett kort | – |
 | `AppFilterChip` | Filterchip; `icon`, `onLongClick`, `value` (värde efter etiketten), `emphasized` (det aktiva bland flera valda), `pending` (`ChipPending`: väntande läge, tonat med streckad kant, ikon och tilläggstext) | `chipColors()` är publik för egna chips |
 | `AppFloatingToolbar` | Toppnivånavigeringen: flytande flikar; `action` (`ToolbarAction`, huvudknapp i `secondary` till höger – Dagboken; med `menu: List<AppMenuItem>` fäller knappen ut en meny och läses "Hopfälld"/"Utfälld" – Fonders plusknapp), `ToolbarItem.badgeCount` (märke med antal i `secondary` på en ovald flik, läses "Beslut, 3 nya" – Fonder). `LocalBottomClearance`, `FloatingToolbarClearance`, `NoBottomClearance` | – |
+| `AppHeader` | Kodhäst-sidhuvudet på en flik (se Sidhuvudet): `title`, `scrollBehavior`, `subtitle`, `syncing` (`LocalTopBarSyncing`), `identity` (`LocalAppIdentity`), `status`, `account` (`LocalTopBarAccount`), `actions`, `titleModifier`; taggen `APP_HEADER_TAG` | Ny (#42); ramarnas flikläge med `LocalAppIdentity` |
 | `AppIconButton` | Ikonknapp, minst 48 dp, alltid `contentDescription`; `tone` (platta och ikon för Tonal, ikonen för Plain; standard Material-färgerna) | – |
 | `AppLoading` | Expressive laddningsindikator mitt på ytan; med `AppBrandStyle(dotLoading = true)` Kodhästs två prickar som hoppar | – |
 | `AppMenu` | Menyn bakom ⋮ (`AppMenuItem`: `icon`, `destructive`, `section` (rubrik), `checked` (kryssrad som håller menyn öppen), `supporting`/`supportingTone` (undertext), `muted` (dämpad etikett)) | `section`, `checked` från Dagboken; `asSplitMenu()` från ReseApoteket |
@@ -247,6 +299,7 @@ inte använder ramen rätt.
 | `PickerField` | Fält som öppnar en väljare; `emptyLabel`, `contentLabel` | – |
 | `QuantityStepper` | − värde +; `step`, `valueText`, `buttonSize` (standard `LocalQuantityStepperButtonSize`: `QuantityStepperDefaults.ButtonSize` 44 dp, `TouchTargetButtonSize` 48 dp) | Dagboken sätter `TouchTargetButtonSize` en gång i sitt tema |
 | `SectionHeader` | Sektionsrubrik med antal; `countTone`; laddningsindikator med `working`; med `AppBrandStyle(sectionDots = true)` två prickar i `primary` före titeln när ikonrutan saknas | – |
+| `SignInButton` | Utloggat läge i sidhuvudet: Googles "G" i sina egna färger och "Logga in" (`text`), konturerad i rubrikradens lägre höjd; `loading` | Ny (#42) |
 | `SuggestionField` | Textfält med förslag (`Suggestion`) i ett kort under, antalet läses upp | – |
 | `SwipeBackground` | Det som syns bakom en svept rad: `icon` och `label` i högerkanten, `colors` (`ToneColors`, standard primärtonen), `shape` (standard `row`) | Ersätter bakgrunden i Dagbokens `SwipeToDelete` (`ic_delete`, felfärgen, `card`) |
 | `SwipeToHide` | Arkivera/dölj med svep åt vänster, och samma åtgärd för TalkBack; bakgrunden är `SwipeBackground` med `icon` och `colors` (standard arkivera i primärtonen) | – |
@@ -290,6 +343,7 @@ pusha taggar och använder därför den manuella vägen.
 
 | Version | Ändring |
 |---|---|
+| 1.6.0 | Kodhäst-sidhuvudet (#42): `AppHeader` (144 dp i vila, 64 dp med kortfärg och skugga rullat, rubriken flyttas upp till appikonen, prickar som hoppar vid synk), `AccountAvatar` (flyttad från Dagboken, med `online`-plupp), `SignInButton`, `AppIdentity`/`LocalAppIdentity`, `LocalTopBarAccount`, `LocalTopBarSyncing`, `AppBrandStyle.headerDots`, `ExtendedColors.online` och `AppDepth.headerShadow`. Ramarnas flikläge ritar sidhuvudet bara när appen satt `LocalAppIdentity`; utan den är allt som förut och inga befintliga skärmdumpar är omtagna. Se Sidhuvudet för hur en app slår på det |
 | 1.5.0 | Kortens skimmer (#40): `AppDepth(cardSheen = …)` ger kort i kortfärgen ett svagt skimmer som tonar ut över de översta 64 dp – inte tonade kort eller kort med egen kontur, och i en lista av bitar bara den översta. Standard `null` bevarar dagens utseende; inga befintliga skärmdumpar är omtagna |
 | 1.4.1 | Rättning för #35: med djup satt sig `modifier` på knappar, chips och segmentval på en ruta utanför elementet, så att en apps semantik (`stateDescription`, `testTag`) inte hamnade på den klickbara noden och TalkBack inte läste den. Tryckytan är nu en layoutmodifierare i elementets egen kedja; utseendet är oförändrat och inga skärmdumpar är omtagna |
 | 1.4.0 | Djup och tryckkänsla, del 2 av #35: med `AppTheme.depth` får kryssets bock, stegaren, växeln, det valda i färg- och emojiväljaren, fältet i fokus (fokusring), meddelandet, menyn och dialogerna djup (se Djup under ui-theme). `AppTextField` byggs nu på `BasicTextField` med Material 3:s `DecorationBox`, så att fokusringen kan ritas utanför kanten – utseende och beteende utan djup är desamma. Standard `depth = null` bevarar dagens utseende; inga befintliga skärmdumpar är omtagna |

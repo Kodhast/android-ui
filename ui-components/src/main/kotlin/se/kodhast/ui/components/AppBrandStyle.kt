@@ -13,12 +13,15 @@ import androidx.compose.runtime.staticCompositionLocalOf
  *   hoppar i stället för Material 3:s indikator; stilla när systemets animeringar är avstängda.
  * - [emptyStateMark]: [EmptyState] visar [BrandMark] i ikonrutan i stället för ikonen, bara i
  *   fullstort läge utan fel.
+ * - [headerDots]: [AppHeader] visar två prickar i `primary` före rubriken; de hoppar medan ändringar
+ *   väntar på servern (`syncing`). Utan dem visar appen synken via `status` som i [AppTopBar].
  */
 @Immutable
 data class AppBrandStyle(
     val sectionDots: Boolean = false,
     val dotLoading: Boolean = false,
-    val emptyStateMark: Boolean = false
+    val emptyStateMark: Boolean = false,
+    val headerDots: Boolean = false
 )
 
 /** Kodhäst-delarna i innehållet; standard [AppBrandStyle] – allt avstängt. */

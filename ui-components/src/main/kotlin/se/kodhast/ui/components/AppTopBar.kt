@@ -37,6 +37,15 @@ enum class TopBarSize {
 val LocalTopBarStatus = compositionLocalOf<@Composable RowScope.() -> Unit> { {} }
 
 /**
+ * Kontot längst till höger i [AppHeader] – t.ex. appens [AccountAvatar] eller [SignInButton]. Sätts av
+ * appens navigation; utan den visas ingenting (t.ex. i tester).
+ */
+val LocalTopBarAccount = compositionLocalOf<@Composable () -> Unit> { {} }
+
+/** Om ändringar väntar på servern – prickarna i [AppHeader] hoppar då (`AppBrandStyle.headerDots`). Standard `false`. */
+val LocalTopBarSyncing = compositionLocalOf { false }
+
+/**
  * Tillbakapilens utseende i [AppTopBar]: knappens [variant] och [tone] (se [AppIconButton]). Standard är
  * den tonade runda plattan i Material-färgerna (ReseApoteket, Dagboken); Fonder har en genomskinlig pil,
  * `TopBarBackStyle(variant = IconButtonVariant.Plain)`.
