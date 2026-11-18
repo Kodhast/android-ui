@@ -49,6 +49,7 @@ import se.kodhast.ui.components.AddAction
 import se.kodhast.ui.components.AddSplitButton
 import se.kodhast.ui.components.AppBottomSheet
 import se.kodhast.ui.components.AppButton
+import se.kodhast.ui.components.AppCalendar
 import se.kodhast.ui.components.AppCard
 import se.kodhast.ui.components.AppDivider
 import se.kodhast.ui.components.AppFilterChip
@@ -80,6 +81,8 @@ import se.kodhast.ui.components.Confetti
 import se.kodhast.ui.components.ConfirmDialog
 import se.kodhast.ui.components.DateField
 import se.kodhast.ui.components.DateTimeRow
+import se.kodhast.ui.components.DayMarkerDot
+import se.kodhast.ui.components.DayPicker
 import se.kodhast.ui.components.DeleteAction
 import se.kodhast.ui.components.DeleteConfirmDialog
 import se.kodhast.ui.components.DetailHeader
@@ -308,6 +311,15 @@ private fun Fields() {
     DateField("Slutdatum", end, { end = it }, emptyLabel = "Periodens slut", onClear = { end = null })
     var time by remember { mutableStateOf(LocalTime(18, 0)) }
     TimeField("Tid", time, { time = it })
+    val marked = remember { (1..SAMPLE_DATE.day).filter { it % 4 != 0 }.map { LocalDate(SAMPLE_DATE.year, SAMPLE_DATE.month, it) }.toSet() }
+    ChipRow { DayPicker(marked, SAMPLE_DATE, {}) }
+    var month by remember { mutableStateOf(SAMPLE_DATE) }
+    var pickedDay by remember { mutableStateOf<LocalDate?>(null) }
+    AppCard { AppCalendar(month, { month = it }, marked, pickedDay, { pickedDay = it }, today = SAMPLE_DATE, dimFuture = true) }
+    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.l)) {
+        DayMarkerDot(isToday = true, marked = true, selected = false)
+        DayMarkerDot(isToday = false, marked = true, selected = false)
+    }
     PickerField("Ikon", "🦉", "Välj ikon", ComponentsR.drawable.ic_edit, {})
     var whenDate by remember { mutableStateOf(SAMPLE_DATE) }
     DateTimeRow(whenDate, time, { whenDate = it }, { time = it })
