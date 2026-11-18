@@ -31,7 +31,8 @@ större. Skill `android:arbetsregler` är enda källan.
    användarens ok i PR:en) och `cpdCheck`.
 2. **Varje skillnad mellan apparna är en parameter vars standardvärde bevarar dagens utseende.**
    Ingen app får ändra utseende av en flytt. Klarar en parameter inte skillnaden: fråga, gissa inte.
-   Appens färger, typsnitt och sådant bara en app har stannar i appen.
+   Det som hör till en apps domän (känslor, diagram, personer, dosering, packning …) stannar i appen,
+   appens färger och typsnitt likaså; allt annat UI finns här, också det bara en app använder.
 3. **Tester och skärmdumpar per komponent.** Robolectric-beteendetest och Roborazzi-skärmdump
    (ljust + mörkt, testtemat med ReseApotekets palett) för varje publik komponent; komponenten
    står också i README:s komponentlista. Flaky tester är buggar – gör dem deterministiska.

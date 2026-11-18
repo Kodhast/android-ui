@@ -58,4 +58,14 @@ class DateFormatTest {
         assertEquals(1, DateFormat.isoWeek(LocalDate(2027, 1, 4)))
         assertEquals(1, DateFormat.isoWeek(LocalDate(2025, 12, 29)))
     }
+
+    @Test
+    fun `tidsåtgången i timmar och minuter`() {
+        assertEquals(listOf("0 min", "15 min", "45 min", "1 tim", "1 tim 30 min", "2 tim", "24 tim"), listOf(0, 15, 45, 60, 90, 120, 1440).map(DateFormat::duration))
+    }
+
+    @Test
+    fun `en kortare längd i minuter och sekunder`() {
+        assertEquals(listOf("15 s", "45 s", "1 min", "2 min", "2 min 15 s", "5 min"), listOf(15, 45, 60, 120, 135, 300).map(DateFormat::durationSeconds))
+    }
 }
