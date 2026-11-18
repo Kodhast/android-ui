@@ -1,5 +1,6 @@
 package se.kodhast.ui.navigation
 
+import androidx.activity.BackEventCompat
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.clickable
 import androidx.compose.material3.Text
@@ -121,6 +122,38 @@ class AppNavHostTest {
             assertTrue(rule.activity.isFinishing, "i första flikens rot går tillbaka till systemet")
         }
     }
+
+    @Test
+    fun `predictive back stänger skärmen först när gesten fullföljs, och en avbruten gest låter den stå`() {
+        val popped = mutableListOf<TestKey>()
+        rule.setContent { TestTheme { AppNavHost(backStack, TAB_ITEMS, plainScreens, onPopped = { popped += it }) } }
+        rule.runOnIdle { backStack.push(Settings) }
+        rule.onNodeWithText("Skärm: Settings").assertIsDisplayed()
+        val dispatcher = rule.activity.onBackPressedDispatcher
+
+        // Gesten påbörjas och dras halvvägs, men släpps tillbaka: skärmen står kvar och inget stängs.
+        rule.runOnIdle {
+            dispatcher.dispatchOnBackStarted(backEvent(0f))
+            dispatcher.dispatchOnBackProgressed(backEvent(0.5f))
+            dispatcher.dispatchOnBackCancelled()
+        }
+        rule.onNodeWithText("Skärm: Settings").assertIsDisplayed()
+        rule.runOnIdle { assertEquals(emptyList<TestKey>(), popped) }
+
+        // Samma gest fullföljd: översta skärmen stängs och ramen säger vilken.
+        rule.runOnIdle {
+            dispatcher.dispatchOnBackStarted(backEvent(0f))
+            dispatcher.dispatchOnBackProgressed(backEvent(0.8f))
+            dispatcher.onBackPressed()
+        }
+        rule.onNodeWithText("Skärm: Home").assertIsDisplayed()
+        rule.runOnIdle {
+            assertEquals(listOf<TestKey>(Settings), popped)
+            assertTrue(!rule.activity.isFinishing, "en undersida stängs i appen, inte av systemet")
+        }
+    }
+
+    private fun backEvent(progress: Float) = BackEventCompat(touchX = 0f, touchY = 0f, progress = progress, swipeEdge = BackEventCompat.EDGE_LEFT)
 
     @Test
     fun `sidhuvudet har kontot från ramen och prickarna läser synkläget`() {
