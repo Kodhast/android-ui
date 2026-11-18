@@ -3,6 +3,8 @@ package se.kodhast.ui.navigation
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
+import kotlin.test.assertNotSame
+import kotlin.test.assertSame
 import kotlin.test.assertTrue
 import org.junit.Test
 
@@ -17,6 +19,20 @@ class TabBackStackTest {
         assertEquals(listOf<TestKey>(Home), stack.entries)
         assertEquals(Home, stack.currentTab)
         assertTrue(stack.atTopLevel)
+    }
+
+    @Test
+    fun `entries byggs bara om när en stack eller fliken ändras`() {
+        val stack = testBackStack()
+        stack.select(People)
+        val first = stack.entries
+        assertSame(first, stack.entries)
+        stack.push(Detail("anna"))
+        val pushed = stack.entries
+        assertNotSame(first, pushed)
+        assertEquals(listOf(Home, People, Detail("anna")), pushed)
+        stack.select(Home)
+        assertEquals(listOf<TestKey>(Home), stack.entries)
     }
 
     @Test

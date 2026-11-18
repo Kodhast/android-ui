@@ -1,7 +1,6 @@
 package se.kodhast.ui.components
 
 import androidx.annotation.DrawableRes
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,10 +10,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import se.kodhast.ui.theme.AppTheme
 import se.kodhast.ui.theme.Spacing
 import se.kodhast.ui.theme.Tone
@@ -43,10 +40,7 @@ fun NoticeBanner(
     val colors = AppTheme.tone(tone)
     // Hela kortet är knappen – utom när åtgärden är en egen knapp under texten.
     val cardClick = onClick.takeIf { action == null }
-    val clickable = cardClick?.let {
-        Modifier.clip(AppTheme.shapes.card).clickable(onClickLabel = onClickLabel, role = Role.Button, onClick = it)
-    } ?: Modifier
-    AppCard(modifier.then(clickable), tone = tone, contentColor = MaterialTheme.colorScheme.onSurface) {
+    AppCard(modifier, tone = tone, contentColor = MaterialTheme.colorScheme.onSurface, onClick = cardClick, onClickLabel = onClickLabel) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
             Icon(painterResource(icon), contentDescription = null, tint = colors.content)
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {

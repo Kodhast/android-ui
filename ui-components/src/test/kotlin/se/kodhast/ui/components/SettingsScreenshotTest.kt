@@ -13,6 +13,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import se.kodhast.ui.components.testing.Blue
 import se.kodhast.ui.components.testing.Green
+import se.kodhast.ui.components.testing.SampleSheet
 import se.kodhast.ui.components.testing.captureLightAndDark
 import se.kodhast.ui.components.testing.captureScreenLightAndDark
 import se.kodhast.ui.components.testing.clickWithoutRipple
@@ -63,6 +64,15 @@ class SettingsScreenshotTest {
                 AppDivider()
                 ItemRow("Läkemedelslista", subtitle = "Läkemedelsverket, tis 3 nov 2026 · CC BY 4.0")
             }
+        }
+    }
+
+    @Test
+    fun `NoticeBanner - med djup`() = captureLightAndDark("NoticeBanner_djup", depth = true) {
+        // Kortets klick (#73): med temats djup har det klickbara meddelandet kortets skugga, som förut klipptes bort.
+        SampleSheet {
+            NoticeBanner("Notiser är avstängda", R.drawable.ic_clock, {}, detail = "Påminnelserna kan inte visas.")
+            NoticeBanner("Health Connect kopplad", R.drawable.ic_clock, onClick = null, tone = Tone.Green)
         }
     }
 

@@ -63,6 +63,7 @@
     <string name="sign_in_busy">Loggar in …</string>
     <string name="update_required_title">Uppdatera appen</string>
     <string name="update_required_action">Hämta senaste versionen</string>
+    <string name="update_required_no_browser">Ingen app kan öppna länken. Installera en webbläsare och försök igen.</string>
     <!-- AccountRow, SignOutRow och AboutCard -->
     <string name="signed_in_google">Inloggad med Google</string>
     <string name="sign_out">Logga ut</string>

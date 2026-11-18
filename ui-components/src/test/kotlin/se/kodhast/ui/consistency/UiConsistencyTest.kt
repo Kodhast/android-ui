@@ -114,7 +114,33 @@ class UiConsistencyTest {
         assertTrue(problems.isEmpty(), problems.joinToString("\n"))
     }
 
+    @Test
+    fun `varje publik komponent har ett beteendetest`() {
+        assertTrue(components.isNotEmpty(), "hittade inga komponenter")
+        // Skärmdumpstesterna räknas inte: de visar hur komponenten ser ut, inte att den gör rätt.
+        val tests = listOf("ui-components", "ui-navigation").flatMap { module ->
+            File(repoRoot, "$module/src/test/kotlin").walkTopDown().filter { it.extension == "kt" && !it.name.contains("Screenshot") }.toList()
+        }.joinToString("\n") { it.readText() }
+        val missing = components.filterNot { Regex("""\b$it\s*[({<]""").containsMatchIn(tests) }
+        assertTrue(missing.isEmpty(), "Saknar beteendetest (regel 3): ${missing.sorted()}")
+    }
+
+    @Test
+    fun `README har bibliotekets version och alla artefakter`() {
+        val version = File(repoRoot, "gradle.properties").readLines().first { it.startsWith("version=") }.substringAfter("=").trim()
+        val readme = File(repoRoot, "README.md").readText()
+        assertEquals(version, Regex("""\*\*Version:\*\* (\S+)""").find(readme)?.groupValues?.get(1), "versionsraden i README")
+        val examples = Regex("""se\.kodhast\.ui:ui-[a-z]+:(\d[^"]*)""").findAll(readme).map { it.groupValues[1] }.toSet()
+        assertEquals(setOf(version), examples, "versionen i README:s Gradle-exempel")
+        val modules = Regex("""":(ui-[a-z]+)"""").findAll(File(repoRoot, "settings.gradle.kts").readText()).map { it.groupValues[1] }.toList()
+        val listed = Regex("""\| `se\.kodhast\.ui:(ui-[a-z]+)` \|""").findAll(readme).map { it.groupValues[1] }.toList()
+        assertEquals(modules.sorted(), listed.sorted(), "modultabellen i README")
+        val count = NUMBERS.getOrNull(modules.size)
+        assertTrue(count != null && readme.contains("publicerar alla $count"), "README:s publicering ska säga \"alla $count\" artefakterna")
+    }
+
     private companion object {
+        val NUMBERS = listOf("noll", "en", "två", "tre", "fyra", "fem", "sex", "sju", "åtta", "nio", "tio")
         const val GALLERY_DIR = "ui-navigation/src/main/kotlin/se/kodhast/ui/navigation/gallery"
     }
 

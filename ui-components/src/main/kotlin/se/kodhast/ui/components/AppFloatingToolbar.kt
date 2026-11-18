@@ -203,29 +203,42 @@ private fun ToolbarActionButton(action: ToolbarAction, menuStyle: ActionMenuStyl
     var bounds by remember { mutableStateOf(Rect.Zero) }
     val hasMenu = action.menu.isNotEmpty()
     val state = expandLabels(menuOpen).state
+    val colors = actionColors(color)
     Box(Modifier.onGloballyPositioned { bounds = Rect(it.positionOnScreen(), it.size.toSize()) }) {
         FloatingToolbarDefaults.StandardFloatingActionButton(
             onClick = { if (hasMenu) menuOpen = true else action.onClick() },
             modifier = if (hasMenu) Modifier.semantics { stateDescription = state } else Modifier,
-            containerColor = if (color == ActionColor.Tertiary) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.secondary,
-            contentColor = if (color == ActionColor.Tertiary) MaterialTheme.colorScheme.onTertiary else MaterialTheme.colorScheme.onSecondary
+            containerColor = colors.container,
+            contentColor = colors.content
         ) { Icon(painterResource(action.icon), contentDescription = action.label) }
         if (hasMenu) {
             when (menuStyle) {
                 ActionMenuStyle.Popup -> AppMenuPopup(action.menu, menuOpen, onDismiss = { menuOpen = false })
-                ActionMenuStyle.Fab -> if (menuOpen) FabMenu(action, bounds, onDismiss = { menuOpen = false })
+                ActionMenuStyle.Fab -> if (menuOpen) FabMenu(action, bounds, colors, onDismiss = { menuOpen = false })
             }
         }
     }
 }
 
+/** Huvudknappens färger i en [ActionColor]: ytan och ikonen. */
+private data class ActionColors(val container: Color, val content: Color)
+
+@Composable
+private fun actionColors(color: ActionColor): ActionColors {
+    val scheme = MaterialTheme.colorScheme
+    return when (color) {
+        ActionColor.Secondary -> ActionColors(scheme.secondary, scheme.onSecondary)
+        ActionColor.Tertiary -> ActionColors(scheme.tertiary, scheme.onTertiary)
+    }
+}
+
 /**
  * FAB-menyn: ett fönster över hela skärmen med en ljus slöja, valen staplade ovanför knappen ([anchor], i
- * skärmens koordinater) och krysset ("Stäng") exakt där knappen står. Valen växer fram ur knappens hörn,
+ * skärmens koordinater) och krysset ("Stäng") exakt där knappen står, i knappens färger ([colors]). Valen växer fram ur knappens hörn,
  * linjerar med knappens ytterkant (höger, i RTL vänster) och rullar om de inte får plats ovanför knappen.
  */
 @Composable
-private fun FabMenu(action: ToolbarAction, anchor: Rect, onDismiss: () -> Unit) {
+private fun FabMenu(action: ToolbarAction, anchor: Rect, colors: ActionColors, onDismiss: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
     val closeLabel = stringResource(R.string.close)
     val shown = remember { MutableTransitionState(false) }.apply { targetState = true }
@@ -272,11 +285,11 @@ private fun FabMenu(action: ToolbarAction, anchor: Rect, onDismiss: () -> Unit) 
                     Box(
                         Modifier
                             .clip(FloatingActionButtonDefaults.shape)
-                            .background(scheme.secondary)
+                            .background(colors.container)
                             .clickable(onClickLabel = closeLabel, role = Role.Button, onClick = onDismiss)
                             .semantics { contentDescription = closeLabel },
                         contentAlignment = Alignment.Center
-                    ) { Icon(painterResource(R.drawable.ic_close), contentDescription = null, tint = scheme.onSecondary) }
+                    ) { Icon(painterResource(R.drawable.ic_close), contentDescription = null, tint = colors.content) }
                 }
             ) { measurables, constraints ->
                 val width = constraints.maxWidth

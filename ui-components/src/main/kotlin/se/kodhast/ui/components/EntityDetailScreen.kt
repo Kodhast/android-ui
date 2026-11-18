@@ -119,9 +119,11 @@ fun <T> EntityDetailScreen(
     ) { padding ->
         AppPullToRefresh(refreshing, onRefresh, Modifier.fillMaxSize().padding(padding)) {
             when (state) {
-                DetailUiState.Loading -> AppLoading(Modifier.padding(bottom = clearance))
+                DetailUiState.Loading -> RefreshableState(onRefresh) { AppLoading(Modifier.padding(bottom = clearance)) }
 
-                is DetailUiState.Error -> LoadErrorState(stringResource(R.string.load_error_title), state.error, onRetry, Modifier.padding(bottom = clearance))
+                is DetailUiState.Error -> RefreshableState(onRefresh) {
+                    LoadErrorState(stringResource(R.string.load_error_title), state.error, onRetry, Modifier.padding(bottom = clearance))
+                }
 
                 is DetailUiState.Content -> Column(
                     Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = Spacing.l, vertical = Spacing.s).padding(bottom = clearance),

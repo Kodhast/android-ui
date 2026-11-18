@@ -211,7 +211,7 @@ fun <T> EntityListScreen(
             filter?.let { Box(Modifier.padding(start = Spacing.l, end = Spacing.l, bottom = Spacing.m)) { it() } }
             AppPullToRefresh(refreshing, onRefresh, Modifier.fillMaxWidth().weight(1f)) {
                 when (state) {
-                    ListUiState.Loading -> AppLoading()
+                    ListUiState.Loading -> RefreshableState(onRefresh) { AppLoading() }
 
                     ListUiState.Empty -> if (groups.isNotEmpty()) {
                         val card: @Composable () -> Unit = {
@@ -221,21 +221,24 @@ fun <T> EntityListScreen(
                         }
                         ListContent(emptyList(), key, group, groups, subgroup, card, footer, clearance + Spacing.l, row)
                     } else {
-                        EmptyState(
-                            icon = empty.icon,
-                            title = empty.title,
-                            message = empty.message,
-                            modifier = Modifier.padding(bottom = clearance),
-                            action = if (add == null && footer == null && empty.actions.isEmpty() && empty.examples.isEmpty()) {
-                                null
-                            } else {
-                                { EmptyActions(empty, add, footer) }
-                            }
-                        )
+                        RefreshableState(onRefresh) {
+                            EmptyState(
+                                icon = empty.icon,
+                                title = empty.title,
+                                message = empty.message,
+                                modifier = Modifier.padding(bottom = clearance),
+                                action = if (add == null && footer == null && empty.actions.isEmpty() && empty.examples.isEmpty()) {
+                                    null
+                                } else {
+                                    { EmptyActions(empty, add, footer) }
+                                }
+                            )
+                        }
                     }
 
-                    is ListUiState.Error ->
+                    is ListUiState.Error -> RefreshableState(onRefresh) {
                         LoadErrorState(errorTitle ?: stringResource(R.string.list_error_title), state.error, onRetry, Modifier.padding(bottom = clearance))
+                    }
 
                     is ListUiState.Content -> ListContent(state.items, key, group, groups, subgroup, header, footer, clearance + if (add != null) ADD_BUTTON_CLEARANCE else Spacing.l, row, scrollTo, onScrolled)
                 }
@@ -277,20 +280,16 @@ private fun <T> ListContent(
     onScrolled: () -> Unit = {}
 ) {
     val groups = remember(items, group, fixed) { grouped(items, group, fixed) }
-    // Gruppens nyckel är dess rubrik och ordningsnummer: två grupper med samma rubrik (men t.ex. olika
-    // räknare) får inte samma nyckel i listan.
-    val ids = remember(groups) {
-        val seen = mutableMapOf<String, Int>()
-        groups.map { (head, _) -> head?.let { seen.numbered(it.title) } }
-    }
-    // Utfällda grupper (bara de hopfällbara), efter rubrik; står kvar efter rotation och tillbaka.
+    val ids = remember(groups) { groupIds(groups) }
+    // Utfällda grupper (bara de hopfällbara), efter gruppens nyckel – två grupper med samma rubrik fälls
+    // var för sig; står kvar efter rotation och tillbaka.
     var expanded by rememberSaveable { mutableStateOf(emptyList<String>()) }
     BoxWithConstraints(Modifier.fillMaxSize()) {
         // Kolumner bara där de får plats – annars kapas texten i raderna.
         val fitting = columnsThatFit(maxWidth - Spacing.l * 2)
         val listState = rememberLazyListState()
         // Väntar tills raden finns (t.ex. ett äldre år som läses in) och rullar sedan en gång per begäran.
-        val target = scrollTo?.let { request -> itemIndex(request.key, header != null, groups, expanded, key, subgroup, fitting) }
+        val target = scrollTo?.let { request -> itemIndex(request.key, header != null, groups, ids, expanded, key, subgroup, fitting) }
         val scrolled by rememberUpdatedState(onScrolled)
         LaunchedEffect(scrollTo, target) {
             if (scrollTo != null && target != null) {
@@ -307,13 +306,14 @@ private fun <T> ListContent(
             header?.let { item(key = "list-header", contentType = "list-header") { Box(Modifier.padding(bottom = Spacing.m)) { it() } } }
             groups.forEachIndexed { index, (head, rows) ->
                 if (index > 0) item(key = "gap:$index", contentType = "gap") { Spacer(Modifier.height(Spacing.m)) }
-                val open = head.isOpen(expanded)
+                val open = head.isOpen(ids[index], expanded)
                 val emptyText = head?.emptyText?.takeIf { rows.isEmpty() }
                 head?.let {
-                    item(key = "header:${ids[index]}", contentType = "group-header") {
+                    val id = ids[index].orEmpty()
+                    item(key = "header:$id", contentType = "group-header") {
                         Segment(it.cards, top = true, bottom = !open || (rows.isEmpty() && emptyText == null), Modifier.animateItem(), first = true) {
                             GroupHeader(it, rows.size, open) {
-                                it.fold?.onToggle?.invoke() ?: run { expanded = if (open) expanded - it.title else expanded + it.title }
+                                it.fold?.onToggle?.invoke() ?: run { expanded = if (open) expanded - id else expanded + id }
                             }
                         }
                     }
@@ -398,7 +398,16 @@ private fun <T> groupLines(head: ListGroup?, rows: List<T>, subgroup: ((T) -> Li
     }
 }
 
-private fun ListGroup?.isOpen(expanded: List<String>): Boolean = this?.fold?.expanded ?: (this == null || !collapsible || title in expanded)
+private fun ListGroup?.isOpen(id: String?, expanded: List<String>): Boolean = this?.fold?.expanded ?: (this == null || !collapsible || id in expanded)
+
+/**
+ * Varje grupps nyckel: rubrik och ordningsnummer ("rubrik#n"), `null` för en grupp utan rubrik. Två grupper med
+ * samma rubrik (men t.ex. olika räknare) får olika nycklar – i listan och för hopfällt läge.
+ */
+private fun <T> groupIds(groups: List<Pair<ListGroup?, List<T>>>): List<String?> {
+    val seen = mutableMapOf<String, Int>()
+    return groups.map { (head, _) -> head?.let { seen.numbered(it.title) } }
+}
 
 /**
  * Listobjektets plats för raden med nyckeln [rowKey] – i samma ordning som `ListContent` lägger ut dem. Är raden
@@ -409,6 +418,7 @@ private fun <T> itemIndex(
     rowKey: Any,
     hasHeader: Boolean,
     groups: List<Pair<ListGroup?, List<T>>>,
+    ids: List<String?>,
     expanded: List<String>,
     key: (T) -> Any,
     subgroup: ((T) -> ListSubgroup?)?,
@@ -417,7 +427,7 @@ private fun <T> itemIndex(
     var index = if (hasHeader) 1 else 0
     groups.forEachIndexed { position, (head, rows) ->
         if (position > 0) index++ // mellanrummet
-        val open = head.isOpen(expanded)
+        val open = head.isOpen(ids[position], expanded)
         if (head != null) {
             if (open && rows.firstOrNull()?.let(key) == rowKey) return index
             index++
