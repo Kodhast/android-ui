@@ -1,5 +1,6 @@
 package se.kodhast.ui.components
 
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -32,13 +33,17 @@ sealed interface ArchiveEvent {
  * Arkivering i en [EntityListScreen], där den finns: "Visa arkiverade" i menyn ([showing]), Ångra efter
  * svep ([undo]) och ett misslyckat arkivera/ångra som meddelande ([error]). Händelserna går till
  * [ArchiveActions] i ViewModeln; [collectAsListArchive] bygger den. [showToggle] = false när dolda rader
- * visas på annat sätt (t.ex. "Dolda" eller "Avslutade").
+ * visas på annat sätt (t.ex. "Avslutade"). [showLabel], [hideLabel] och [toggleIcon] ger växeln en egen text
+ * och ikon ("Visa dolda (2)"/"Göm dolda"); `null` = "Visa arkiverade"/"Dölj arkiverade" med arkivikonen.
  */
 data class ListArchive(
     val showing: Boolean = false,
     val undo: UndoRequest? = null,
     val error: UiError? = null,
     val showToggle: Boolean = true,
+    val showLabel: String? = null,
+    val hideLabel: String? = null,
+    @param:DrawableRes val toggleIcon: Int? = null,
     val onEvent: (ArchiveEvent) -> Unit = {}
 ) {
     /** Svep på en rad: arkivera den och erbjud Ångra. */
@@ -52,16 +57,18 @@ data class ListArchive(
  * fel (t.ex. en dubblett som nekas vid Ångra). Samma mekanik döljer en rad: [setArchived] sätter då t.ex.
  * `hidden` och [undoFormat] är "%s dold". Samma Ångra kan också erbjudas för något annat än arkivering
  * ([offerUndo]), t.ex. rader som just lagts till. ViewModeln exponerar den som `archive`, och skärmen
- * skickar `archive.collectAsListArchive()` till listan.
+ * skickar `archive.collectAsListArchive()` till listan. [showing] är läget för "Visa arkiverade"; en app som
+ * vill att läget står kvar längre än ViewModeln (t.ex. under appsessionen) skickar in ett eget flöde.
  */
 class ArchiveActions(
     private val scope: CoroutineScope,
     private val errors: ErrorMapper,
     private val setArchived: suspend (id: String, archived: Boolean) -> Result<Unit>,
     @param:StringRes private val undoFormat: Int = R.string.archived_format,
+    showing: MutableStateFlow<Boolean> = MutableStateFlow(false),
     private val errorMessage: (Throwable) -> Int? = { null }
 ) {
-    private val _showingArchived = MutableStateFlow(false)
+    private val _showingArchived = showing
     val showingArchived: StateFlow<Boolean> = _showingArchived.asStateFlow()
 
     private val _undo = MutableStateFlow<UndoRequest?>(null)
@@ -131,5 +138,5 @@ fun ArchiveActions.collectAsListArchive(showToggle: Boolean = true): ListArchive
     val showing by showingArchived.collectAsStateWithLifecycle()
     val request by undo.collectAsStateWithLifecycle()
     val failure by error.collectAsStateWithLifecycle()
-    return ListArchive(showing, request, failure, showToggle, ::onEvent)
+    return ListArchive(showing, request, failure, showToggle, onEvent = ::onEvent)
 }

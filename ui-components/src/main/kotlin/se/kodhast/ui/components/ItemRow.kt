@@ -15,12 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Text
-import androidx.compose.material3.TooltipAnchorPosition
-import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TooltipDefaults
-import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
@@ -147,12 +142,7 @@ internal fun ItemRowLayout(
     val tint = AppTheme.extendedColors.rowTint
     // Bubblan finns bara när titeln faktiskt kapas – annars är långtrycket radens som vanligt.
     var truncated by remember { mutableStateOf(false) }
-    TooltipBox(
-        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
-        tooltip = { PlainTooltip { FullText(title, subtitle) } },
-        state = rememberTooltipState(),
-        enableUserInput = bubble && truncated
-    ) {
+    FullTextBubble(bubble && truncated, { FullText(title, subtitle) }) {
         // Anroparens modifierare (svep och dess TalkBack-åtgärd) ska ligga på raden som TalkBack läser.
         Column(
             modifier

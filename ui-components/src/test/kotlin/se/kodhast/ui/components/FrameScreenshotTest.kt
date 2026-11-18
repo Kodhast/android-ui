@@ -85,6 +85,49 @@ class FrameScreenshotTest {
     }
 
     @Test
+    @Config(qualifiers = "w360dp-h800dp-mdpi")
+    fun `EntityListScreen - grupper med plus, en hopfälld, en tom och rubriken på 360 dp`() {
+        val creams = ListGroup("Krämer & salvor", R.drawable.ic_box, count = "1 / 2", action = GroupAction(R.drawable.ic_add, "Lägg till i Krämer & salvor", {}), fold = GroupFold(true, {}))
+        val supplements = ListGroup("Kosttillskott", R.drawable.ic_box, Tone.Green, count = "1 / 2", action = GroupAction(R.drawable.ic_add, "Lägg till i Kosttillskott", {}), fold = GroupFold(false, {}))
+        val other = ListGroup("Övrigt", R.drawable.ic_box, Tone.Blue, count = "0 / 0", action = GroupAction(R.drawable.ic_add, "Lägg till i Övrigt", {}), fold = GroupFold(true, {}), emptyText = "Inget här än")
+        captureLightAndDark("EntityListScreen_gruppknapp") {
+            EntityListScreen(
+                "Gran Canaria",
+                ListUiState.Content(persistentListOf("Solkräm SPF 50", "Hydrokortison 1 %", "Magnesium")),
+                empty,
+                add = null,
+                key = { it },
+                group = { if (it == "Magnesium") supplements else creams },
+                groups = listOf(creams, supplements, other),
+                onBack = {},
+                topBarSize = TopBarSize.Small,
+                menu = listOf(AppMenuItem("Räkna om", {}))
+            ) { CheckRow(it, checked = it.startsWith("S"), onCheckedChange = {}) }
+        }
+    }
+
+    @Test
+    fun `EntityListScreen - tom lista med grupper`() {
+        val groups = listOf(
+            ListGroup("Mediciner", R.drawable.ic_box, action = GroupAction(R.drawable.ic_add, "Lägg till i Mediciner", {}), fold = GroupFold(true, {}), emptyText = "Inget här än"),
+            ListGroup("Övrigt", R.drawable.ic_box, Tone.Blue, action = GroupAction(R.drawable.ic_add, "Lägg till i Övrigt", {}), fold = GroupFold(true, {}), emptyText = "Inget här än")
+        )
+        captureLightAndDark("EntityListScreen_tom_grupper") {
+            EntityListScreen<String>(
+                "Gran Canaria",
+                ListUiState.Empty,
+                EmptyContent(R.drawable.ic_box, "Inget att packa än", "Räkna om för att få förslag från resenärernas mediciner.", actions = listOf(EmptyAction("Räkna om", {}))),
+                add = null,
+                key = { it },
+                group = { groups.first() },
+                groups = groups,
+                onBack = {},
+                topBarSize = TopBarSize.Small
+            ) {}
+        }
+    }
+
+    @Test
     @Config(qualifiers = "w840dp-h600dp-mdpi")
     fun `EntityListScreen - bred skärm ger kolumner`() {
         val rows = listOf("Solkräm SPF 50", "Plåster", "Febertermometer", "Resetabletter", "Myggmedel")
