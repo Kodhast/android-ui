@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Navigationsramens texter, på svenska. En app som har en sträng med samma namn i sina resurser
+  ersätter bibliotekets (Androids resurssammanslagning).
+-->
+<resources>
+    <!-- AppNavHost: en skrivning servern nekade; %1$s = felets text -->
+    <string name="sync_write_rejected">En ändring kunde inte sparas och har ångrats. %1$s</string>
+</resources>

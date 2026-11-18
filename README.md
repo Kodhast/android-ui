@@ -13,8 +13,9 @@ Kotlin `2.4.20` · AGP `9.4.1` · compileSdk 37 · minSdk 30.
 | Artefakt | Paket | Innehåll |
 |---|---|---|
 | `se.kodhast.ui:ui-theme` | `se.kodhast.ui.theme` | `AppTheme`, `Spacing`, `AppShapes`, `AppTypography`, `ExtendedColors`, `Tone`, `ToneColors` |
-| `se.kodhast.ui:ui-common` | `se.kodhast.ui.common` | ramarnas tillstånd utan UI: `UiError`/`ErrorMapper`, `ListUiState`, `DetailUiState`, `EditorState`, `EditorLoader`, `shownAfter`, `WriteFailures`, `screenSharing`, `DateFormat` |
+| `se.kodhast.ui:ui-common` | `se.kodhast.ui.common` | ramarnas tillstånd utan UI: `UiError`/`ErrorMapper`, `ListUiState`, `DetailUiState`, `EditorState`, `EditorLoader`, `shownAfter`, `WriteFailures`, `screenSharing`, `DateFormat`, `SyncUiState` |
 | `se.kodhast.ui:ui-components` | `se.kodhast.ui.components` | komponenterna och ramarna nedan (drar in `ui-theme` och `ui-common`) |
+| `se.kodhast.ui:ui-navigation` | `se.kodhast.ui.navigation` | navigationsramen: `TabBackStack`, `AppTransitions`, `AppNavHost` (drar in `ui-components`, Navigation 3 och kotlinx-serialization) |
 | `se.kodhast.ui:ui-testing` | `se.kodhast.ui.testing` | ramarnas kontraktstester, för appens enhetstester (`testImplementation`) |
 
 ## Lägga till i en app
@@ -254,6 +255,43 @@ LocalAppBrandStyle provides AppBrandStyle(
 - Plusknappens meny är `ToolbarAction(label, icon, menu = listOf(AppMenuItem(…)))`; ett eget ark för valen behövs inte.
 - Utan inställning ser raden ut som förut.
 
+## Navigationsramen (ui-navigation)
+
+Flikarna med egna back stackar, skärmbytena och skalet runt `NavDisplay` – samma i alla appar.
+Appen behåller sina nycklar (`@Serializable` och `NavKey`), vilka skärmar som finns och plusmenyns val.
+
+```kotlin
+@Serializable sealed interface AppKey : NavKey
+@Serializable sealed interface TopLevelKey : AppKey
+// … flikarnas och skärmarnas nycklar
+val TOP_LEVEL: List<AppKey> = listOf(TripsKey, PersonsKey, FamilyItemsKey)
+
+val backStack = rememberTabBackStack(TOP_LEVEL, AppKey.serializer())
+AppNavHost(
+    backStack,
+    tabs = listOf(ToolbarItem(stringResource(R.string.tab_trips), R.drawable.ic_luggage), …),
+    entryProvider = appEntries(backStack),
+    sync = syncState,                      // SyncUiState ur appens SyncViewModel
+    onSyncErrorShown = { sync.onEvent(SyncEvent.WriteErrorShown) },
+    action = ToolbarAction(addLabel, R.drawable.ic_add, addMenu),
+    onPopped = { key -> … },
+    account = { AccountAvatar(…) }
+)
+```
+
+- `TabBackStack`: appen startar på första fliken; varje flik minns sin undersida; tillbaka i en annan fliks rot går
+  till första fliken, i dess rot stänger systemet appen. `select`, `push` (ett dubbeltryck öppnar en gång),
+  `pop(): Boolean`, `popIfTop(key): Boolean`, `closer(key, then)` (skärmens `onClose`), `openInTab(tab, key)`
+  (notiser och djuplänkar: överst i fliken, det som var öppet ligger kvar under). Läget sparas som JSON i
+  samma format som apparnas tidigare `AppBackStack`; ett läge som inte går att läsa eller inte passar flikarna
+  ger startläget.
+- `AppNavHost`: verktygsraden bara i en fliks rot, `LocalBottomClearance`, ViewModel per skärm, flikrötternas
+  sparade tillstånd över flikbyten, synkprickarna (`LocalTopBarSyncing`), kontot (`LocalTopBarAccount`) och en
+  nekad skrivning som meddelande ("En ändring kunde inte sparas och har ångrats. …", strängen
+  `sync_write_rejected`).
+- `AppTransitions.forward()`/`back()`: skärmbytet – glider en fjärdedel och tonas med fjädring; tillbaka
+  baklänges. Används av `AppNavHost`; en egen `NavDisplay` skriver `transitionSpec = { AppTransitions.forward() }`.
+
 ## ui-testing – kontraktstesterna
 
 En skärm som använder en ram kör ramens kontrakt i sitt Robolectric-test och testar sedan bara det
@@ -295,6 +333,7 @@ inte använder ramen rätt.
 | `AppIconButton` | Ikonknapp, minst 48 dp, alltid `contentDescription`; `tone` (platta och ikon för Tonal, ikonen för Plain; standard Material-färgerna) | – |
 | `AppLoading` | Expressive laddningsindikator mitt på ytan; med `AppBrandStyle(dotLoading = true)` Kodhästs två prickar som hoppar | – |
 | `AppMenu` | Menyn bakom ⋮ (`AppMenuItem`: `icon`, `destructive`, `section` (rubrik), `checked` (kryssrad som håller menyn öppen), `supporting`/`supportingTone` (undertext), `muted` (dämpad etikett)) | `section`, `checked` från Dagboken; `asSplitMenu()` från ReseApoteket |
+| `AppNavHost` | Navigationsramen i `ui-navigation` (se Navigationsramen): `backStack`, `tabs`, `entryProvider`, `sync`, `onSyncErrorShown`, `action`, `onPopped`, `account` | Flyttad från ReseApoteket och Dagboken (#52); appens `onExit` behövs inte – i första flikens rot stänger systemet appen |
 | `AppMenuPopup` | Själva menyn, för egna knappar som öppnar en meny | Publik (Dagboken använder den direkt) |
 | `AppPullToRefresh` | Dra för att uppdatera runt eget rullbart innehåll, för skärmar utan ram: `refreshing`, `onRefresh` (`null` = ingen gest); samma yta och tagg (`ENTITY_REFRESH_TAG`) som i ramarna | Fonder: Översikt, Innehav, Beslut |
 | `AppSegmentedChoice` | Ett val av få alternativ som segmentknappar | – |
@@ -385,6 +424,7 @@ pusha taggar och använder därför den manuella vägen.
 
 | Version | Ändring |
 |---|---|
+| 1.12.0 | Ny modul `ui-navigation` (#52): `TabBackStack`/`rememberTabBackStack` (flikarnas back stackar, sparade i samma format som apparnas `AppBackStack`), `AppTransitions` och `AppNavHost` – flyttade från ReseApoteket och Dagboken, som hade var sin kopia. `SyncUiState` i `ui-common`. Inga befintliga skärmdumpar är omtagna |
 | 1.11.0 | Gemensamma verktyg ur apparna (#51): `DateFormat`, `WriteFailures` och `screenSharing` i `ui-common` (nytt beroende där: kotlinx-datetime, som `ui-components` redan hade), `rememberReducedMotion()`, `Modifier.blockInput` och den publika `TOUCH_TARGET` i `ui-components`, och `AppFilterChip(leading)` för ett eget ledande element. `DateField`/`TimeField` formaterar med `DateFormat` (samma text som förut). Inga befintliga skärmdumpar är omtagna |
 | 1.10.0 | För packlistan i ReseApoteket (#172): `ListGroup.action` (`GroupAction`, plus i rubriken), `ListGroup.fold` (`GroupFold`, hopfällt läge utifrån), `ListGroup.emptyText` och `EntityListScreen.groups` (grupper som alltid visas, också i en tom lista), `EntityListScreen.menu` (en ⋮ med arkivväxeln sist), `ListArchive.showLabel`/`hideLabel`/`toggleIcon` och `ArchiveActions.showing`. `SectionHeader`-titeln står på högst två rader brutna mellan ord; ett ord som inte ryms kortas med "…" och visar hela titeln vid långt tryck – bubblan är utbruten ur `ItemRow` (`FullTextBubble`). Rubrikändringen gäller alla appar men ändrar ingen befintlig skärmdump i biblioteket; övriga standardvärden bevarar utseendet |
 | 1.9.0 | `AppBrandStyle.actionColor` (`ActionColor.Secondary` standard, `Tertiary`) och parametern `actionColor` i `AppFloatingToolbar`: huvudknappens färg, för en app vars `secondary` är neutral (ReseApotekets blåa plusknapp). Standardvärdet bevarar dagens utseende |

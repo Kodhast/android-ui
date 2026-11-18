@@ -8,6 +8,7 @@ plugins {
     base
     alias(libs.plugins.android.library) apply false
     alias(libs.plugins.kotlin.compose) apply false
+    alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.roborazzi) apply false
     alias(libs.plugins.spotless)
 }
@@ -37,7 +38,7 @@ spotless {
     }
 }
 
-// Gemensam byggkonfiguration för alla moduler (:ui-theme, :ui-common, :ui-components, :ui-testing) – enda stället. Modulfilerna har bara det som är unikt.
+// Gemensam byggkonfiguration för alla moduler (:ui-theme, :ui-common, :ui-components, :ui-navigation, :ui-testing) – enda stället. Modulfilerna har bara det som är unikt.
 val javaVersion = JavaVersion.VERSION_17
 val githubPackages = "https://maven.pkg.github.com/Kodhast/android-ui"
 
