@@ -15,13 +15,17 @@ import androidx.compose.runtime.staticCompositionLocalOf
  *   fullstort läge utan fel.
  * - [headerDots]: [AppHeader] visar två prickar i `primary` före rubriken; de hoppar medan ändringar
  *   väntar på servern (`syncing`). Utan dem visar appen synken via `status` som i [AppTopBar].
+ * - [toolbarStyle]: bakgrunden i [AppFloatingToolbar]; standard [ToolbarStyle.Toolbar] (`extendedColors.toolbar`).
+ * - [actionMenu]: hur huvudknappens meny öppnas; standard [ActionMenuStyle.Popup] (rullgardin).
  */
 @Immutable
 data class AppBrandStyle(
     val sectionDots: Boolean = false,
     val dotLoading: Boolean = false,
     val emptyStateMark: Boolean = false,
-    val headerDots: Boolean = false
+    val headerDots: Boolean = false,
+    val toolbarStyle: ToolbarStyle = ToolbarStyle.Toolbar,
+    val actionMenu: ActionMenuStyle = ActionMenuStyle.Popup
 )
 
 /** Kodhäst-delarna i innehållet; standard [AppBrandStyle] – allt avstängt. */

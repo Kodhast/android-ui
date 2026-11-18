@@ -216,6 +216,28 @@ CompositionLocalProvider(
 6. **Tester:** appens kontraktstester körs med appens tema – sätts identiteten där, prövas ramarna med
    sidhuvudet. Skärmdumparna tas om i appens PR.
 
+## Sidfoten (Kodhäst)
+
+Flikraden (`AppFloatingToolbar`) och plusknappens meny (#44) följer samma Kodhäst-standard. Knapparna är
+desamma i alla appar – vald flik som kapsel i `primary` med ikon och namn, övriga bara ikon, huvudknappen i
+`secondary` till höger – och appen väljer bakgrund och meny en gång i `AppBrandStyle`:
+
+```kotlin
+LocalAppBrandStyle provides AppBrandStyle(
+    headerDots = true,
+    toolbarStyle = ToolbarStyle.Tonal,     // flikraden i appens ljusa ton (primaryContainer)
+    actionMenu = ActionMenuStyle.Fab       // plusknappens val växer upp ur knappen
+)
+```
+
+- `ToolbarStyle`: `Toolbar` (standard, `extendedColors.toolbar`), `Surface` (kortens yta), `Tonal` (Kodhäst-standard:
+  `primaryContainer`/`onPrimaryContainer`, Material 3 Expressives "vibrant") och `Filled` (`primary`).
+- `ActionMenuStyle`: `Popup` (standard, rullgardin) och `Fab` (Kodhäst-standard: valen som kapslar i `primary` med
+  ikon från `AppMenuItem.icon`, knappen blir ett kryss "Stäng", ljus slöja över innehållet; tryck utanför, bakåt
+  eller ett val stänger).
+- Plusknappens meny är `ToolbarAction(label, icon, menu = listOf(AppMenuItem(…)))`; ett eget ark för valen behövs inte.
+- Utan inställning ser raden ut som förut.
+
 ## ui-testing – kontraktstesterna
 
 En skärm som använder en ram kör ramens kontrakt i sitt Robolectric-test och testar sedan bara det
@@ -252,7 +274,7 @@ inte använder ramen rätt.
 | `AppCard` | Kortet: `tone`, `contentColor` (standard `null`: ärver omgivande `LocalContentColor`; Dagboken `onSurface`), `onClick` (hela kortet en nod). Appens kortstil `AppCardStyle(border, padding, segmentGap, contentSpacing)` med `LocalAppCardStyle` (eller `style`); ett tonat kort har ingen kontur | ReseApotekets `ApotekCard` heter nu `AppCard`. Fonder: kontur 1 dp `outlineVariant`, `padding = Spacing.l`, `contentSpacing = 0.dp`; Filled/Error är Fonders egna toner |
 | `AppDivider` | Avdelare mellan rader i ett kort | – |
 | `AppFilterChip` | Filterchip; `icon`, `onLongClick`, `value` (värde efter etiketten), `emphasized` (det aktiva bland flera valda), `pending` (`ChipPending`: väntande läge, tonat med streckad kant, ikon och tilläggstext) | `chipColors()` är publik för egna chips |
-| `AppFloatingToolbar` | Toppnivånavigeringen: flytande flikar; `action` (`ToolbarAction`, huvudknapp i `secondary` till höger – Dagboken; med `menu: List<AppMenuItem>` fäller knappen ut en meny och läses "Hopfälld"/"Utfälld" – Fonders plusknapp), `ToolbarItem.badgeCount` (märke med antal i `secondary` på en ovald flik, läses "Beslut, 3 nya" – Fonder). `LocalBottomClearance`, `FloatingToolbarClearance`, `NoBottomClearance` | – |
+| `AppFloatingToolbar` | Toppnivånavigeringen: flytande flikar; `action` (`ToolbarAction`, huvudknapp i `secondary` till höger – Dagboken; med `menu: List<AppMenuItem>` fäller knappen ut en meny och läses "Hopfälld"/"Utfälld" – Fonders plusknapp), `style: ToolbarStyle` och `actionMenu: ActionMenuStyle` (standard ur `AppBrandStyle`; se Sidfoten), `ToolbarItem.badgeCount` (märke med antal i `secondary` på en ovald flik, läses "Beslut, 3 nya" – Fonder). `LocalBottomClearance`, `FloatingToolbarClearance`, `NoBottomClearance` | – |
 | `AppHeader` | Kodhäst-sidhuvudet på en flik (se Sidhuvudet): `title`, `scrollBehavior`, `subtitle`, `syncing` (`LocalTopBarSyncing`), `identity` (`LocalAppIdentity`), `status`, `account` (`LocalTopBarAccount`), `actions`, `titleModifier`; taggen `APP_HEADER_TAG` | Ny (#42); ramarnas flikläge med `LocalAppIdentity` |
 | `AppIconButton` | Ikonknapp, minst 48 dp, alltid `contentDescription`; `tone` (platta och ikon för Tonal, ikonen för Plain; standard Material-färgerna) | – |
 | `AppLoading` | Expressive laddningsindikator mitt på ytan; med `AppBrandStyle(dotLoading = true)` Kodhästs två prickar som hoppar | – |
@@ -343,6 +365,7 @@ pusha taggar och använder därför den manuella vägen.
 
 | Version | Ändring |
 |---|---|
+| 1.7.0 | Kodhäst-sidfoten (#44): `ToolbarStyle` (`Toolbar`, `Surface`, `Tonal`, `Filled`) och `ActionMenuStyle` (`Popup`, `Fab`) som parametrar på `AppFloatingToolbar` och som `AppBrandStyle.toolbarStyle`/`actionMenu`. FAB-menyn: valen som kapslar i `primary` ovanför huvudknappen, som blir ett kryss. Standard är dagens utseende; inga befintliga skärmdumpar är omtagna. Se Sidfoten |
 | 1.6.0 | Kodhäst-sidhuvudet (#42): `AppHeader` (144 dp i vila, 64 dp med kortfärg och skugga rullat, rubriken flyttas upp till appikonen, prickar som hoppar vid synk), `AccountAvatar` (flyttad från Dagboken, med `online`-plupp), `SignInButton`, `AppIdentity`/`LocalAppIdentity`, `LocalTopBarAccount`, `LocalTopBarSyncing`, `AppBrandStyle.headerDots`, `ExtendedColors.online` och `AppDepth.headerShadow`. Ramarnas flikläge ritar sidhuvudet bara när appen satt `LocalAppIdentity`; utan den är allt som förut och inga befintliga skärmdumpar är omtagna. Se Sidhuvudet för hur en app slår på det |
 | 1.5.0 | Kortens skimmer (#40): `AppDepth(cardSheen = …)` ger kort i kortfärgen ett svagt skimmer som tonar ut över de översta 64 dp – inte tonade kort eller kort med egen kontur, och i en lista av bitar bara den översta. Standard `null` bevarar dagens utseende; inga befintliga skärmdumpar är omtagna |
 | 1.4.1 | Rättning för #35: med djup satt sig `modifier` på knappar, chips och segmentval på en ruta utanför elementet, så att en apps semantik (`stateDescription`, `testTag`) inte hamnade på den klickbara noden och TalkBack inte läste den. Tryckytan är nu en layoutmodifierare i elementets egen kedja; utseendet är oförändrat och inga skärmdumpar är omtagna |

@@ -7,13 +7,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeDown
+import androidx.compose.ui.unit.LayoutDirection
 import kotlinx.datetime.LocalDate
 import org.junit.Rule
 import org.junit.Test
@@ -141,6 +144,68 @@ class OverlayScreenshotTest {
                         )
                     )
                 )
+            }
+        }
+    }
+
+    @Test
+    fun `AppFloatingToolbar - FAB-meny`() = rule.captureScreenLightAndDark(
+        "AppFloatingToolbar_fabmeny",
+        open = { onNodeWithContentDescription("Logga").clickWithoutRipple() }
+    ) {
+        // Dagboken: plusknappen fäller ut loggvalen som kapslar, och blir ett kryss.
+        Background {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
+                Text("Mående · Morgon · 7 av 10", Modifier.align(Alignment.TopStart), color = MaterialTheme.colorScheme.onBackground)
+                AppFloatingToolbar(
+                    listOf(ToolbarItem("Idag", R.drawable.ic_clock), ToolbarItem("Dagbok", R.drawable.ic_note), ToolbarItem("Mediciner", R.drawable.ic_box)),
+                    0,
+                    {},
+                    action = ToolbarAction(
+                        "Logga",
+                        R.drawable.ic_add,
+                        listOf(
+                            AppMenuItem("Mående", {}, icon = R.drawable.ic_person),
+                            AppMenuItem("Aktivitet", {}, icon = R.drawable.ic_clock),
+                            AppMenuItem("Dos", {}, icon = R.drawable.ic_check),
+                            AppMenuItem("Händelse", {}, icon = R.drawable.ic_calendar),
+                            AppMenuItem("Sjukdom utan ikon och med ett långt namn som kapas i kanten", {})
+                        )
+                    ),
+                    style = ToolbarStyle.Tonal,
+                    actionMenu = ActionMenuStyle.Fab
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `AppFloatingToolbar - FAB-meny i RTL`() = rule.captureScreenLightAndDark(
+        "AppFloatingToolbar_fabmeny_rtl",
+        open = { onNodeWithContentDescription("Lägg till").clickWithoutRipple() }
+    ) {
+        // Speglad: knappen står till vänster och valen linjerar med dess vänsterkant.
+        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+            Background {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
+                    AppFloatingToolbar(
+                        listOf(ToolbarItem("Översikt", R.drawable.ic_clock), ToolbarItem("Innehav", R.drawable.ic_box), ToolbarItem("Beslut", R.drawable.ic_check)),
+                        0,
+                        {},
+                        action = ToolbarAction(
+                            "Lägg till",
+                            R.drawable.ic_add,
+                            listOf(
+                                AppMenuItem("Ny transaktion", {}, icon = R.drawable.ic_edit),
+                                AppMenuItem("Importera avräkningsnota", {}, icon = R.drawable.ic_note),
+                                AppMenuItem("Importera innehav", {}, icon = R.drawable.ic_box),
+                                AppMenuItem("Bevaka ny fond", {}, icon = R.drawable.ic_check)
+                            )
+                        ),
+                        style = ToolbarStyle.Tonal,
+                        actionMenu = ActionMenuStyle.Fab
+                    )
+                }
             }
         }
     }
