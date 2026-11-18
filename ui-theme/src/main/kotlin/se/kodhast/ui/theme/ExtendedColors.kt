@@ -30,6 +30,8 @@ data class ToneColors(val container: Color, val content: Color)
  * - [tones]: färgerna per [Tone]; måste innehålla [Tone.Primary].
  * - [accents]: appens dekorativa färgserie (personfärger, valbara färger) – t.ex. konfettin.
  * - [online]: pluppen på kontoavataren när appen har internet; `null` (standard) = `colorScheme.primary`.
+ * - [track]: spåret i framstegsraden (`AppProgress`); `null` (standard) = `colorScheme.primaryContainer`.
+ * - [progressDone]: framstegsradens fyllnad när allt är klart; `null` (standard) = `colorScheme.primary` utan kontur.
  */
 @Immutable
 data class ExtendedColors(
@@ -39,7 +41,9 @@ data class ExtendedColors(
     val onToolbar: Color,
     val tones: Map<Tone, ToneColors>,
     val accents: List<Color>,
-    val online: Color? = null
+    val online: Color? = null,
+    val track: Color? = null,
+    val progressDone: ProgressDoneColors? = null
 ) {
     init {
         require(Tone.Primary in tones) { "tones saknar Tone.Primary" }
@@ -52,3 +56,10 @@ data class ExtendedColors(
     /** Färgerna för [tone]; en ton appen inte gett färger får primärtonen. */
     fun tone(tone: Tone): ToneColors = tones[tone] ?: primaryTone
 }
+
+/**
+ * Framstegsradens fyllnad när allt är klart: [fill] och en valfri [outline] (1 dp) för en fyllnad som
+ * syns för dåligt mot kortet ensam – t.ex. Dagbokens solgula.
+ */
+@Immutable
+data class ProgressDoneColors(val fill: Color, val outline: Color? = null)
