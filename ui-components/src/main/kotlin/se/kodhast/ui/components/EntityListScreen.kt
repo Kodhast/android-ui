@@ -501,9 +501,9 @@ private fun GroupHeader(group: ListGroup, size: Int, open: Boolean, onToggle: ()
     }
 }
 
-/** Raden i en grupp utan rader ("Inget här än"). */
+/** Raden i en grupp utan rader ("Inget här än") – också i en tom [SectionFoldout]. */
 @Composable
-private fun GroupEmpty(text: String) {
+internal fun GroupEmpty(text: String) {
     Text(
         text,
         style = AppTheme.typography.itemSubtitle,

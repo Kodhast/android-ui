@@ -55,6 +55,22 @@ fun CollapsibleHeader(expanded: Boolean, onToggle: () -> Unit, modifier: Modifie
 }
 
 /**
+ * Chevronknappen för något som fälls ut utan en egen titelrad (t.ex. detaljerna på ett postkort): en
+ * [AppIconButton] med chevronen, som fjädrar ett halvt varv när [expanded] ([chevronRotation]). TalkBack läser
+ * samma åtgärd som [CollapsibleHeader] ("Fäll ut"/"Fäll ihop") och läget som `stateDescription`.
+ */
+@Composable
+fun ExpandButton(expanded: Boolean, onToggle: () -> Unit, modifier: Modifier = Modifier) {
+    val labels = expandLabels(expanded)
+    AppIconButton(
+        R.drawable.ic_expand_more,
+        labels.action,
+        onToggle,
+        modifier.rotate(chevronRotation(expanded)).semantics { stateDescription = labels.state }
+    )
+}
+
+/**
  * Åtgärd ("Fäll ut"/"Fäll ihop") och läge ("Hopfälld"/"Utfälld") för TalkBack – samma i allt som
  * fälls ut, t.ex. en egen chevronknapp på ett kort ([expandLabels]).
  */

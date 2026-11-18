@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
@@ -52,6 +53,8 @@ import se.kodhast.ui.theme.Spacing
  * [footer] = knappraden (t.ex. Spara eller stegnavigeringen): innehållet ovanför rullar och raden står fast i
  * arkets botten, ovanför navigeringsfältet och tangentbordet, hur högt innehållet än blir. Felet visas då
  * direkt ovanför raden. Standard (`null`): ingen knapprad.
+ *
+ * [subtitle] = en rad under rubriken (t.ex. "Anna · 1 tablett dagligen" eller vad en inställning gör). Standard: ingen.
  */
 @Composable
 fun AppBottomSheet(
@@ -63,6 +66,7 @@ fun AppBottomSheet(
     canDismiss: () -> Boolean = { true },
     hide: Boolean = false,
     footer: (@Composable RowScope.() -> Unit)? = null,
+    subtitle: String? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
     // Inte sparad över ett konfigurationsbyte: efter en rotation är frågan borta och arket står kvar.
@@ -96,7 +100,10 @@ fun AppBottomSheet(
     LaunchedEffect(hide) { if (hide) hideThenDismiss() }
     // Flyttbart, så att innehållets tillstånd följer med om knappraden kommer eller går.
     val body = remember(content) { movableContentWithReceiverOf(content) }
-    val heading = @Composable { Text(title, style = AppTheme.typography.sectionTitle, modifier = Modifier.semantics { heading() }) }
+    val heading = @Composable {
+        Text(title, style = AppTheme.typography.sectionTitle, modifier = Modifier.semantics { heading() })
+        subtitle?.let { Text(it, style = AppTheme.typography.itemSubtitle, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+    }
     val errorText = @Composable { error?.let { FieldError(stringResource(it.message)) } }
     ModalBottomSheet(
         onDismissRequest = onDismiss,

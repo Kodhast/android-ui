@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -27,6 +28,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
@@ -60,6 +62,7 @@ private enum class AfterDiscard { Close, Archive, Restore }
  *   förbrukad så att navigeringsfältet inte räknas två gånger), så att det fokuserade fältet rullas fram
  *   ovanför tangentbordet.
  *
+ * [header] står centrerat överst i formuläret, t.ex. en stor avatar som visar det som redigeras (standard: inget).
  * [horizontalMargin] är formulärets sidomarginal (standard [LocalEditScreenMargin], `Spacing.xl`; Dagboken `Spacing.l`).
  *
  * @param events kvitterar [EditorUiState.done] och [EditorUiState.failure] när ramen hanterat dem –
@@ -85,6 +88,7 @@ fun EntityEditScreen(
     onSaved: () -> Unit = onClose,
     formError: String? = null,
     horizontalMargin: Dp = LocalEditScreenMargin.current,
+    header: (@Composable () -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
     val snackbar = remember { SnackbarHostState() }
@@ -153,6 +157,7 @@ fun EntityEditScreen(
                         .padding(horizontal = horizontalMargin, vertical = Spacing.s),
                     verticalArrangement = Arrangement.spacedBy(Spacing.l)
                 ) {
+                    header?.let { Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { it() } }
                     formError?.let { FieldError(it) }
                     content()
                 }

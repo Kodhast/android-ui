@@ -7,28 +7,37 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
+import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.assertHeightIsEqualTo
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertIsNotSelected
+import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.assertWidthIsEqualTo
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
+import kotlinx.datetime.LocalDate
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import se.kodhast.ui.common.DateFormat
 import se.kodhast.ui.components.testing.TestPalette
 import se.kodhast.ui.components.testing.TestTheme
 import se.kodhast.ui.components.testing.assertSameColor
 import se.kodhast.ui.components.testing.pixelAt
 import se.kodhast.ui.components.testing.textStyle
+import se.kodhast.ui.theme.AppTheme
 
 /** Byggstenarna som rader och fält sätts ihop av: avdelare, dagmarkering, fälttext, ledande ruta och krysset. */
 @RunWith(RobolectricTestRunner::class)
@@ -111,5 +120,26 @@ class PartsBehaviorTest {
         rule.waitForIdle()
         assertNotEquals(empty, centre(), "kakan fylls")
         assertEquals(0, rule.onNodeWithTag("ruta").fetchSemanticsNode().children.size)
+    }
+
+    @Test
+    fun `DayTab är en flik som väljs med tryck och visar veckodagen`() {
+        val day = LocalDate(2026, 11, 18)
+        var selected by mutableStateOf(false)
+        var enabled by mutableStateOf(true)
+        show {
+            DayTab(selected, { selected = true }, AppTheme.shapes.pill, Modifier.testTag("dag"), enabled = enabled) {
+                DayTabWeekday(day)
+                Text("18")
+            }
+        }
+        val tab = rule.onNodeWithTag("dag")
+        tab.assert(SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Tab)).assertIsNotSelected().assertHeightIsAtLeast(48.dp)
+        rule.onNodeWithText(DateFormat.weekdayShort(day)).assertIsDisplayed()
+        tab.performClick()
+        tab.assertIsSelected()
+        enabled = false
+        rule.waitForIdle()
+        tab.assertIsNotEnabled()
     }
 }

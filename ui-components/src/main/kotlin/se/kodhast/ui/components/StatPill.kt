@@ -19,6 +19,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import se.kodhast.ui.theme.AppTheme
 import se.kodhast.ui.theme.Spacing
@@ -62,6 +63,25 @@ fun StatPill(
             Text(label, style = AppTheme.typography.itemSubtitle, color = colors.content, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         if (action != null) Text(action, style = AppTheme.typography.button, color = colors.content, maxLines = 1)
+    }
+}
+
+/** Ett mätvärde i [StatPillGrid]: ikon, värde och etikett som i [StatPill]. */
+data class StatPillItem(@param:DrawableRes val icon: Int, val value: String, val label: String)
+
+/**
+ * Mätvärden som [StatPill] i ett rutnät med [columns] per rad (standard två), alla i [tone]; pills står [Spacing.s]
+ * isär och raderna [rowSpacing] (standard [Spacing.s]; i en sektion med större luft samma som sektionens). Ett ensamt sista värde tar hela radens bredd.
+ */
+@Composable
+fun StatPillGrid(items: List<StatPillItem>, tone: Tone, modifier: Modifier = Modifier, columns: Int = 2, rowSpacing: Dp = Spacing.s) {
+    require(columns >= 1) { "StatPillGrid: columns måste vara minst 1" }
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(rowSpacing)) {
+        items.chunked(columns).forEach { row ->
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
+                row.forEach { StatPill(it.icon, it.value, it.label, tone, Modifier.weight(1f)) }
+            }
+        }
     }
 }
 

@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
@@ -54,7 +55,8 @@ val LocalQuantityStepperButtonSize = compositionLocalOf { QuantityStepperDefault
  * doser 4 h") – [label] ska alltså inte ha någon enhet. Utan [valueText] visas talet och TalkBack
  * läser "2 doser per dag". [buttonSize] är knapparnas storlek ([QuantityStepperDefaults]; standard
  * [LocalQuantityStepperButtonSize]). Med temats djup är spåret sänkt och knapparna upphöjda knoppar som
- * krymper nedtryckta, som ikonknapparna.
+ * krymper nedtryckta, som ikonknapparna. [showLabel] visar [label] som text till höger om stegaren
+ * ("2 [−/+] doser per dag" i ett formulär); TalkBack läser den bara en gång, i stegaren. Standard: bara stegaren.
  */
 @Composable
 fun QuantityStepper(
@@ -66,7 +68,30 @@ fun QuantityStepper(
     enabled: Boolean = true,
     step: Int = 1,
     valueText: (@Composable (Int) -> String)? = null,
-    buttonSize: Dp = LocalQuantityStepperButtonSize.current
+    buttonSize: Dp = LocalQuantityStepperButtonSize.current,
+    showLabel: Boolean = false
+) {
+    if (!showLabel) {
+        Stepper(value, onValueChange, label, range, enabled, step, valueText, buttonSize, modifier)
+        return
+    }
+    Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
+        Stepper(value, onValueChange, label, range, enabled, step, valueText, buttonSize)
+        Text(label, Modifier.clearAndSetSemantics {}, style = AppTheme.typography.itemTitle, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+@Composable
+private fun Stepper(
+    value: Int,
+    onValueChange: (Int) -> Unit,
+    label: String,
+    range: IntRange,
+    enabled: Boolean,
+    step: Int,
+    valueText: (@Composable (Int) -> String)?,
+    buttonSize: Dp,
+    modifier: Modifier = Modifier
 ) {
     val colors = IconButtonDefaults.filledIconButtonColors(
         containerColor = AppTheme.extendedColors.card,
