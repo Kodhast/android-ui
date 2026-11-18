@@ -1,8 +1,10 @@
 package se.kodhast.ui.components
 
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -11,9 +13,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
@@ -33,7 +35,7 @@ import se.kodhast.ui.theme.ToneColors
  * [colors] ger en ton utanför [Tone] (t.ex. en känslas egen ton); standard färgerna för [tone].
  * [shape] är pillens form, standard den runda `AppTheme.shapes.pill` (Fonder: `AppTheme.shapes.smallTile`).
  * [contentDescription] läses av TalkBack i stället för texten när den är förkortad ("Risk 5/7" →
- * "Risknivå 5 av 7"); `null` läser texten.
+ * "Risknivå 5 av 7"); `null` läser texten. Med temats djup krymper en klickbar pill nedtryckt.
  */
 @Composable
 fun InfoPill(
@@ -49,7 +51,8 @@ fun InfoPill(
     shape: Shape = AppTheme.shapes.pill,
     contentDescription: String? = null
 ) {
-    val click = onClick?.let { Modifier.minimumInteractiveComponentSize().clip(shape).clickable(onClickLabel = onClickLabel, role = role, onClick = it) } ?: Modifier
+    val source = remember { MutableInteractionSource() }
+    val click = onClick?.let { Modifier.minimumInteractiveComponentSize().pressable(shape, source).clickable(source, LocalIndication.current, onClickLabel = onClickLabel, role = role, onClick = it) } ?: Modifier
     // Pillen läses som en nod med beskrivningen i stället för texten.
     val described = contentDescription?.let { Modifier.semantics(mergeDescendants = true) { this.contentDescription = it } } ?: Modifier
     Row(

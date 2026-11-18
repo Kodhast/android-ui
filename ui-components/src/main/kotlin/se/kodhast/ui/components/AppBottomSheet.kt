@@ -55,6 +55,8 @@ import se.kodhast.ui.theme.Spacing
  * direkt ovanför raden. Standard (`null`): ingen knapprad.
  *
  * [subtitle] = en rad under rubriken (t.ex. "Anna · 1 tablett dagligen" eller vad en inställning gör). Standard: ingen.
+ *
+ * Med temats djup får arket kortens hårfina kant längs överkanten och hörnen.
  */
 @Composable
 fun AppBottomSheet(
@@ -107,7 +109,8 @@ fun AppBottomSheet(
     val errorText = @Composable { error?.let { FieldError(stringResource(it.message)) } }
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        modifier = modifier,
+        // Med temats djup får arket kortens kant längs överkanten.
+        modifier = AppTheme.depth?.let { modifier.sheetEdge(AppTheme.shapes.sheet, it) } ?: modifier,
         sheetState = sheetState,
         shape = AppTheme.shapes.sheet,
         containerColor = AppTheme.extendedColors.card

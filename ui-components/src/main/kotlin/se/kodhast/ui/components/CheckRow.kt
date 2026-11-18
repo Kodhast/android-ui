@@ -1,7 +1,9 @@
 package se.kodhast.ui.components
 
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.runtime.Composable
@@ -54,7 +56,9 @@ fun CheckRow(
     tinted: Boolean = checked
 ) {
     var menuOpen by remember { mutableStateOf(false) }
-    val toggle = Modifier.toggleable(value = checked, enabled = enabled, role = Role.Checkbox, onValueChange = onCheckedChange)
+    // Kryssets tryck: med temats djup sjunker krysset in medan det (eller raden) trycks.
+    val press = remember { MutableInteractionSource() }
+    val toggle = Modifier.toggleable(checked, press, LocalIndication.current, enabled = enabled, role = Role.Checkbox, onValueChange = onCheckedChange)
     val openMenu = if (menu.isEmpty()) null else ({ menuOpen = true })
     val menuLabel = stringResource(R.string.more_options)
     val interaction = when {
@@ -68,7 +72,7 @@ fun CheckRow(
         // "inaktiv" för TalkBack som utan meny.
         !enabled ->
             Modifier
-                .combinedClickable(role = Role.Checkbox, onLongClickLabel = menuLabel, onLongClick = openMenu) {}
+                .combinedClickable(press, LocalIndication.current, role = Role.Checkbox, onLongClickLabel = menuLabel, onLongClick = openMenu) {}
                 .semantics {
                     toggleableState = ToggleableState(checked)
                     disabled()
@@ -77,7 +81,7 @@ fun CheckRow(
         // Långtrycket kräver en klickyta i stället för toggleable – samma roll och tillstånd för TalkBack.
         else ->
             Modifier
-                .combinedClickable(role = Role.Checkbox, onLongClickLabel = menuLabel, onLongClick = openMenu) { onCheckedChange(!checked) }
+                .combinedClickable(press, LocalIndication.current, role = Role.Checkbox, onLongClickLabel = menuLabel, onLongClick = openMenu) { onCheckedChange(!checked) }
                 .semantics { toggleableState = ToggleableState(checked) }
     }
     val end: (@Composable () -> Unit)? = if (trailing == null && note.isBlank() && menu.isEmpty()) {
@@ -103,7 +107,7 @@ fun CheckRow(
             // Samma storlek i båda varianterna, så att titlarna linjerar; med onClick är rutan knappen.
             val label = listOfNotNull(title, subtitle).joinToString(", ")
             val button = if (onClick == null) Modifier else Modifier.clip(AppTheme.shapes.pill).then(toggle).semantics { contentDescription = label }
-            LeadingSlot(button) { MorphingCheck(checked) }
+            LeadingSlot(button) { MorphingCheck(checked, interactionSource = press) }
         },
         trailing = end,
         tinted = tinted,

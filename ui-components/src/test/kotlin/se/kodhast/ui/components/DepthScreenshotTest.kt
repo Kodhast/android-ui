@@ -19,6 +19,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.test.SemanticsNodeInteraction
+import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
@@ -27,6 +29,7 @@ import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.requestFocus
 import androidx.compose.ui.unit.dp
 import com.github.takahirom.roborazzi.captureRoboImage
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import org.junit.Rule
 import org.junit.Test
@@ -112,7 +115,12 @@ class DepthScreenshotTest {
      * eftersom den växer på väggklockan och annars gör bilden olika från körning till körning. [content]
      * märker de två elementen som trycks med `tryckt` och `tryckt2`.
      */
-    private fun capturePressed(name: String, dark: Boolean, content: @Composable () -> Unit) {
+    private fun capturePressed(
+        name: String,
+        dark: Boolean,
+        pressed: () -> List<SemanticsNodeInteraction> = { listOf(rule.onNodeWithTag("tryckt"), rule.onNodeWithTag("tryckt2")) },
+        content: @Composable () -> Unit
+    ) {
         rule.mainClock.autoAdvance = false
         rule.setContent {
             TestTheme(darkTheme = dark, depth = true) {
@@ -121,10 +129,70 @@ class DepthScreenshotTest {
                 }
             }
         }
-        rule.onNodeWithTag("tryckt").performTouchInput { down(0, center) }
-        rule.onNodeWithTag("tryckt2").performTouchInput { down(1, center) }
+        pressed().forEachIndexed { pointer, node -> node.performTouchInput { down(pointer, center) } }
         rule.mainClock.advanceTimeBy(SETTLE_MILLIS)
         rule.onRoot().captureRoboImage("${name}_${if (dark) "dark" else "light"}.png")
+    }
+
+    @Test
+    fun `huvudknappen och kalenderdagen - nedtryckta med djup, ljust`() = capturePressedFabAndDay(dark = false)
+
+    @Test
+    fun `huvudknappen och kalenderdagen - nedtryckta med djup, mörkt`() = capturePressedFabAndDay(dark = true)
+
+    /** Huvudknappen och den valda dagen (15) nedtryckta; dagen bredvid (16) i vila. */
+    private fun capturePressedFabAndDay(dark: Boolean) = capturePressed(
+        "FabOchKalender_djup_nedtryckt",
+        dark,
+        pressed = { listOf(rule.onNodeWithContentDescription("Ny resa"), rule.onNodeWithContentDescription("15", substring = true)) }
+    ) {
+        AppCalendar(LocalDate(2026, 6, 1), {}, emptySet(), LocalDate(2026, 6, 15), {})
+        AppFloatingToolbar(TABS, 1, {}, action = ToolbarAction("Ny resa", R.drawable.ic_add) {})
+    }
+
+    @Test
+    fun `fler element med djup`() = captureLightAndDark("Element_djup", depth = true) {
+        SampleSheet {
+            AppCalendar(LocalDate(2026, 6, 1), {}, setOf(LocalDate(2026, 6, 3)), LocalDate(2026, 6, 15), {}, today = LocalDate(2026, 6, 10))
+            AddSplitButton("Lägg till", {}, menu = listOf(AppMenuItem("Från listan", {})).asSplitMenu())
+            AppSlider("Energi", 7, {}, "7")
+            AppSlider("Humör", -3, {}, "−3", valueRange = -10..10)
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
+                InfoPill("Synkat", onClick = {})
+                InfoPill("Etikett")
+            }
+            StatPill(R.drawable.ic_clock, "7 842", "Steg", Tone.Primary, onClick = {}, action = "Visa")
+        }
+    }
+
+    @Test
+    fun `bottenark med djup`() = rule.captureScreenLightAndDark("AppBottomSheet_djup", depth = true) {
+        Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+            AppBottomSheet("Ändra mängd", onDismiss = {}) {
+                QuantityStepper(9, {}, "Antal tabletter")
+                AppButton("Spara", {})
+            }
+        }
+    }
+
+    @Test
+    fun `datumväljaren med djup`() = rule.captureScreenLightAndDark("DatePicker_djup", open = { onNode(hasClickAction()).clickWithoutRipple() }, depth = true) {
+        Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(Spacing.l)) {
+            DateField("Avresa", LocalDate(2026, 12, 19), {})
+        }
+    }
+
+    @Test
+    fun `FAB-menyn med djup`() = rule.captureScreenLightAndDark("AppFloatingToolbar_fabmeny_djup", open = { onNodeWithContentDescription("Logga").clickWithoutRipple() }, depth = true) {
+        Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(Spacing.l), contentAlignment = Alignment.BottomCenter) {
+            AppFloatingToolbar(
+                TABS,
+                0,
+                {},
+                action = ToolbarAction("Logga", R.drawable.ic_add, listOf(AppMenuItem("Mående", {}, icon = R.drawable.ic_person), AppMenuItem("Dos", {}, icon = R.drawable.ic_check))),
+                actionMenu = ActionMenuStyle.Fab
+            )
+        }
     }
 
     @Test

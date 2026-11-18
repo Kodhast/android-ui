@@ -10,6 +10,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
@@ -20,17 +21,21 @@ import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.assertTouchHeightIsEqualTo
 import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.unit.dp
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlinx.datetime.LocalDate
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -218,7 +223,72 @@ class DepthBehaviorTest {
         assertEquals(second, selected)
     }
 
+    @Test
+    fun `huvudknappen, flikarna, segmenten och klickbara pills krymper nedtryckta med djup`() {
+        val cases: List<Pair<String, @Composable () -> Unit>> = listOf(
+            "Ny resa" to { AppFloatingToolbar(TABS, 0, {}, action = ToolbarAction("Ny resa", R.drawable.ic_add) {}) },
+            "Idag" to { AppFloatingToolbar(TABS, 0, {}) },
+            "Mörkt" to { AppSegmentedChoice(listOf("Ljust", "Mörkt"), 0, {}) },
+            "Synkat" to { InfoPill("Synkat", onClick = {}) },
+            "Steg" to { StatPill(R.drawable.ic_clock, "7 842", "Steg", se.kodhast.ui.theme.Tone.Primary, onClick = {}) }
+        )
+        var case by mutableIntStateOf(0)
+        show { cases[case].second() }
+        cases.forEachIndexed { index, (label, _) ->
+            case = index
+            rule.mainClock.autoAdvance = true
+            rule.waitForIdle()
+            val node = rule.onNode(hasClickAction() and (hasContentDescription(label) or hasText(label, substring = true)))
+            val ratio = pressedWidthRatio(node)
+            assertTrue(ratio < 0.99f, "$label: nedtryckt/vila = $ratio")
+            node.performTouchInput { up() }
+        }
+    }
+
+    @Test
+    fun `utan djup krymper huvudknappen, fliken och segmentet inte`() {
+        show(depth = false) {
+            Column {
+                AppFloatingToolbar(TABS, 0, {}, action = ToolbarAction("Ny resa", R.drawable.ic_add) {})
+                AppSegmentedChoice(listOf("Ljust", "Mörkt"), 0, {})
+            }
+        }
+        assertEquals(1f, pressedWidthRatio(rule.onNodeWithContentDescription("Ny resa")))
+    }
+
+    @Test
+    fun `med djup fungerar kalenderdagen, rutnätet, den delade knappen, reglaget och krysset som förut`() {
+        var day by mutableStateOf<LocalDate?>(null)
+        var emoji by mutableStateOf("🦊")
+        var split = 0
+        var value by mutableIntStateOf(5)
+        var checked by mutableStateOf(false)
+        show {
+            Column {
+                AppCalendar(LocalDate(2026, 6, 1), {}, emptySet(), day, { day = it })
+                EmojiPicker(emoji, { emoji = it }, listOf("🦊", "🐻"))
+                AddSplitButton("Lägg till", { split++ }, menu = listOf(AppMenuItem("Från listan", {})).asSplitMenu())
+                AppSlider("Energi", value, { value = it }, value.toString())
+                CheckRow("Solkräm", checked, { checked = it })
+            }
+        }
+        rule.onNodeWithContentDescription("15", substring = true).performClick()
+        assertEquals(LocalDate(2026, 6, 15), day)
+        rule.onNodeWithContentDescription("🐻").performClick()
+        assertEquals("🐻", emoji)
+        rule.onNodeWithText("Lägg till").performClick()
+        assertEquals(1, split)
+        rule.onNodeWithContentDescription("Fler val").performClick()
+        rule.onNodeWithText("Från listan").assertExists()
+        rule.onNodeWithText("Från listan").performClick()
+        rule.onNodeWithContentDescription("Energi").performSemanticsAction(SemanticsActions.SetProgress) { it(8f) }
+        assertEquals(8, value)
+        rule.onNodeWithText("Solkräm").performClick()
+        assertTrue(checked)
+    }
+
     private companion object {
         const val SETTLE_MILLIS = 1_000L
+        val TABS = listOf(ToolbarItem("Resor", R.drawable.ic_box), ToolbarItem("Idag", R.drawable.ic_clock))
     }
 }

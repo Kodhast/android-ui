@@ -5,6 +5,7 @@ package se.kodhast.ui.components
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -48,6 +49,9 @@ import se.kodhast.ui.theme.TRACK_HEIGHT
  * 48 dp stor yta, så att reglaget alltid är minst 48 dp högt. Färgen bär aldrig informationen ensam – texten visar
  * värdet. TalkBack läser [label] och [stateDescription] (standard [valueText], t.ex. "7, Hög"); huvudet ovanför
  * läses inte separat.
+ *
+ * Med temats djup är spåret sänkt som växelns, och knoppen lyfts med knapparnas skugga, skimmer och ljuskant, som
+ * sjunker in medan knoppen trycks eller dras.
  */
 @Composable
 fun AppSlider(
@@ -80,6 +84,9 @@ fun AppSlider(
         }
         // Värdet ägs av anroparen; reglaget visar alltid det.
         SideEffect { slider.value = value.toFloat() }
+        val interactionSource = remember { MutableInteractionSource() }
+        val depth = AppTheme.depth
+        val lift = depth?.let { rememberLift(interactionSource, enabled) }
         Slider(
             state = slider,
             onValueChange = { onValueChange(snapToStep(it, valueRange, step)) },
@@ -88,8 +95,9 @@ fun AppSlider(
                 this.stateDescription = stateDescription
             },
             enabled = enabled,
-            thumb = { SliderThumb(thumbColor) },
-            track = { SliderTrack(brush, fraction, anchor) }
+            interactionSource = interactionSource,
+            thumb = { SliderThumb(thumbColor, depth?.let { d -> Modifier.depthSurface(d, AppTheme.shapes.pill, { lift?.value ?: 1f }, raised = enabled) }) },
+            track = { SliderTrack(brush, fraction, anchor, depth?.let { d -> Modifier.sunken(AppTheme.shapes.pill, d.shadow, over = true) }) }
         )
     }
 }
@@ -98,12 +106,13 @@ fun AppSlider(
 internal fun snapToStep(position: Float, valueRange: IntRange, step: Int): Int = (valueRange.first + ((position - valueRange.first) / step).roundToInt() * step).coerceIn(valueRange)
 
 @Composable
-private fun SliderThumb(color: Color) {
+private fun SliderThumb(color: Color, depth: Modifier?) {
     val round = AppTheme.shapes.pill
     Box(Modifier.size(TOUCH_TARGET), contentAlignment = Alignment.Center) {
         Box(
             Modifier
                 .size(THUMB)
+                .then(depth ?: Modifier)
                 .background(AppTheme.extendedColors.card, round)
                 .border(THUMB_BORDER, color, round)
         )
@@ -111,9 +120,9 @@ private fun SliderThumb(color: Color) {
 }
 
 @Composable
-private fun SliderTrack(brush: Brush, fraction: Float, anchor: Float) {
+private fun SliderTrack(brush: Brush, fraction: Float, anchor: Float, depth: Modifier?) {
     val zeroMark = MaterialTheme.colorScheme.onSurfaceVariant
-    Canvas(Modifier.fillMaxWidth().height(TRACK_HEIGHT)) {
+    Canvas(Modifier.fillMaxWidth().height(TRACK_HEIGHT).then(depth ?: Modifier)) {
         val y = size.height / 2
         val stroke = size.height
         drawLine(brush, Offset(0f, y), Offset(size.width, y), stroke, StrokeCap.Round, alpha = TRACK_ALPHA)

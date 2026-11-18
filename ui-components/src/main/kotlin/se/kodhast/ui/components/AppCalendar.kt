@@ -1,8 +1,10 @@
 package se.kodhast.ui.components
 
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -116,13 +118,20 @@ private fun DayCell(day: LocalDate, marked: Boolean, selected: Boolean, isToday:
     val colors = MaterialTheme.colorScheme
     val shape = AppTheme.shapes.row
     val description = dayDescription(day, isToday, marked)
+    val interactionSource = remember { MutableInteractionSource() }
+    val depth = AppTheme.depth
+    // Med temats djup krymper dagen nedtryckt, och den valda lyfts som ett valt chip.
+    val lifted = depth?.let {
+        val lift = rememberLift(interactionSource, !future)
+        Modifier.depthSurface(it, shape, { lift.value }, raised = selected, shadow = Lift.Selected)
+    } ?: Modifier
     // Tryckytan är hela cellen (kolumnens bredd × 48 dp). I en smal kolumn (under 48 dp, t.ex. på 360 dp
     // breda skärmar) utvidgar Compose tryckytan till 48 dp åt sidorna.
     Box(
         Modifier
             .fillMaxSize()
             .clip(shape)
-            .clickable(enabled = !future, role = Role.Button, onClick = onClick)
+            .clickable(interactionSource, LocalIndication.current, enabled = !future, role = Role.Button, onClick = onClick)
             .clearAndSetSemantics {
                 contentDescription = description
                 this.selected = selected
@@ -133,6 +142,7 @@ private fun DayCell(day: LocalDate, marked: Boolean, selected: Boolean, isToday:
         Column(
             Modifier
                 .size(CELL)
+                .then(lifted)
                 .clip(shape)
                 .then(if (selected) Modifier.background(colors.primary) else Modifier),
             horizontalAlignment = Alignment.CenterHorizontally,

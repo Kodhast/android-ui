@@ -121,15 +121,7 @@ fun AppFilterChip(
         } else {
             val lift = rememberLift(interactionSource, enabled)
             val liftValue = { lift.value }
-            Modifier
-                .pressScale(depth, liftValue)
-                .then(
-                    if (selected && enabled && pending == null) {
-                        Modifier.raisedShadow(shape, depth.shadow, Lift.Selected, liftValue).sheen(shape, depth, liftValue)
-                    } else {
-                        Modifier
-                    }
-                )
+            Modifier.depthSurface(depth, shape, liftValue, raised = selected && enabled && pending == null, shadow = Lift.Selected)
         }
         val pendingModifier = pending?.let { Modifier.semantics { stateDescription = it.description }.dashedOutline(shape, dashColor) } ?: Modifier
         DepthTouchTarget(modifier) { target -> chip(target.then(depthModifier).then(chipModifier).then(pendingModifier)) }
