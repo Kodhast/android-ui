@@ -88,7 +88,7 @@ fun ItemRow(
     overline: (@Composable () -> Unit)? = null,
     titleStyle: TextStyle = AppTheme.typography.itemTitle
 ) {
-    val start: (@Composable () -> Unit)? = leading ?: icon?.let { { LeadingSlot { Icon(painterResource(it), contentDescription = null) } } }
+    val start: (@Composable () -> Unit)? = leading ?: icon?.let { { LeadingSlot { Icon(painterResource(it), contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) } } }
     val end: (@Composable () -> Unit)? = if (navigates) {
         {
             trailing?.invoke()
