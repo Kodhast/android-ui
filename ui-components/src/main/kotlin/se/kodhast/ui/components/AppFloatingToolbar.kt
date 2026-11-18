@@ -111,6 +111,14 @@ enum class ToolbarStyle { Toolbar, Surface, Tonal, Filled }
  */
 enum class ActionMenuStyle { Popup, Fab }
 
+/**
+ * Huvudknappens färg i [AppFloatingToolbar] – en accent som skiljer sig från den valda fliken (`primary`).
+ *
+ * - [Secondary]: `secondary` / `onSecondary` – standard (Dagbokens solgula).
+ * - [Tertiary]: `tertiary` / `onTertiary`, för en app vars `secondary` är en neutral ton (ReseApotekets blåa).
+ */
+enum class ActionColor { Secondary, Tertiary }
+
 /** Plats som verktygsraden tar inklusive marginal. */
 val FloatingToolbarClearance: Dp = 96.dp
 
@@ -125,9 +133,9 @@ val LocalBottomClearance = compositionLocalOf { NoBottomClearance }
 
 /**
  * Toppnivånavigeringen: en flytande verktygsrad där vald flik visar ikon och namn och övriga bara ikon
- * (med namnet för TalkBack). [action] lägger en gör-något-knapp i `secondary` till höger om flikarna;
- * utan den (standard) visas bara flikarna. Med temats djup kastar raden en skugga och den valda fliken får
- * skimmer och ljuskant. [style] är radens bakgrund och [actionMenu] hur huvudknappens meny öppnas; båda
+ * (med namnet för TalkBack). [action] lägger en gör-något-knapp i [actionColor] (standard `secondary`) till
+ * höger om flikarna; utan den (standard) visas bara flikarna. Med temats djup kastar raden en skugga och den valda fliken får
+ * skimmer och ljuskant. [style] är radens bakgrund och [actionMenu] hur huvudknappens meny öppnas; de tre
  * kommer som standard ur appens [AppBrandStyle].
  */
 @Composable
@@ -138,7 +146,8 @@ fun AppFloatingToolbar(
     modifier: Modifier = Modifier,
     action: ToolbarAction? = null,
     style: ToolbarStyle = LocalAppBrandStyle.current.toolbarStyle,
-    actionMenu: ActionMenuStyle = LocalAppBrandStyle.current.actionMenu
+    actionMenu: ActionMenuStyle = LocalAppBrandStyle.current.actionMenu,
+    actionColor: ActionColor = LocalAppBrandStyle.current.actionColor
 ) {
     val palette = toolbarPalette(style)
     val colors = FloatingToolbarDefaults.standardFloatingToolbarColors(
@@ -163,7 +172,7 @@ fun AppFloatingToolbar(
     } else {
         HorizontalFloatingToolbar(
             expanded = true,
-            floatingActionButton = { ToolbarActionButton(action, actionMenu) },
+            floatingActionButton = { ToolbarActionButton(action, actionMenu, actionColor) },
             modifier = modifier,
             colors = colors,
             expandedShadowElevation = if (raised) TOOLBAR_ELEVATION else FloatingToolbarDefaults.ContainerExpandedElevationWithFab,
@@ -189,7 +198,7 @@ private fun toolbarPalette(style: ToolbarStyle): ToolbarPalette {
 
 /** Huvudknappen; med meny läses den som utfälld eller hopfälld och menyn förankras vid knappen. */
 @Composable
-private fun ToolbarActionButton(action: ToolbarAction, menuStyle: ActionMenuStyle) {
+private fun ToolbarActionButton(action: ToolbarAction, menuStyle: ActionMenuStyle, color: ActionColor) {
     var menuOpen by remember { mutableStateOf(false) }
     var bounds by remember { mutableStateOf(Rect.Zero) }
     val hasMenu = action.menu.isNotEmpty()
@@ -198,8 +207,8 @@ private fun ToolbarActionButton(action: ToolbarAction, menuStyle: ActionMenuStyl
         FloatingToolbarDefaults.StandardFloatingActionButton(
             onClick = { if (hasMenu) menuOpen = true else action.onClick() },
             modifier = if (hasMenu) Modifier.semantics { stateDescription = state } else Modifier,
-            containerColor = MaterialTheme.colorScheme.secondary,
-            contentColor = MaterialTheme.colorScheme.onSecondary
+            containerColor = if (color == ActionColor.Tertiary) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.secondary,
+            contentColor = if (color == ActionColor.Tertiary) MaterialTheme.colorScheme.onTertiary else MaterialTheme.colorScheme.onSecondary
         ) { Icon(painterResource(action.icon), contentDescription = action.label) }
         if (hasMenu) {
             when (menuStyle) {

@@ -17,6 +17,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
  *   väntar på servern (`syncing`). Utan dem visar appen synken via `status` som i [AppTopBar].
  * - [toolbarStyle]: bakgrunden i [AppFloatingToolbar]; standard [ToolbarStyle.Toolbar] (`extendedColors.toolbar`).
  * - [actionMenu]: hur huvudknappens meny öppnas; standard [ActionMenuStyle.Popup] (rullgardin).
+ * - [actionColor]: huvudknappens färg i [AppFloatingToolbar]; standard [ActionColor.Secondary].
  */
 @Immutable
 data class AppBrandStyle(
@@ -25,7 +26,8 @@ data class AppBrandStyle(
     val emptyStateMark: Boolean = false,
     val headerDots: Boolean = false,
     val toolbarStyle: ToolbarStyle = ToolbarStyle.Toolbar,
-    val actionMenu: ActionMenuStyle = ActionMenuStyle.Popup
+    val actionMenu: ActionMenuStyle = ActionMenuStyle.Popup,
+    val actionColor: ActionColor = ActionColor.Secondary
 )
 
 /** Kodhäst-delarna i innehållet; standard [AppBrandStyle] – allt avstängt. */

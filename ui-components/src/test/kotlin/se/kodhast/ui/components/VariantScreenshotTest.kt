@@ -200,6 +200,18 @@ class VariantScreenshotTest {
             }
         }
     }
+
+    // --- 1.9.0 ---
+
+    @Test
+    fun `AppFloatingToolbar - huvudknappens färger`() = captureLightAndDark("AppFloatingToolbar_huvudknappfarg", depth = true) {
+        // Samma rad med huvudknappen i Secondary (standard, Dagboken) och Tertiary (ReseApoteket).
+        SampleSheet {
+            ActionColor.entries.forEach { color ->
+                AppFloatingToolbar(TOOLBAR_TABS, 0, {}, action = ToolbarAction("Lägg till", R.drawable.ic_add) {}, style = ToolbarStyle.Tonal, actionColor = color)
+            }
+        }
+    }
 }
 
 private val TOOLBAR_TABS = listOf(

@@ -229,7 +229,8 @@ desamma i alla appar – vald flik som kapsel i `primary` med ikon och namn, öv
 LocalAppBrandStyle provides AppBrandStyle(
     headerDots = true,
     toolbarStyle = ToolbarStyle.Tonal,     // flikraden i appens ljusa ton (primaryContainer)
-    actionMenu = ActionMenuStyle.Fab       // plusknappens val växer upp ur knappen
+    actionMenu = ActionMenuStyle.Fab,      // plusknappens val växer upp ur knappen
+    actionColor = ActionColor.Secondary    // plusknappens färg; Tertiary när secondary är neutral (ReseApoteket)
 )
 ```
 
@@ -277,7 +278,7 @@ inte använder ramen rätt.
 | `AppCard` | Kortet: `tone`, `contentColor` (standard `null`: ärver omgivande `LocalContentColor`; Dagboken `onSurface`), `onClick` (hela kortet en nod). Appens kortstil `AppCardStyle(border, padding, segmentGap, contentSpacing)` med `LocalAppCardStyle` (eller `style`); ett tonat kort har ingen kontur | ReseApotekets `ApotekCard` heter nu `AppCard`. Fonder: kontur 1 dp `outlineVariant`, `padding = Spacing.l`, `contentSpacing = 0.dp`; Filled/Error är Fonders egna toner |
 | `AppDivider` | Avdelare mellan rader i ett kort | – |
 | `AppFilterChip` | Filterchip; `icon`, `onLongClick`, `value` (värde efter etiketten), `emphasized` (det aktiva bland flera valda), `pending` (`ChipPending`: väntande läge, tonat med streckad kant, ikon och tilläggstext) | `chipColors()` är publik för egna chips |
-| `AppFloatingToolbar` | Toppnivånavigeringen: flytande flikar; `action` (`ToolbarAction`, huvudknapp i `secondary` till höger – Dagboken; med `menu: List<AppMenuItem>` fäller knappen ut en meny och läses "Hopfälld"/"Utfälld" – Fonders plusknapp), `style: ToolbarStyle` och `actionMenu: ActionMenuStyle` (standard ur `AppBrandStyle`; se Sidfoten), `ToolbarItem.badgeCount` (märke med antal i `secondary` på en ovald flik, läses "Beslut, 3 nya" – Fonder). `LocalBottomClearance`, `FloatingToolbarClearance`, `NoBottomClearance` | – |
+| `AppFloatingToolbar` | Toppnivånavigeringen: flytande flikar; `action` (`ToolbarAction`, huvudknapp i `secondary` till höger – Dagboken; med `menu: List<AppMenuItem>` fäller knappen ut en meny och läses "Hopfälld"/"Utfälld" – Fonders plusknapp), `style: ToolbarStyle`, `actionMenu: ActionMenuStyle` och `actionColor: ActionColor` (huvudknappens färg, `Secondary` eller `Tertiary`; standard ur `AppBrandStyle`; se Sidfoten), `ToolbarItem.badgeCount` (märke med antal i `secondary` på en ovald flik, läses "Beslut, 3 nya" – Fonder). `LocalBottomClearance`, `FloatingToolbarClearance`, `NoBottomClearance` | – |
 | `AppHeader` | Kodhäst-sidhuvudet på en flik (se Sidhuvudet): `title`, `scrollBehavior`, `subtitle`, `syncing` (`LocalTopBarSyncing`), `identity` (`LocalAppIdentity`), `status`, `account` (`LocalTopBarAccount`), `actions`, `titleModifier`; taggen `APP_HEADER_TAG` | Ny (#42); ramarnas flikläge med `LocalAppIdentity` |
 | `AppIconButton` | Ikonknapp, minst 48 dp, alltid `contentDescription`; `tone` (platta och ikon för Tonal, ikonen för Plain; standard Material-färgerna) | – |
 | `AppLoading` | Expressive laddningsindikator mitt på ytan; med `AppBrandStyle(dotLoading = true)` Kodhästs två prickar som hoppar | – |
@@ -372,6 +373,7 @@ pusha taggar och använder därför den manuella vägen.
 | Version | Ändring |
 |---|---|
 | 1.8.1 | `EntityListScreen`: exemplen i tomt läge (`EmptyContent.examples`) syns också utan lägg till-knapp (`add = null`) – för en flik med plusmeny (ReseApotekets Gemensamt). Ingen app hade exempel utan knapp, så inget utseende ändras |
+| 1.9.0 | `AppBrandStyle.actionColor` (`ActionColor.Secondary` standard, `Tertiary`) och parametern `actionColor` i `AppFloatingToolbar`: huvudknappens färg, för en app vars `secondary` är neutral (ReseApotekets blåa plusknapp). Standardvärdet bevarar dagens utseende |
 | 1.8.0 | Kontot och de hopfällbara sektionerna flyttas från Dagboken (#46): `AccountAvatar(photoUrl)` laddar profilfotot med Coil 3.6.3 och cachar det på disk; `ProfilePhotoCache`/`CoilProfilePhotoCache` tömmer cachen vid utloggning och `NetworkStatus`/`ConnectivityMonitor` ger anslutningspluppen (paketet `se.kodhast.ui.account`). `Foldout`, `SectionFoldout` (ny `trailing`) och `ExpandableContent`. Nytt beroende: Coil (`coil-compose`, `coil-network-okhttp`) och behörigheterna `INTERNET`/`ACCESS_NETWORK_STATE` i bibliotekets manifest. Inga befintliga skärmdumpar är omtagna |
 | 1.7.0 | Kodhäst-sidfoten (#44): `ToolbarStyle` (`Toolbar`, `Surface`, `Tonal`, `Filled`) och `ActionMenuStyle` (`Popup`, `Fab`) som parametrar på `AppFloatingToolbar` och som `AppBrandStyle.toolbarStyle`/`actionMenu`. FAB-menyn: valen som kapslar i `primary` ovanför huvudknappen, som blir ett kryss. Standard är dagens utseende; inga befintliga skärmdumpar är omtagna. Se Sidfoten |
 | 1.6.0 | Kodhäst-sidhuvudet (#42): `AppHeader` (144 dp i vila, 64 dp med kortfärg och skugga rullat, rubriken flyttas upp till appikonen, prickar som hoppar vid synk), `AccountAvatar` (flyttad från Dagboken, med `online`-plupp), `SignInButton`, `AppIdentity`/`LocalAppIdentity`, `LocalTopBarAccount`, `LocalTopBarSyncing`, `AppBrandStyle.headerDots`, `ExtendedColors.online` och `AppDepth.headerShadow`. Ramarnas flikläge ritar sidhuvudet bara när appen satt `LocalAppIdentity`; utan den är allt som förut och inga befintliga skärmdumpar är omtagna. Se Sidhuvudet för hur en app slår på det |
