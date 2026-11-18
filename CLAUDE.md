@@ -2,7 +2,7 @@
 
 > Gemensamt Compose-bibliotek (Material 3 Expressive) för ReseApoteket och Dagboken:
 > `:ui-theme` (tema-API), `:ui-common` (list-, detalj- och formulärtillstånd, fel-API),
-> `:ui-components` (komponenterna och ramarna) och `:ui-testing` (ramarnas kontraktstester för
+> `:ui-components` (komponenterna och ramarna), `:ui-navigation` (navigationsramen) och `:ui-testing` (ramarnas kontraktstester för
 > apparnas skärmar). Publiceras till GitHub Packages.
 > Vad som finns och hur en app använder det: [README.md](README.md). Repodetaljerna som pluginens
 > skills och agenter slår upp (basgren `main`, kontroller, publicering): skill `android-projekt`.
