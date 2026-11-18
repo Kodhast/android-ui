@@ -74,7 +74,10 @@ data class AddAction(val label: String, val onClick: () -> Unit, val menu: List<
  * [columns] är det högsta antalet kolumner raderna läggs i – bara så många som får plats med minst
  * 260 dp var, så på en telefon blir det en. [collapsible] gör gruppen hopfälld tills rubriken trycks
  * ("Dolda"). [cards] = true för postkort: varje rad är ett eget kort och rubriken står på bakgrunden
- * ovanför dem, i stället för att gruppen är ett kort med rader.
+ * ovanför dem, i stället för att gruppen är ett kort med rader. [fold] gör gruppen hopfällbar med läget
+ * utifrån (appen håller det, t.ex. under appsessionen) i stället för i listan. [action] är en tonad rund knapp
+ * i rubriken mellan räknaren och pilen ("Lägg till i Mediciner"), tryckbar också hopfälld. [emptyText] är
+ * texten i en grupp utan rader – bara för grupperna i [EntityListScreen]s `groups`, som alltid visas.
  */
 data class ListGroup(
     val title: String,
@@ -84,8 +87,17 @@ data class ListGroup(
     val columns: Int = 1,
     val collapsible: Boolean = false,
     val cards: Boolean = false,
-    val showCount: Boolean = true
+    val showCount: Boolean = true,
+    val action: GroupAction? = null,
+    val fold: GroupFold? = null,
+    val emptyText: String? = null
 )
+
+/** Knappen i en grupps rubrik: ikon, etikett (TalkBack) och åtgärd. */
+data class GroupAction(@param:DrawableRes val icon: Int, val label: String, val onClick: () -> Unit)
+
+/** Hopfällt läge som appen håller: [expanded] och [onToggle] när rubriken trycks. */
+data class GroupFold(val expanded: Boolean, val onToggle: () -> Unit)
 
 /** En undergrupp inom en grupp: namn i en egen färg (t.ex. en person eller ett doseringstillfälle). */
 data class ListSubgroup(val title: String, val color: Color)
@@ -105,7 +117,12 @@ data class ListSubgroup(val title: String, val color: Color)
  * [footer] står sist i listan, efter grupperna, och under budskapet i det tomma tillståndet ("Visa äldre").
  * En flik ([onBack] = `null`, [TopBarSize.Large]) har [AppHeader] i stället för den stora toppraden när appen
  * satt [LocalAppIdentity]. Med [onRefresh] dras listan ned för att uppdatera, med indikatorn överst så länge [refreshing] är sant;
- * utan (standard) finns ingen gest.
+ * utan (standard) finns ingen gest. [menu] är valen i ⋮ i rubrikraden (efter [actions]); "Visa arkiverade" läggs
+ * sist i samma meny.
+ *
+ * [groups] är grupper som alltid visas, i den ordningen och före övriga grupper – också utan rader (med
+ * [ListGroup.emptyText]) och när listan är tom: då står [empty] som ett kort överst i stället för hela skärmen.
+ * En rad hör till en av dem när [group] ger en lika [ListGroup]. Standard inga: som förut.
  *
  * @param group grupp för en rad; grupperna visas i den ordning de först förekommer.
  * @param subgroup undergrupp för en rad inom gruppen, i den ordning de förekommer.
@@ -132,6 +149,8 @@ fun <T> EntityListScreen(
     refreshing: Boolean = false,
     onRefresh: (() -> Unit)? = null,
     errorTitle: String? = null,
+    groups: List<ListGroup> = emptyList(),
+    menu: List<AppMenuItem> = emptyList(),
     row: @Composable (T) -> Unit
 ) {
     val snackbar = remember { SnackbarHostState() }
@@ -145,10 +164,12 @@ fun <T> EntityListScreen(
         topBar = {
             val allActions: @Composable RowScope.() -> Unit = {
                 actions()
-                archive?.takeIf { it.showToggle }?.let {
-                    val label = stringResource(if (it.showing) R.string.hide_archived else R.string.show_archived)
-                    AppMenu(listOf(AppMenuItem(label, { it.onEvent(ArchiveEvent.ToggleArchived) }, R.drawable.ic_unarchive)))
+                val toggle = archive?.takeIf { it.showToggle }?.let {
+                    val label = if (it.showing) it.hideLabel ?: stringResource(R.string.hide_archived) else it.showLabel ?: stringResource(R.string.show_archived)
+                    AppMenuItem(label, { it.onEvent(ArchiveEvent.ToggleArchived) }, it.toggleIcon ?: R.drawable.ic_unarchive)
                 }
+                val items = menu + listOfNotNull(toggle)
+                if (items.isNotEmpty()) AppMenu(items)
             }
             // Flikläget får Kodhäst-sidhuvudet bara när appen satt sin identitet; annars dagens topprad.
             if (onBack == null && topBarSize == TopBarSize.Large && LocalAppIdentity.current != null) {
@@ -170,22 +191,30 @@ fun <T> EntityListScreen(
                 when (state) {
                     ListUiState.Loading -> AppLoading()
 
-                    ListUiState.Empty -> EmptyState(
-                        icon = empty.icon,
-                        title = empty.title,
-                        message = empty.message,
-                        modifier = Modifier.padding(bottom = clearance),
-                        action = if (add == null && footer == null && empty.actions.isEmpty() && empty.examples.isEmpty()) {
-                            null
-                        } else {
-                            { EmptyActions(empty, add, footer) }
+                    ListUiState.Empty -> if (groups.isNotEmpty()) {
+                        val card: @Composable () -> Unit = {
+                            header?.let { Box(Modifier.padding(bottom = Spacing.m)) { it() } }
+                            AppCard { EmptyState(empty.icon, empty.title, empty.message, compact = true, actions = empty.actions) }
                         }
-                    )
+                        ListContent(emptyList(), key, group, groups, subgroup, card, footer, clearance + Spacing.l, row)
+                    } else {
+                        EmptyState(
+                            icon = empty.icon,
+                            title = empty.title,
+                            message = empty.message,
+                            modifier = Modifier.padding(bottom = clearance),
+                            action = if (add == null && footer == null && empty.actions.isEmpty() && empty.examples.isEmpty()) {
+                                null
+                            } else {
+                                { EmptyActions(empty, add, footer) }
+                            }
+                        )
+                    }
 
                     is ListUiState.Error ->
                         LoadErrorState(errorTitle ?: stringResource(R.string.list_error_title), state.error, onRetry, Modifier.padding(bottom = clearance))
 
-                    is ListUiState.Content -> ListContent(state.items, key, group, subgroup, header, footer, clearance + if (add != null) ADD_BUTTON_CLEARANCE else Spacing.l, row)
+                    is ListUiState.Content -> ListContent(state.items, key, group, groups, subgroup, header, footer, clearance + if (add != null) ADD_BUTTON_CLEARANCE else Spacing.l, row)
                 }
             }
         }
@@ -215,13 +244,14 @@ private fun <T> ListContent(
     items: List<T>,
     key: (T) -> Any,
     group: ((T) -> ListGroup)?,
+    fixed: List<ListGroup>,
     subgroup: ((T) -> ListSubgroup?)?,
     header: (@Composable () -> Unit)?,
     footer: (@Composable () -> Unit)?,
     bottomPadding: Dp,
     row: @Composable (T) -> Unit
 ) {
-    val groups = remember(items, group) { if (group == null) listOf(null to items) else items.groupBy(group).toList() }
+    val groups = remember(items, group, fixed) { grouped(items, group, fixed) }
     // Gruppens nyckel är dess rubrik och ordningsnummer: två grupper med samma rubrik (men t.ex. olika
     // räknare) får inte samma nyckel i listan.
     val ids = remember(groups) {
@@ -241,12 +271,20 @@ private fun <T> ListContent(
             header?.let { item(key = "list-header", contentType = "list-header") { Box(Modifier.padding(bottom = Spacing.m)) { it() } } }
             groups.forEachIndexed { index, (head, rows) ->
                 if (index > 0) item(key = "gap:$index", contentType = "gap") { Spacer(Modifier.height(Spacing.m)) }
-                val open = head == null || !head.collapsible || head.title in expanded
+                val open = head?.fold?.expanded ?: (head == null || !head.collapsible || head.title in expanded)
+                val emptyText = head?.emptyText?.takeIf { rows.isEmpty() }
                 head?.let {
                     item(key = "header:${ids[index]}", contentType = "group-header") {
-                        Segment(it.cards, top = true, bottom = !open, Modifier.animateItem(), first = true) {
-                            GroupHeader(it, rows.size, open) { expanded = if (open) expanded - it.title else expanded + it.title }
+                        Segment(it.cards, top = true, bottom = !open || (rows.isEmpty() && emptyText == null), Modifier.animateItem(), first = true) {
+                            GroupHeader(it, rows.size, open) {
+                                it.fold?.onToggle?.invoke() ?: run { expanded = if (open) expanded - it.title else expanded + it.title }
+                            }
                         }
+                    }
+                }
+                if (open && head != null && emptyText != null) {
+                    item(key = "empty:${ids[index]}", contentType = "group-empty") {
+                        Segment(head.cards, top = false, bottom = true, Modifier.animateItem()) { GroupEmpty(emptyText) }
                     }
                 }
                 if (open) groupRows(head, ids[index], rows, key, subgroup, fitting, row)
@@ -337,16 +375,48 @@ private fun <T> List<T>.runsBy(subgroup: (T) -> ListSubgroup?): List<Pair<ListSu
     return runs
 }
 
+/**
+ * Grupperna i ordning: [fixed] först (också utan rader), sedan övriga i den ordning de först förekommer.
+ * Utan [group] en enda grupp utan rubrik.
+ */
+private fun <T> grouped(items: List<T>, group: ((T) -> ListGroup)?, fixed: List<ListGroup>): List<Pair<ListGroup?, List<T>>> {
+    if (group == null) return listOf(null to items)
+    val byGroup = items.groupBy(group)
+    return fixed.map { it to byGroup[it].orEmpty() } + byGroup.filterKeys { it !in fixed }.toList()
+}
+
 @Composable
 private fun GroupHeader(group: ListGroup, size: Int, open: Boolean, onToggle: () -> Unit) {
     val count = if (group.showCount) group.count ?: size.toString() else null
-    if (!group.collapsible) {
-        SectionHeader(group.title, icon = group.icon, count = count, tone = group.tone)
+    val action: @Composable () -> Unit = {
+        group.action?.let { AppIconButton(it.icon, it.label, it.onClick, variant = IconButtonVariant.Tonal) }
+    }
+    if (!group.collapsible && group.fold == null) {
+        if (group.action == null) {
+            SectionHeader(group.title, icon = group.icon, count = count, tone = group.tone)
+            return
+        }
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
+            SectionHeader(group.title, Modifier.weight(1f), icon = group.icon, count = count, tone = group.tone)
+            action()
+        }
         return
     }
     CollapsibleHeader(open, onToggle) {
         SectionHeader(group.title, Modifier.weight(1f), icon = group.icon, count = count, tone = group.tone)
+        action()
     }
+}
+
+/** Raden i en grupp utan rader ("Inget här än"). */
+@Composable
+private fun GroupEmpty(text: String) {
+    Text(
+        text,
+        style = AppTheme.typography.itemSubtitle,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.m, vertical = Spacing.m)
+    )
 }
 
 @Composable

@@ -137,7 +137,7 @@ tomt läge, fel, "Försök igen", "Släng ändringar?", sparfel och arkivering b
 EntityListScreen(title, state: ListUiState<T>, empty: EmptyContent, add: AddAction?, key, …,
     onRetry, group: ((T) -> ListGroup)?, archive: ListArchive?, subtitle, onBack, actions, header,
     subgroup, filter, topBarSize = TopBarSize.Large, footer, refreshing = false, onRefresh = null,
-    errorTitle = null, row)
+    errorTitle = null, groups = emptyList(), menu = emptyList(), row)
 EntityEditScreen(title, state: EditorUiState<*>, events: EditorEvents, onSave, onClose, …,
     saveLabel, onArchive, onRestore, delete: DeleteAction?, onRetry, onSaved = onClose, formError,
     horizontalMargin = LocalEditScreenMargin.current, content)
@@ -161,12 +161,17 @@ EntityDetailScreen(state: DetailUiState<T>, header: ((T) -> DetailHeader)?, onBa
 | Knappar i tomt läge utan lägg till | `EmptyContent.actions: List<EmptyAction>` (standard inga); står under lägg till-knappen, eller ensamma med `add = null` | – | – (Fonder: flikarna med plusmeny, "Ny transaktion" + "Importera avräkningsnota") |
 | Läsfelets rubrik | `errorTitle` (standard `null` = "Kunde inte hämta listan") | – | – |
 | Kodhäst-sidhuvudet | Flikläget (lista utan `onBack` med `TopBarSize.Large`, detalj med `onBack = null`) ritar `AppHeader` när appen satt `LocalAppIdentity`; utan den dagens stora topprad | – | – (först Dagboken #435) |
+| Knapp i gruppens rubrik | `ListGroup.action: GroupAction(icon, label, onClick)` – tonad rund knapp mellan räknaren och pilen, tryckbar också hopfälld (standard `null`) | packlistans plus per sektion (#172) | – |
+| Hopfällt läge utifrån | `ListGroup.fold: GroupFold(expanded, onToggle)` – appen håller läget (t.ex. under appsessionen); `collapsible = true` utan `fold` som förut (listan håller läget, börjar hopfälld) | packlistan | som förut |
+| Grupper som alltid visas | `groups: List<ListGroup>` – först, i ordning, också utan rader (`ListGroup.emptyText`); en tom lista visar grupperna med `empty` som kort överst (standard inga = som förut) | packlistan | – |
+| ⋮-meny | `menu: List<AppMenuItem>`; "Visa arkiverade" läggs sist i samma meny, med egen text och ikon via `ListArchive.showLabel`/`hideLabel`/`toggleIcon` | Räkna om, Dölj packade, Visa dolda (N)/Göm dolda | – |
 | Dra för att uppdatera | `onRefresh` (standard `null` = ingen gest) och `refreshing` i listan och detaljen; Expressive-indikatorn överst, ytan har taggen `ENTITY_REFRESH_TAG`; samma yta finns fristående som `AppPullToRefresh` | – | – (Fonder: Fondsök, Portfölj, Fonddetalj; Översikt, Innehav och Beslut med `AppPullToRefresh`) |
 
-- **Arkivering:** `ArchiveActions(scope, errors, setArchived, undoFormat, errorMessage)` är logiken i
+- **Arkivering:** `ArchiveActions(scope, errors, setArchived, undoFormat, errorMessage, showing)` är logiken i
   listans ViewModel (svep, Ångra, "Visa arkiverade", `offerUndo` för annat än arkivering);
   `visible(source) { it.archived }` filtrerar och `collectAsListArchive()` ger listans `ListArchive`.
-  Raderna sveps med `SwipeToHide`; `UndoSnackbar` visas av listramen.
+  Raderna sveps med `SwipeToHide`; `UndoSnackbar` visas av listramen. `showing` är läget för "Visa
+  arkiverade" – ett eget `MutableStateFlow` låter läget stå kvar längre än ViewModeln.
 - **Lägg till-knappens tagg:** `ENTITY_LIST_ADD_TAG`, som kontraktet använder för att pröva att knappen saknas.
 
 ## Sidhuvudet (Kodhäst)
@@ -326,7 +331,7 @@ inte använder ramen rätt.
 | `PausableRow` | Rad som kan pausas: typ som pill, nedtonad "Pausat"; `pillTone` krävs | Tonen är appens (ReseApoteket `Tone.Blue`, Dagboken `Tone.Neutral`) |
 | `PickerField` | Fält som öppnar en väljare; `emptyLabel`, `contentLabel` | – |
 | `QuantityStepper` | − värde +; `step`, `valueText`, `buttonSize` (standard `LocalQuantityStepperButtonSize`: `QuantityStepperDefaults.ButtonSize` 44 dp, `TouchTargetButtonSize` 48 dp) | Dagboken sätter `TouchTargetButtonSize` en gång i sitt tema |
-| `SectionHeader` | Sektionsrubrik med antal; `countTone`; laddningsindikator med `working`; med `AppBrandStyle(sectionDots = true)` två prickar i `primary` före titeln när ikonrutan saknas | – |
+| `SectionHeader` | Sektionsrubrik med antal; `countTone`; laddningsindikator med `working`; med `AppBrandStyle(sectionDots = true)` två prickar i `primary` före titeln när ikonrutan saknas; titeln högst två rader brutna mellan ord, ett ord som inte ryms kortas med "…" och visar hela titeln i en bubbla vid långt tryck (som `ItemRow`) | – |
 | `SectionFoldout` | `Foldout` med `SectionHeader` i titelraden: `icon`, `count`, `tone`, `countTone`, `trailing` (t.ex. en tonad lägg till-knapp, `AppIconButton(…, variant = IconButtonVariant.Tonal)`) | Flyttad från Dagboken (#46); `trailing` är ny (ReseApotekets persondetalj) |
 | `SignInButton` | Utloggat läge i sidhuvudet: Googles "G" i sina egna färger och "Logga in" (`text`), konturerad i rubrikradens lägre höjd; `loading` | Ny (#42) |
 | `SuggestionField` | Textfält med förslag (`Suggestion`) i ett kort under, antalet läses upp | – |
@@ -373,6 +378,7 @@ pusha taggar och använder därför den manuella vägen.
 | Version | Ändring |
 |---|---|
 | 1.8.1 | `EntityListScreen`: exemplen i tomt läge (`EmptyContent.examples`) syns också utan lägg till-knapp (`add = null`) – för en flik med plusmeny (ReseApotekets Gemensamt). Ingen app hade exempel utan knapp, så inget utseende ändras |
+| 1.10.0 | För packlistan i ReseApoteket (#172): `ListGroup.action` (`GroupAction`, plus i rubriken), `ListGroup.fold` (`GroupFold`, hopfällt läge utifrån), `ListGroup.emptyText` och `EntityListScreen.groups` (grupper som alltid visas, också i en tom lista), `EntityListScreen.menu` (en ⋮ med arkivväxeln sist), `ListArchive.showLabel`/`hideLabel`/`toggleIcon` och `ArchiveActions.showing`. `SectionHeader`-titeln står på högst två rader brutna mellan ord; ett ord som inte ryms kortas med "…" och visar hela titeln vid långt tryck – bubblan är utbruten ur `ItemRow` (`FullTextBubble`). Rubrikändringen gäller alla appar men ändrar ingen befintlig skärmdump i biblioteket; övriga standardvärden bevarar utseendet |
 | 1.9.0 | `AppBrandStyle.actionColor` (`ActionColor.Secondary` standard, `Tertiary`) och parametern `actionColor` i `AppFloatingToolbar`: huvudknappens färg, för en app vars `secondary` är neutral (ReseApotekets blåa plusknapp). Standardvärdet bevarar dagens utseende |
 | 1.8.0 | Kontot och de hopfällbara sektionerna flyttas från Dagboken (#46): `AccountAvatar(photoUrl)` laddar profilfotot med Coil 3.6.3 och cachar det på disk; `ProfilePhotoCache`/`CoilProfilePhotoCache` tömmer cachen vid utloggning och `NetworkStatus`/`ConnectivityMonitor` ger anslutningspluppen (paketet `se.kodhast.ui.account`). `Foldout`, `SectionFoldout` (ny `trailing`) och `ExpandableContent`. Nytt beroende: Coil (`coil-compose`, `coil-network-okhttp`) och behörigheterna `INTERNET`/`ACCESS_NETWORK_STATE` i bibliotekets manifest. Inga befintliga skärmdumpar är omtagna |
 | 1.7.0 | Kodhäst-sidfoten (#44): `ToolbarStyle` (`Toolbar`, `Surface`, `Tonal`, `Filled`) och `ActionMenuStyle` (`Popup`, `Fab`) som parametrar på `AppFloatingToolbar` och som `AppBrandStyle.toolbarStyle`/`actionMenu`. FAB-menyn: valen som kapslar i `primary` ovanför huvudknappen, som blir ett kryss. Standard är dagens utseende; inga befintliga skärmdumpar är omtagna. Se Sidfoten |
