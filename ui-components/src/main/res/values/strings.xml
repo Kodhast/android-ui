@@ -94,4 +94,12 @@
     <string name="day_picker_label">Välj dag</string>
     <string name="day_picker_today">Idag</string>
     <string name="unknown_value">Det här kan inte visas i den här versionen. Uppdatera appen för att ändra.</string>
+    <string name="date_strip_previous_week">Föregående vecka</string>
+    <string name="date_strip_next_week">Nästa vecka</string>
+    <string name="date_strip_done">Klar</string>
+    <string name="previous">Föregående</string>
+    <string name="next">Nästa</string>
+    <string name="saved">Sparat</string>
+    <string name="choose">Välj</string>
+    <string name="choice_more">Fler</string>
 </resources>
