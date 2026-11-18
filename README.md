@@ -5,7 +5,7 @@ eventuellt Fonder): ett tema-API och de delade komponenterna, så att samma elem
 beter sig likadant i alla appar och bara finns på ett ställe. Varje app behåller sina egna
 färger, former och typsnitt och skickar in dem i temat.
 
-**Version:** 1.1.0 · Material 3 `1.5.0-beta01` (Expressive) · Compose BOM `2026.09.00` ·
+**Version:** 1.21.0 · Material 3 `1.5.0-beta01` (Expressive) · Compose BOM `2026.09.00` ·
 Kotlin `2.4.20` · AGP `9.4.1` · compileSdk 37 · minSdk 30.
 
 ## Moduler
@@ -40,8 +40,8 @@ dependencyResolutionManagement {
 }
 ```
 
-och i versionskatalogen/byggfilen `implementation("se.kodhast.ui:ui-components:1.1.0")` och
-`testImplementation("se.kodhast.ui:ui-testing:1.1.0")`.
+och i versionskatalogen/byggfilen `implementation("se.kodhast.ui:ui-components:1.21.0")` och
+`testImplementation("se.kodhast.ui:ui-testing:1.21.0")`.
 
 - **CI i appen:** `GITHUB_TOKEN` räcker när paketet gett apprepot läsåtkomst
   (paketets inställningar → *Manage Actions access*) och jobbet har `permissions: packages: read`.
@@ -547,7 +547,7 @@ med ReseApotekets palett (`ui-components/src/test/.../testing/TestTheme.kt`).
 
 ## Publicering
 
-Versionen står i `gradle.properties` (`version=`). `.github/workflows/publish.yml` publicerar alla fyra
+Versionen står i `gradle.properties` (`version=`). `.github/workflows/publish.yml` publicerar alla fem
 artefakterna till GitHub Packages, antingen när en tagg `v<version>` pushas eller manuellt
 (Actions → Publicera → Run workflow på `main`), som då skapar taggen själv. Molnsessioner kan inte
 pusha taggar och använder därför den manuella vägen.
@@ -559,6 +559,7 @@ pusha taggar och använder därför den manuella vägen.
 | 2.0.0 (under arbete) | Serien från granskningen 2026-11-18 (#73–#77). Publiceras som en version när #77 är klar |
 | ↳ #75 | ReseApotekets generella delar: `ValueTile` (packlistans förhandsvisning), `UnknownValueNotice` ("kan inte visas i den här versionen"), `PillRow`, `SettingsPage` och `SettingsCard(error)`; nya parametrar `QuantityStepper(showLabel)`, `AppBottomSheet(subtitle)`, `EntityEditScreen(header)` och `SectionFoldout(emptyText)` (med listgruppens tomrad). Standardvärdena ändrar inget; inga befintliga skärmdumpar är omtagna |
 | ↳ #76 | Dagbokens generella delar: nya `AppSlider`, `DateStrip`, `DayTab`, `DayTabWeekday`, `SwipeToDelete`, `ExpandButton`, `StepIndicator`, `StepNavigation`, `DropdownPill`, `SectionCard`, `KeyFigure` och `StatPillGrid`; `ChoiceChips(more, moreLabel, morePickLabel)`; spårets höjd `TRACK_HEIGHT` (8 dp) i `ui-theme`, som `AppProgress` nu läser. Befintliga skärmdumpar oförändrade |
+| ↳ #73 | Rättelser: FAB-menyns Stäng-knapp i huvudknappens färg (`ActionColor.Tertiary` gav förut gråbrunt kryss); dra-för-att-uppdatera även i laddning, tomt och fel i `EntityListScreen` och `EntityDetailScreen`; hopfällt läge per grupp i stället för per rubrik; "Hämta senaste versionen" i `UpdateRequiredScreen` visar ett meddelande i stället för att krascha utan webbläsare; `QuantityStepper`:s 48 dp tryckyta med 44 dp knappar bevakas av ett test (den fanns redan, genom Compose utvidgade tryckyta); klickbara kort läses som knapp, ny parameter `AppCard`/`CardSegment(onClickLabel)`, och lyft och tryckskala bara på klickbara kort (`NoticeBanner` använder kortets klick, så ett klickbart meddelande får med temats djup kortets skugga och tryckskala, som förut klipptes bort); `TabBackStack.entries` byggs inte om vid varje läsning; README:s version och artefaktantal rättade och bevakade av `UiConsistencyTest`, som också kräver ett beteendetest per publik komponent. Nya skärmdumpar `AppFloatingToolbar_fabmeny_tertiary` och `NoticeBanner_djup`; `NoticeBanner_lagen` omtagen (kantutjämning, högst 9/255 i en kanal) |
 | 1.21.0 | Reglaget får djup som knapparna (#70, Mats val A): med temats djup får `SwitchControl` i påslaget läge skimmer och ljuskant på spåret, och knoppen lyfts med knapparnas skugga i två lager och sjunker in när den trycks; avslaget ligger platt i sitt sänkta spår, som ett chip som inte är valt. Ny parameter `SwitchControl(interactionSource)`, som `SwitchRow` använder så att knoppen sjunker in också när raden trycks. Utan djup oförändrat (raden skickar bara sitt tryck vidare med djup). Omtagna skärmdumpar: de med reglage och djup (`Kontroller_djup`), nya `SwitchControl_djup_nedtryckt` |
 | 1.20.0 | `ListScrollRequest(message)`: listramen visar ett meddelande som snackbar när den rullar på begäran – Dagbokens "Inga poster den …" när Välj dag går till en annan dag (#68). Standardvärdet ändrar inget |
 | 1.19.0 | Välj dag (#68, Mats val B): `DayPicker` (chip och kalenderark), `AppCalendar` med `DayMarkerDot` och `dayDescription` (flyttade från Dagboken) och `EntityListScreen(scrollTo, onScrolled)` som rullar till en rad. Standardvärdena ändrar inget utseende |

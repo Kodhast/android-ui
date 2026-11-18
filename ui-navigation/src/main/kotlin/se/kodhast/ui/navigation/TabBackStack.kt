@@ -2,6 +2,7 @@ package se.kodhast.ui.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -47,8 +48,11 @@ class TabBackStack<K : NavKey> private constructor(
 
     constructor(tabs: List<K>, serializer: KSerializer<K>) : this(tabs, serializer, requireNotNull(tabs.firstOrNull()) { "flikarna ska vara minst en" }, emptyList())
 
+    // Byggs om bara när flikvalet eller en stack ändras, inte vid varje läsning (NavDisplay och atTopLevel läser ofta).
+    private val entriesState = derivedStateOf { if (currentTab == start) stack(start).toList() else stack(start) + stack(currentTab) }
+
     val entries: List<K>
-        get() = if (currentTab == start) stack(start).toList() else stack(start) + stack(currentTab)
+        get() = entriesState.value
 
     /** Verktygsraden syns bara i en fliks rot; undersidor döljer den. */
     val atTopLevel: Boolean

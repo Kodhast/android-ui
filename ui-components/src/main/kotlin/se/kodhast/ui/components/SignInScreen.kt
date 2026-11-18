@@ -1,5 +1,6 @@
 package se.kodhast.ui.components
 
+import android.content.ActivityNotFoundException
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -7,7 +8,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
@@ -64,11 +68,16 @@ fun SignInScreen(
 /**
  * Datan är sparad med en nyare version av appen: "Uppdatera appen", [message] (vad som sparats med en
  * nyare version) och [note] (att inget ändras förrän appen uppdaterats), och knappen "Hämta senaste
- * versionen", som öppnar [releasesUrl]. Inget av appens innehåll visas förrän appen uppdaterats.
+ * versionen", som öppnar [releasesUrl]. Inget av appens innehåll visas förrän appen uppdaterats. Finns ingen
+ * app som kan öppna länken visas ett meddelande ovanför knappen i stället för att appen kraschar.
  */
 @Composable
 fun UpdateRequiredScreen(message: String, note: String?, releasesUrl: String, modifier: Modifier = Modifier) {
     val uriHandler = LocalUriHandler.current
+    val snackbar = remember { SnackbarHostState() }
+    // Räknaren gör varje misslyckat tryck till ett eget meddelande.
+    var failures by remember { mutableIntStateOf(0) }
+    MessageSnackbar(if (failures > 0) stringResource(R.string.update_required_no_browser) else null, snackbar, key = failures) {}
     EmptyState(
         icon = R.drawable.ic_download,
         title = stringResource(R.string.update_required_title),
@@ -77,12 +86,25 @@ fun UpdateRequiredScreen(message: String, note: String?, releasesUrl: String, mo
         note = note,
         fullScreen = true,
         action = {
-            AppButton(
-                text = stringResource(R.string.update_required_action),
-                onClick = { uriHandler.openUri(releasesUrl) },
-                modifier = Modifier.fillMaxWidth(),
-                icon = R.drawable.ic_download
-            )
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
+                // Platsen för meddelandet finns först efter ett misslyckat tryck, så att skärmen annars ligger som förut.
+                if (failures > 0) AppSnackbarHost(snackbar)
+                AppButton(
+                    text = stringResource(R.string.update_required_action),
+                    onClick = {
+                        // AndroidUriHandler kastar IllegalArgumentException när ingen aktivitet tar emot länken.
+                        try {
+                            uriHandler.openUri(releasesUrl)
+                        } catch (_: IllegalArgumentException) {
+                            failures++
+                        } catch (_: ActivityNotFoundException) {
+                            failures++
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    icon = R.drawable.ic_download
+                )
+            }
         }
     )
 }

@@ -4,9 +4,14 @@ package se.kodhast.ui.components
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.progressSemantics
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LoadingIndicator
@@ -68,7 +73,7 @@ const val ENTITY_REFRESH_TAG = "entity-refresh"
  * använder den med sina `refreshing`/`onRefresh`; en skärm utan ram (Fonders Översikt, Innehav, Beslut) lägger
  * den själv runt sitt rullbara innehåll. Indikatorn är Expressive-laddningsindikatorn (även med
  * `AppBrandStyle.dotLoading`), i en behållare överst, och syns så länge [refreshing] är sant. Gesten kräver
- * rullbart innehåll. Ytan har taggen [ENTITY_REFRESH_TAG].
+ * rullbart innehåll ([RefreshableState] för ett läge som inte rullar själv). Ytan har taggen [ENTITY_REFRESH_TAG].
  */
 @Composable
 fun AppPullToRefresh(refreshing: Boolean, onRefresh: (() -> Unit)?, modifier: Modifier = Modifier, content: @Composable BoxScope.() -> Unit) {
@@ -85,4 +90,19 @@ fun AppPullToRefresh(refreshing: Boolean, onRefresh: (() -> Unit)?, modifier: Mo
         indicator = { PullToRefreshDefaults.LoadingIndicator(state = state, isRefreshing = refreshing, modifier = Modifier.align(Alignment.TopCenter)) },
         content = content
     )
+}
+
+/**
+ * Ett läge som inte rullar själv (laddning, tomt, fel) i [AppPullToRefresh]: med [onRefresh] är ytan rullbar,
+ * så att gesten når fram. Läget får alltid minst platsens storlek, så att det ligger där det låg utan rullning.
+ */
+@Composable
+internal fun RefreshableState(onRefresh: (() -> Unit)?, content: @Composable () -> Unit) {
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val height = maxHeight
+        val scroll = if (onRefresh != null) Modifier.verticalScroll(rememberScrollState()) else Modifier
+        Box(Modifier.fillMaxSize().then(scroll)) {
+            Box(Modifier.fillMaxWidth().heightIn(min = height), propagateMinConstraints = true) { content() }
+        }
+    }
 }

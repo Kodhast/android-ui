@@ -57,7 +57,7 @@ val LocalTopBarBackStyle = staticCompositionLocalOf { TopBarBackStyle() }
 
 /**
  * Skärmrubriken. [onBack] ger en tillbakaknapp; [actions] står till höger (t.ex. `AppMenu`).
- * [scrollBehavior] kopplas av ramarna (`EntityListScreen`, `EntityEditScreen`).
+ * [scrollBehavior] kopplas av ramarna (`EntityListScreen`, `EntityDetailScreen`).
  * Före [actions] står [status] – standard det appen satt i [LocalTopBarStatus]. Pilens utseende är
  * [backStyle] – standard det appen satt i [LocalTopBarBackStyle]. [titleModifier] läggs på rubrikens text
  * (efter rubriksemantiken), t.ex. för att en app ska kunna göra rubriken kopierbar; standard ingenting.

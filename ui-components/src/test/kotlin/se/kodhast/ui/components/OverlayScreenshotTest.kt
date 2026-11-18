@@ -211,6 +211,30 @@ class OverlayScreenshotTest {
     }
 
     @Test
+    fun `AppFloatingToolbar - FAB-meny med huvudknappen i Tertiary`() = rule.captureScreenLightAndDark(
+        "AppFloatingToolbar_fabmeny_tertiary",
+        open = { onNodeWithContentDescription("Lägg till").clickWithoutRipple() }
+    ) {
+        // ReseApoteket: krysset har huvudknappens färg, så knappen byter inte färg när menyn öppnas.
+        Background {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
+                AppFloatingToolbar(
+                    listOf(ToolbarItem("Resor", R.drawable.ic_calendar), ToolbarItem("Personer", R.drawable.ic_person), ToolbarItem("Recept", R.drawable.ic_note)),
+                    0,
+                    {},
+                    action = ToolbarAction(
+                        "Lägg till",
+                        R.drawable.ic_add,
+                        listOf(AppMenuItem("Ny resa", {}, icon = R.drawable.ic_calendar), AppMenuItem("Ny person", {}, icon = R.drawable.ic_person))
+                    ),
+                    actionMenu = ActionMenuStyle.Fab,
+                    actionColor = ActionColor.Tertiary
+                )
+            }
+        }
+    }
+
+    @Test
     fun `ConfirmDialog - bekräftelse`() = rule.captureScreenLightAndDark("ConfirmDialog_standard") {
         Background { ConfirmDialog("Räkna om listan?", "Det du ändrat för hand ersätts.", "Räkna om", {}, {}, dismissLabel = "Behåll listan") }
     }
