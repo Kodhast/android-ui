@@ -21,6 +21,9 @@ dependencies {
     // BackHandler i EntityEditScreen och collectAsStateWithLifecycle i ArchiveActions – samma versioner som apparna.
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
+    // Profilfotot i AccountAvatar: Coil laddar och cachar på disk; OkHttp hämtar över nätet.
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlin.test)
@@ -32,6 +35,7 @@ dependencies {
     testImplementation(libs.roborazzi.compose)
     testImplementation(libs.roborazzi.junit.rule)
     testImplementation(libs.konsist)
+    testImplementation(libs.turbine)
 }
 
 // UiConsistencyTest läser källorna i modulerna, regelfilerna och README i roten – en ändring där kör om testet.
