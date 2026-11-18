@@ -79,15 +79,28 @@ class UiConsistencyTest {
     }
 
     /** En komponent ritar något: en publik `@Composable` som returnerar `Unit`. En som ger ett värde (t.ex. `chipColors()`) är ingen komponent. */
-    @Test
-    fun `varje publik komponent har skärmdump ljust och mörkt och står i README`() {
-        val components = production.functions()
+    private val componentFunctions by lazy {
+        production.functions()
             .filter { (it.resideInPackage("..ui.components..") || it.resideInPackage("..ui.navigation..")) && it.hasPublicOrDefaultModifier && it.hasAnnotationWithName("Composable") }
             .filter { it.returnType.let { type -> type == null || type.name == "Unit" } }
             // En override (t.ex. i en privat klass) är ingen egen komponent.
             .filter { !it.hasOverrideModifier }
-            .map { it.name }
-            .toSet()
+    }
+    private val components by lazy { componentFunctions.map { it.name }.toSet() }
+
+    @Test
+    fun `varje publik komponent finns i komponentgalleriet`() {
+        assertTrue(components.isNotEmpty(), "hittade inga komponenter")
+        val gallery = File(repoRoot, GALLERY_DIR).listFiles { file -> file.extension == "kt" }.orEmpty().joinToString("\n") { it.readText() }
+        assertTrue(gallery.contains("fun ComponentGallery("), "ComponentGallery saknas i $GALLERY_DIR")
+        // En föråldrad form (`@Deprecated`, t.ex. `SignInButton`) ska inte användas och visas inte i galleriet.
+        val current = componentFunctions.filterNot { it.hasAnnotationWithName("Deprecated") }.map { it.name }.toSet()
+        val missing = (current - "ComponentGallery").filterNot { Regex("""\b$it\s*[({<]""").containsMatchIn(gallery) }
+        assertTrue(missing.isEmpty(), "Saknas i galleriet ($GALLERY_DIR/LibraryGallery.kt): ${missing.sorted()}")
+    }
+
+    @Test
+    fun `varje publik komponent har skärmdump ljust och mörkt och står i README`() {
         assertTrue(components.isNotEmpty(), "hittade inga komponenter")
         val screenshots = listOf("ui-components", "ui-navigation").flatMap { File(repoRoot, "$it/src/test/screenshots").list().orEmpty().toList() }.toSet()
         val readme = File(repoRoot, "README.md").readText()
@@ -99,6 +112,10 @@ class UiConsistencyTest {
             )
         }
         assertTrue(problems.isEmpty(), problems.joinToString("\n"))
+    }
+
+    private companion object {
+        const val GALLERY_DIR = "ui-navigation/src/main/kotlin/se/kodhast/ui/navigation/gallery"
     }
 
     private data class Rule(val regex: Regex, val replacement: String)
