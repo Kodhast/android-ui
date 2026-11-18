@@ -119,12 +119,8 @@ private fun DayCell(day: LocalDate, marked: Boolean, selected: Boolean, isToday:
     val shape = AppTheme.shapes.row
     val description = dayDescription(day, isToday, marked)
     val interactionSource = remember { MutableInteractionSource() }
-    val depth = AppTheme.depth
     // Med temats djup krymper dagen nedtryckt, och den valda lyfts som ett valt chip.
-    val lifted = depth?.let {
-        val lift = rememberLift(interactionSource, !future)
-        Modifier.depthSurface(it, shape, { lift.value }, raised = selected, shadow = Lift.Selected)
-    } ?: Modifier
+    val lifted = Modifier.depth(shape, interactionSource, raised = selected, shadow = Lift.Selected, active = !future)
     // Tryckytan är hela cellen (kolumnens bredd × 48 dp). I en smal kolumn (under 48 dp, t.ex. på 360 dp
     // breda skärmar) utvidgar Compose tryckytan till 48 dp åt sidorna.
     Box(

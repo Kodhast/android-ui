@@ -113,6 +113,23 @@ internal fun Modifier.depthSurface(
 }
 
 /**
+ * Temats djup ([depthSurface]) på en yta som trycks via [press]; utan djup oförändrad. [active] = false (inaktivt)
+ * står kvar i vila.
+ */
+@Composable
+internal fun Modifier.depth(
+    shape: Shape,
+    press: InteractionSource,
+    raised: Boolean = true,
+    shadow: Lift? = Lift.Button,
+    active: Boolean = true
+): Modifier {
+    val depth = AppTheme.depth ?: return this
+    val lift = rememberLift(press, active)
+    return depthSurface(depth, shape, { lift.value }, raised, shadow)
+}
+
+/**
  * Klipper till [shape] och krymper med temats djup medan [source] trycks – för det som bara krymper, som en
  * klickbar pill. `null` = inget tryck att följa (bara klippt).
  */

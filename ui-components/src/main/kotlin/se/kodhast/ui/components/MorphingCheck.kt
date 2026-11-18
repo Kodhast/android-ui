@@ -5,7 +5,6 @@ package se.kodhast.ui.components
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.interaction.InteractionSource
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -48,7 +47,7 @@ fun MorphingCheck(checked: Boolean, modifier: Modifier = Modifier, interactionSo
     val color = MaterialTheme.colorScheme.primary
     val depth = AppTheme.depth
     val filled = MaterialShapes.Cookie9Sided.toShape()
-    val press = depth?.let { rememberLift(interactionSource ?: remember { MutableInteractionSource() }) }
+    val press = if (depth != null && interactionSource != null) rememberLift(interactionSource) else null
     val pressValue = { press?.value ?: 1f }
     val lift = { progress * pressValue() }
     val sinking = depth?.let { Modifier.pressScale(it, pressValue) } ?: Modifier

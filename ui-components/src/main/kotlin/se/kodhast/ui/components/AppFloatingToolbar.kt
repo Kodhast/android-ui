@@ -412,14 +412,6 @@ private fun ToolbarBadge(count: Int) {
     }
 }
 
-/** Temats djup ([depthSurface]) på en yta som trycks via [press]; utan djup oförändrad. */
-@Composable
-private fun Modifier.depth(shape: Shape, press: MutableInteractionSource, raised: Boolean = true, shadow: Lift? = Lift.Button): Modifier {
-    val depth = AppTheme.depth ?: return this
-    val lift = rememberLift(press)
-    return depthSurface(depth, shape, { lift.value }, raised, shadow)
-}
-
 private val TAB_HEIGHT = 48.dp
 
 /** Verktygsradens höjd med temats djup – en tydlig men mjuk skugga under raden. */

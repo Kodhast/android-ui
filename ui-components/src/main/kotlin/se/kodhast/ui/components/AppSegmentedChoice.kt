@@ -40,10 +40,7 @@ fun AppSegmentedChoice(
                 val shape = SegmentedButtonDefaults.itemShape(index, options.size)
                 val selected = index == selectedIndex
                 val interactionSource = remember { MutableInteractionSource() }
-                val lifted = depth?.let {
-                    val lift = rememberLift(interactionSource)
-                    Modifier.depthSurface(it, shape, { lift.value }, raised = selected, shadow = null)
-                } ?: Modifier
+                val lifted = Modifier.depth(shape, interactionSource, raised = selected, shadow = null)
                 SegmentedButton(
                     selected = selected,
                     onClick = { onSelect(index) },

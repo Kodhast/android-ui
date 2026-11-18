@@ -72,7 +72,7 @@ fun CheckRow(
         // "inaktiv" för TalkBack som utan meny.
         !enabled ->
             Modifier
-                .combinedClickable(press, LocalIndication.current, role = Role.Checkbox, onLongClickLabel = menuLabel, onLongClick = openMenu) {}
+                .combinedClickable(role = Role.Checkbox, onLongClickLabel = menuLabel, onLongClick = openMenu) {}
                 .semantics {
                     toggleableState = ToggleableState(checked)
                     disabled()

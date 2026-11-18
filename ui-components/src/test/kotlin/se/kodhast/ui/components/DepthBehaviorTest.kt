@@ -253,7 +253,11 @@ class DepthBehaviorTest {
                 AppSegmentedChoice(listOf("Ljust", "Mörkt"), 0, {})
             }
         }
-        assertEquals(1f, pressedWidthRatio(rule.onNodeWithContentDescription("Ny resa")))
+        listOf(rule.onNodeWithContentDescription("Ny resa"), rule.onNodeWithContentDescription("Idag"), rule.onNode(hasClickAction() and hasText("Mörkt"))).forEach { node ->
+            assertEquals(1f, pressedWidthRatio(node))
+            node.performTouchInput { up() }
+            rule.mainClock.autoAdvance = true
+        }
     }
 
     @Test
