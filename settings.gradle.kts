@@ -15,4 +15,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "android-ui"
-include(":ui-theme", ":ui-common", ":ui-components", ":ui-testing")
+include(":ui-theme", ":ui-common", ":ui-components", ":ui-navigation", ":ui-testing")

@@ -20,6 +20,7 @@ class UiConsistencyTest {
     private val production = Konsist.scopeFromProduction(moduleName = "ui-components") +
         Konsist.scopeFromProduction(moduleName = "ui-theme") +
         Konsist.scopeFromProduction(moduleName = "ui-common") +
+        Konsist.scopeFromProduction(moduleName = "ui-navigation") +
         Konsist.scopeFromProduction(moduleName = "ui-testing")
 
     @Test
@@ -31,7 +32,7 @@ class UiConsistencyTest {
     @Test
     fun `ingen kod i bibliotekets main använder förbjudna mönster`() {
         val files = production.files.toList()
-        assertTrue(listOf("/ui-theme/", "/ui-components/", "/ui-common/", "/ui-testing/").all { module -> files.any { it.path.contains(module) } }, "hittade inte alla moduler")
+        assertTrue(listOf("/ui-theme/", "/ui-components/", "/ui-common/", "/ui-navigation/", "/ui-testing/").all { module -> files.any { it.path.contains(module) } }, "hittade inte alla moduler")
         val hits = files.flatMap { file ->
             val rel = File(file.path).relativeTo(repoRoot).invariantSeparatorsPath
             findViolations(rel, file.text).map { (line, match, replacement) -> "  $rel:$line  `${match.trim()}`  → använd $replacement" }
@@ -54,6 +55,7 @@ class UiConsistencyTest {
         assertEquals(listOf("theme", "expressive"), scopesFor("ui-theme/src/main/kotlin/se/kodhast/ui/theme/X.kt"))
         assertEquals(listOf("expressive"), scopesFor("ui-common/src/main/kotlin/se/kodhast/ui/common/X.kt"))
         assertEquals(listOf("expressive"), scopesFor("ui-testing/src/main/kotlin/se/kodhast/ui/testing/X.kt"))
+        assertEquals(listOf("components", "expressive"), scopesFor("ui-navigation/src/main/kotlin/se/kodhast/ui/navigation/X.kt"))
         assertEquals(emptyList(), scopesFor("ui-components/src/test/kotlin/se/kodhast/ui/components/X.kt"))
     }
 
@@ -80,12 +82,14 @@ class UiConsistencyTest {
     @Test
     fun `varje publik komponent har skärmdump ljust och mörkt och står i README`() {
         val components = production.functions()
-            .filter { it.resideInPackage("..ui.components..") && it.hasPublicOrDefaultModifier && it.hasAnnotationWithName("Composable") }
+            .filter { (it.resideInPackage("..ui.components..") || it.resideInPackage("..ui.navigation..")) && it.hasPublicOrDefaultModifier && it.hasAnnotationWithName("Composable") }
             .filter { it.returnType.let { type -> type == null || type.name == "Unit" } }
+            // En override (t.ex. i en privat klass) är ingen egen komponent.
+            .filter { !it.hasOverrideModifier }
             .map { it.name }
             .toSet()
         assertTrue(components.isNotEmpty(), "hittade inga komponenter")
-        val screenshots = File(repoRoot, "ui-components/src/test/screenshots").list().orEmpty().toSet()
+        val screenshots = listOf("ui-components", "ui-navigation").flatMap { File(repoRoot, "$it/src/test/screenshots").list().orEmpty().toList() }.toSet()
         val readme = File(repoRoot, "README.md").readText()
         val problems = components.flatMap { name ->
             listOfNotNull(
@@ -104,7 +108,7 @@ class UiConsistencyTest {
     private fun scopesFor(relPath: String): List<String> {
         if (!relPath.endsWith(".kt") || !relPath.contains("/src/main/")) return emptyList()
         return listOfNotNull(
-            "components".takeIf { relPath.startsWith("ui-components/") },
+            "components".takeIf { relPath.startsWith("ui-components/") || relPath.startsWith("ui-navigation/") },
             "theme".takeIf { relPath.startsWith("ui-theme/") },
             "expressive"
         )

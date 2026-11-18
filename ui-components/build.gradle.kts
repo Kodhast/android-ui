@@ -42,6 +42,8 @@ dependencies {
 tasks.withType<Test>().configureEach {
     inputs.dir(rootProject.file("ui-theme/src/main")).withPathSensitivity(PathSensitivity.RELATIVE).withPropertyName("themeSources")
     inputs.dir(rootProject.file("ui-common/src/main")).withPathSensitivity(PathSensitivity.RELATIVE).withPropertyName("commonSources")
+    inputs.dir(rootProject.file("ui-navigation/src/main")).withPathSensitivity(PathSensitivity.RELATIVE).withPropertyName("navigationSources")
+    inputs.dir(rootProject.file("ui-navigation/src/test/screenshots")).withPathSensitivity(PathSensitivity.RELATIVE).withPropertyName("navigationScreenshots")
     inputs.dir(rootProject.file("ui-testing/src/main")).withPathSensitivity(PathSensitivity.RELATIVE).withPropertyName("testingSources")
     inputs.dir(file("src/main")).withPathSensitivity(PathSensitivity.RELATIVE).withPropertyName("componentSources")
     inputs.files(rootProject.files("ui-forbidden.txt", "ui-allowlist.txt", "README.md"))
