@@ -47,7 +47,7 @@ import se.kodhast.ui.theme.Tone
 
 /**
  * Det tomma tillståndet för en lista: ikon, rubrik och en mening. [examples] är exempel att börja från
- * ("Solkräm") – chips med plus ovanför lägg till-knappen. [actions] är knappar under lägg till-knappen –
+ * ("Solkräm") – chips med plus ovanför lägg till-knappen, också när listan saknar en (`add = null`). [actions] är knappar under lägg till-knappen –
  * och de enda knapparna när listan saknar lägg till (`add = null`, t.ex. en flik med plusmeny):
  * "Ny transaktion", "Importera avräkningsnota". Standard inga.
  */
@@ -175,7 +175,7 @@ fun <T> EntityListScreen(
                         title = empty.title,
                         message = empty.message,
                         modifier = Modifier.padding(bottom = clearance),
-                        action = if (add == null && footer == null && empty.actions.isEmpty()) {
+                        action = if (add == null && footer == null && empty.actions.isEmpty() && empty.examples.isEmpty()) {
                             null
                         } else {
                             { EmptyActions(empty, add, footer) }
@@ -193,13 +193,13 @@ fun <T> EntityListScreen(
 }
 
 /**
- * Under budskapet i det tomma tillståndet: exempel och lägg till-knappen (om [add] finns), appens egna
+ * Under budskapet i det tomma tillståndet: exempel, lägg till-knappen (om [add] finns), appens egna
  * knappar ([EmptyContent.actions]), sedan [footer].
  */
 @Composable
 private fun EmptyActions(empty: EmptyContent, add: AddAction?, footer: (@Composable () -> Unit)?) {
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.l)) {
-        if (add != null && empty.examples.isNotEmpty()) {
+        if (empty.examples.isNotEmpty()) {
             ExampleChips(empty.examples, { it.onClick() }, label = { it.label })
         }
         EmptyActionButtons(

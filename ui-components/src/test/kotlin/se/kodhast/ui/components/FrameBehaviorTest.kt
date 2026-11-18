@@ -82,6 +82,7 @@ class FrameBehaviorTest {
         archive: ListArchive? = null,
         filter: (@Composable () -> Unit)? = null,
         footer: (@Composable () -> Unit)? = null,
+        empty: EmptyContent = this.empty,
         row: @Composable (T) -> Unit
     ) = rule.setContent {
         TestTheme { EntityListScreen("Familjeartiklar", state, empty, add, key, group = group, archive = archive, filter = filter, footer = footer, row = row) }
@@ -113,6 +114,16 @@ class FrameBehaviorTest {
         list(ListUiState.Empty, key = { it }, add = null, footer = { ItemRow("Visa äldre") }) { ItemRow(it) }
         rule.onNodeWithText(empty.title).assertIsDisplayed()
         rule.onNodeWithText("Visa äldre").assertIsDisplayed()
+        rule.onNodeWithTag(ENTITY_LIST_ADD_TAG).assertDoesNotExist()
+    }
+
+    @Test
+    fun `exemplen syns i tomt läge också utan lägg till-knapp`() {
+        var picked = ""
+        val withExamples = empty.copy(examples = listOf(EmptyExample("Solkräm") { picked = "Solkräm" }))
+        list(ListUiState.Empty, key = { it }, add = null, empty = withExamples) { ItemRow(it) }
+        rule.onNodeWithText("Solkräm").performClick()
+        assertEquals("Solkräm", picked)
         rule.onNodeWithTag(ENTITY_LIST_ADD_TAG).assertDoesNotExist()
     }
 
