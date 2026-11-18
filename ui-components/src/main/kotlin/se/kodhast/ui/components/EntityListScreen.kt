@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -25,9 +26,11 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -67,6 +70,13 @@ data class EmptyExample(val label: String, val onClick: () -> Unit)
  * split-knappens pil (t.ex. "Ny vid behov-medicin").
  */
 data class AddAction(val label: String, val onClick: () -> Unit, val menu: List<AppMenuItem> = emptyList())
+
+/**
+ * En begäran om att rulla `EntityListScreen` till raden med nyckeln [key] (samma som listans `key`), t.ex. dagen
+ * som valts i [DayPicker]. Varje begäran är ett eget objekt (likhet efter identitet), så att samma rad kan begäras
+ * igen. Saknas raden väntar listan tills den finns.
+ */
+class ListScrollRequest(val key: Any)
 
 /**
  * En grupp i en grupperad lista: rubrik, valfri ikon och ton. [count] ersätter antalet rader i
@@ -120,6 +130,10 @@ data class ListSubgroup(val title: String, val color: Color)
  * utan (standard) finns ingen gest. [menu] är valen i ⋮ i rubrikraden (efter [actions]); "Visa arkiverade" läggs
  * sist i samma meny.
  *
+ * Med [scrollTo] rullar listan till den raden – till gruppens rubrik när raden är först i sin grupp – och anropar
+ * sedan [onScrolled], så att appen släpper begäran. Finns raden inte än (ett äldre år som läses in) rullar den när
+ * raden kommer. Utan (standard) rullar listan bara när användaren rullar.
+ *
  * [groups] är grupper som alltid visas, i den ordningen och före övriga grupper – också utan rader (med
  * [ListGroup.emptyText]) och när listan är tom: då står [empty] som ett kort överst i stället för hela skärmen.
  * En rad hör till en av dem när [group] ger en lika [ListGroup] (knappens och lägets lambdor och `emptyText` räknas inte); en tom
@@ -152,6 +166,8 @@ fun <T> EntityListScreen(
     errorTitle: String? = null,
     groups: List<ListGroup> = emptyList(),
     menu: List<AppMenuItem> = emptyList(),
+    scrollTo: ListScrollRequest? = null,
+    onScrolled: () -> Unit = {},
     row: @Composable (T) -> Unit
 ) {
     val snackbar = remember { SnackbarHostState() }
@@ -216,7 +232,7 @@ fun <T> EntityListScreen(
                     is ListUiState.Error ->
                         LoadErrorState(errorTitle ?: stringResource(R.string.list_error_title), state.error, onRetry, Modifier.padding(bottom = clearance))
 
-                    is ListUiState.Content -> ListContent(state.items, key, group, groups, subgroup, header, footer, clearance + if (add != null) ADD_BUTTON_CLEARANCE else Spacing.l, row)
+                    is ListUiState.Content -> ListContent(state.items, key, group, groups, subgroup, header, footer, clearance + if (add != null) ADD_BUTTON_CLEARANCE else Spacing.l, row, scrollTo, onScrolled)
                 }
             }
         }
@@ -251,7 +267,9 @@ private fun <T> ListContent(
     header: (@Composable () -> Unit)?,
     footer: (@Composable () -> Unit)?,
     bottomPadding: Dp,
-    row: @Composable (T) -> Unit
+    row: @Composable (T) -> Unit,
+    scrollTo: ListScrollRequest? = null,
+    onScrolled: () -> Unit = {}
 ) {
     val groups = remember(items, group, fixed) { grouped(items, group, fixed) }
     // Gruppens nyckel är dess rubrik och ordningsnummer: två grupper med samma rubrik (men t.ex. olika
@@ -265,15 +283,26 @@ private fun <T> ListContent(
     BoxWithConstraints(Modifier.fillMaxSize()) {
         // Kolumner bara där de får plats – annars kapas texten i raderna.
         val fitting = columnsThatFit(maxWidth - Spacing.l * 2)
+        val listState = rememberLazyListState()
+        // Väntar tills raden finns (t.ex. ett äldre år som läses in) och rullar sedan en gång per begäran.
+        val target = scrollTo?.let { request -> itemIndex(request.key, header != null, groups, expanded, key, subgroup, fitting) }
+        val scrolled by rememberUpdatedState(onScrolled)
+        LaunchedEffect(scrollTo, target) {
+            if (scrollTo != null && target != null) {
+                listState.animateScrollToItem(target)
+                scrolled()
+            }
+        }
         // Varje rad är ett eget listobjekt (lat inläsning, animering per rad); korten byggs av bitar.
         LazyColumn(
             Modifier.fillMaxSize(),
+            state = listState,
             contentPadding = PaddingValues(start = Spacing.l, end = Spacing.l, top = Spacing.xs, bottom = bottomPadding)
         ) {
             header?.let { item(key = "list-header", contentType = "list-header") { Box(Modifier.padding(bottom = Spacing.m)) { it() } } }
             groups.forEachIndexed { index, (head, rows) ->
                 if (index > 0) item(key = "gap:$index", contentType = "gap") { Spacer(Modifier.height(Spacing.m)) }
-                val open = head?.fold?.expanded ?: (head == null || !head.collapsible || head.title in expanded)
+                val open = head.isOpen(expanded)
                 val emptyText = head?.emptyText?.takeIf { rows.isEmpty() }
                 head?.let {
                     item(key = "header:${ids[index]}", contentType = "group-header") {
@@ -308,14 +337,7 @@ private fun <T> LazyListScope.groupRows(
 ) {
     val columns = (head?.columns ?: 1).coerceIn(1, fitting)
     val cards = head?.cards == true
-    val runs = if (subgroup == null) listOf(null to rows) else rows.runsBy(subgroup)
-    // Undergruppens nyckel är dess rubrik (och ordningsnummer om samma namn finns två gånger) –
-    // inte första radens, som byts när en rad prickas av och flyttas sist.
-    val seen = mutableMapOf<String, Int>()
-    val lines = runs.flatMap { (sub, members) ->
-        val label = sub?.let { Line.Label<T>(it, seen.numbered(it.title)) }
-        listOfNotNull(label) + members.chunked(columns).map { Line.Rows(it) }
-    }
+    val lines = groupLines(head, rows, subgroup, fitting)
     lines.forEachIndexed { position, line ->
         val top = head == null && position == 0
         val bottom = position == lines.lastIndex
@@ -356,6 +378,54 @@ private fun Segment(cards: Boolean, top: Boolean, bottom: Boolean, modifier: Mod
     } else {
         CardSegment(top = top, bottom = bottom, modifier, content = content)
     }
+}
+
+/** Gruppens rader som listobjekt: undergruppsrubriker och rader, i [ListGroup.columns] kolumner – högst [fitting]. */
+private fun <T> groupLines(head: ListGroup?, rows: List<T>, subgroup: ((T) -> ListSubgroup?)?, fitting: Int): List<Line<T>> {
+    val columns = (head?.columns ?: 1).coerceIn(1, fitting)
+    val runs = if (subgroup == null) listOf(null to rows) else rows.runsBy(subgroup)
+    // Undergruppens nyckel är dess rubrik (och ordningsnummer om samma namn finns två gånger) –
+    // inte första radens, som byts när en rad prickas av och flyttas sist.
+    val seen = mutableMapOf<String, Int>()
+    return runs.flatMap { (sub, members) ->
+        val label = sub?.let { Line.Label<T>(it, seen.numbered(it.title)) }
+        listOfNotNull(label) + members.chunked(columns).map { Line.Rows(it) }
+    }
+}
+
+private fun ListGroup?.isOpen(expanded: List<String>): Boolean = this?.fold?.expanded ?: (this == null || !collapsible || title in expanded)
+
+/**
+ * Listobjektets plats för raden med nyckeln [rowKey] – i samma ordning som `ListContent` lägger ut dem. Är raden
+ * först i en grupp med rubrik blir det rubriken, så att gruppens namn (t.ex. dagen) syns överst. `null` om raden
+ * inte finns eller ligger i en hopfälld grupp.
+ */
+private fun <T> itemIndex(
+    rowKey: Any,
+    hasHeader: Boolean,
+    groups: List<Pair<ListGroup?, List<T>>>,
+    expanded: List<String>,
+    key: (T) -> Any,
+    subgroup: ((T) -> ListSubgroup?)?,
+    fitting: Int
+): Int? {
+    var index = if (hasHeader) 1 else 0
+    groups.forEachIndexed { position, (head, rows) ->
+        if (position > 0) index++ // mellanrummet
+        val open = head.isOpen(expanded)
+        if (head != null) {
+            if (open && rows.firstOrNull()?.let(key) == rowKey) return index
+            index++
+            if (open && head.emptyText != null && rows.isEmpty()) index++
+        }
+        if (open) {
+            groupLines(head, rows, subgroup, fitting).forEach { line ->
+                if (line is Line.Rows && line.members.any { key(it) == rowKey }) return index
+                index++
+            }
+        }
+    }
+    return null
 }
 
 /** "rubrik#n": n:te gången [title] förekommer – två rubriker med samma namn får aldrig samma nyckel. */

@@ -156,7 +156,7 @@ tomt läge, fel, "Försök igen", "Släng ändringar?", sparfel och arkivering b
 EntityListScreen(title, state: ListUiState<T>, empty: EmptyContent, add: AddAction?, key, …,
     onRetry, group: ((T) -> ListGroup)?, archive: ListArchive?, subtitle, onBack, actions, header,
     subgroup, filter, topBarSize = TopBarSize.Large, footer, refreshing = false, onRefresh = null,
-    errorTitle = null, groups = emptyList(), menu = emptyList(), row)
+    errorTitle = null, groups = emptyList(), menu = emptyList(), scrollTo = null, onScrolled = {}, row)
 EntityEditScreen(title, state: EditorUiState<*>, events: EditorEvents, onSave, onClose, …,
     saveLabel, onArchive, onRestore, delete: DeleteAction?, onRetry, onSaved = onClose, formError,
     horizontalMargin = LocalEditScreenMargin.current, content)
@@ -170,6 +170,7 @@ EntityDetailScreen(state: DetailUiState<T>, header: ((T) -> DetailHeader)?, onBa
 | Lägg till-knapp | `add: AddAction(label, onClick, menu)`; `null` = ingen knapp, varken i listan eller i tomt läge | `AddAction(…)` (förr `onAdd` + `EmptyContent.actionLabel` + `addMenu`) | `AddAction` eller `null` |
 | Kolumner | `ListGroup.columns` är ett tak; så många kolumner om minst 260 dp som får plats används | som förut | nytt: en kolumn på telefon |
 | Filter, sidfot, postkort, räknare | `filter`, `footer`, `ListGroup.cards`, `ListGroup.showCount`, `topBarSize` | – | som förut |
+| Rulla till en rad | `scrollTo: ListScrollRequest(key)` – till gruppens rubrik när raden är först i gruppen, väntar tills raden finns; `onScrolled` släpper begäran | – | Välj dag i Dagbok (#68) |
 | Arkiveringsfel | `ListArchive.error: UiError` | som förut | förr `failure: Failure` |
 | Formulärets sidomarginal | `horizontalMargin`, standard `LocalEditScreenMargin` (sätts en gång i appens tema) | `Spacing.xl` (standard) | `Spacing.l` |
 | Formulärfel överst | `formError` | – | som förut |
@@ -416,6 +417,7 @@ inte använder ramen rätt.
 | `AddSplitButton` | "Lägg till ▾" – huvudåtgärd och pil med fler val | Menyn är en lucka: `menu = items.asSplitMenu()` (ReseApoteket) i stället för Dagbokens `menuItems` |
 | `AppBottomSheet` | Ark med rubrik; innehållet rullar alltid. `error` (`UiError`), `dirty` ("Släng ändringar?" vid bakåt, svep och tryck utanför), `canDismiss`, `hide`, `footer` (knappraden står fast i botten) | Dagbokens parametrar; ReseApotekets rullning gäller också med `footer` |
 | `AppButton` | Den enda knappen: Primary, Secondary, Outlined, Text, Destructive; `loading`, `compact`, `contentDescription`. Appens knappstil `AppButtonStyle(minHeight, morph, secondaryTone)` sätts en gång med `LocalAppButtonStyle` (eller parametern `style`); `AppButtonDefaults.MinHeight` 56 dp / `CompactHeight` 40 dp | Fonder: `AppButtonStyle(minHeight = 40.dp, morph = true, secondaryTone = Tone.Primary)`; standard bevarar ReseApoteket och Dagboken |
+| `AppCalendar` | Månadskalendern: `month`, `onMonthChange`, `marked` (punkt), `selectedDate` (fylld primärfärg i `shapes.row`), `onDateClick`, `today` (punkt i `secondary` med ring i `progressDone.outline`), `dimFuture` (framtiden nedtonad och ovalbar, pilen till nästa månad stängd). TalkBack läser datum, "idag" och "har poster". `DayMarkerDot` och `dayDescription` är samma markering och uppläsning för en datumremsa | Flyttad från Dagbokens `DagbokenCalendar` och `DayMarker` (#68); ser ut som förut, men med `dimFuture` stängs nu också pilen till månaden efter idag |
 | `AppCard` | Kortet: `tone`, `contentColor` (standard `null`: ärver omgivande `LocalContentColor`; Dagboken `onSurface`), `onClick` (hela kortet en nod). Appens kortstil `AppCardStyle(border, padding, segmentGap, contentSpacing)` med `LocalAppCardStyle` (eller `style`); ett tonat kort har ingen kontur | ReseApotekets `ApotekCard` heter nu `AppCard`. Fonder: kontur 1 dp `outlineVariant`, `padding = Spacing.l`, `contentSpacing = 0.dp`; Filled/Error är Fonders egna toner |
 | `AppDivider` | Avdelare mellan rader i ett kort | – |
 | `AppFilterChip` | Filterchip; `icon`, `onLongClick`, `value` (värde efter etiketten), `emphasized` (det aktiva bland flera valda), `pending` (`ChipPending`: väntande läge, tonat med streckad kant, ikon och tilläggstext) | `chipColors()` är publik för egna chips |
@@ -446,6 +448,8 @@ inte använder ramen rätt.
 | `ConfirmDialog` | Bekräftelse; `destructive`, `onDecline`, `dismissLabel` (`null` = bara en knapp), `content` (fält under texten) | Dagbokens `dismissLabel: String?` och `content` |
 | `DateTimeRow` | Datum och tid för en post på en rad: `DateField` och `TimeField` bredvid varandra; `dateLabel`, `timeLabel` (standard "Datum", "Tid") | Flyttad från Dagboken (#57) |
 | `DateField` | Datumfält (kotlinx `LocalDate`, "lör 19 dec 2026"); `emptyLabel`, `onClear` (✕ "Till …"), `context` för TalkBack | Dagbokens parametrar |
+| `DayMarkerDot` | En dags markering i kalender och datumremsa: `isToday` (punkt i `secondary` med ring i `progressDone.outline`, annars `outline`), `marked` (punkt i `primary`), `selected` (punkt och ring i `onPrimary`); läses inte – dagens knapp läser `dayDescription` | Flyttad från Dagbokens `DayMarker` (#68) |
+| `DayPicker` | "Välj dag" i en lista över datum (Kodhäst-standard): chip med kalenderikon först i filterraden som öppnar ett ark med `AppCalendar` (`marked`, `today`, framtiden ovalbar) och knappen Idag; valet ges till `onPick`, och appen rullar listan dit med `EntityListScreen(scrollTo = …)` | Nytt (#68): ersätter Dagbokens list- och kalenderikoner i sidhuvudet |
 | `DeleteConfirmDialog` | Permanent radering av en `DeleteAction` (titel, text, "Radera" i felfärg); titeln t.ex. `R.string.delete_title_format` ("Radera %s?") | Var appens egen (`DeleteAction` från `EntityEditScreen`) |
 | `DiscardChangesDialog` | "Släng ändringar?" – "Släng" / "Fortsätt redigera" | Var appens egen |
 | `DurationRow` | Tidsåtgång: `QuantityStepper` i minuter (`step`, standard 5, tak ett dygn) och snabbval (`quickPicks`, standard 15–120 min) i en `LabeledGroup` som visar "1 tim 30 min" (`DateFormat.duration`); `label` (standard "Tidsåtgång"). `DurationRowDefaults` | Flyttad från Dagboken (#57) |
@@ -529,6 +533,7 @@ pusha taggar och använder därför den manuella vägen.
 
 | Version | Ändring |
 |---|---|
+| 1.19.0 | Välj dag (#68, Mats val B): `DayPicker` (chip och kalenderark), `AppCalendar` med `DayMarkerDot` och `dayDescription` (flyttade från Dagboken) och `EntityListScreen(scrollTo, onScrolled)` som rullar till en rad. Standardvärdena ändrar inget utseende |
 | 1.18.0 | Komponentgalleriet (#56): `ComponentGallery(onBack, appSections)` och `GallerySection` i `ui-navigation` (paketet `se.kodhast.ui.navigation.gallery`) – bibliotekets sektioner med varje publik komponent, sedan appens egna. Ligger i `ui-navigation` och inte i `ui-components`, eftersom galleriet också visar `AppNavHost`. `UiConsistencyTest` kräver att varje publik komponent finns i galleriet. Inga befintliga skärmdumpar är omtagna |
 | 1.17.0 | Dagbokens generella komponenter (#57): `StatPill` (`tone` krävs), `FavoriteStar`/`favoriteMenuItem`/`FavoriteMark` (ikonerna `ic_star`/`ic_star_filled`), `DateTimeRow`, `DurationRow`, `ReminderTimeRow` och `NoteCard` (`maxLength` som parameter) i `ui-components`; `EditorSheet`/`EditorSheetState` (formulär i ark, med appens `ErrorMapper`) och `DateFormat.duration`/`durationSeconds` i `ui-common`. Regel 2 i `CLAUDE.md`: det som hör till en apps domän stannar i appen, allt annat UI finns här. Inga befintliga skärmdumpar är omtagna |
 | 1.16.1 | Fix: `ItemRow(icon = …)` ritar ikonen i `onSurfaceVariant` (som pilen) i stället för `LocalContentColor`, som är svart på skärmar utan `Surface` – Logga ut-ikonen syntes inte i mörkt läge. Omtagna skärmdumpar: raderna med `icon` (bl.a. `ItemRow_varianter`, `SignOutRow_*`) |
