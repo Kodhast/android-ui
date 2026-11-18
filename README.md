@@ -13,7 +13,7 @@ Kotlin `2.4.20` · AGP `9.4.1` · compileSdk 37 · minSdk 30.
 | Artefakt | Paket | Innehåll |
 |---|---|---|
 | `se.kodhast.ui:ui-theme` | `se.kodhast.ui.theme` | `AppTheme`, `Spacing`, `AppShapes`, `AppTypography`, `ExtendedColors`, `ProgressDoneColors`, `Tone`, `ToneColors` |
-| `se.kodhast.ui:ui-common` | `se.kodhast.ui.common` | ramarnas tillstånd utan UI: `UiError`/`ErrorMapper`, `ListUiState`, `DetailUiState`, `EditorState`, `EditorLoader`, `shownAfter`, `WriteFailures`, `screenSharing`, `DateFormat`, `SyncUiState` |
+| `se.kodhast.ui:ui-common` | `se.kodhast.ui.common` | ramarnas tillstånd utan UI: `UiError`/`ErrorMapper`, `ListUiState`, `DetailUiState`, `EditorState`, `EditorLoader`, `EditorSheet`, `shownAfter`, `WriteFailures`, `screenSharing`, `DateFormat`, `SyncUiState` |
 | `se.kodhast.ui:ui-components` | `se.kodhast.ui.components` | komponenterna och ramarna nedan (drar in `ui-theme` och `ui-common`) |
 | `se.kodhast.ui:ui-navigation` | `se.kodhast.ui.navigation` | navigationsramen: `TabBackStack`, `AppTransitions`, `AppNavHost` (drar in `ui-components`, Navigation 3 och kotlinx-serialization) |
 | `se.kodhast.ui:ui-testing` | `se.kodhast.ui.testing` | ramarnas kontraktstester, för appens enhetstester (`testImplementation`) |
@@ -102,8 +102,8 @@ Spacing.xs … Spacing.xxl  // 4, 8, 12, 16, 24, 32 dp
   hårfin kant; `AppMenuPopup`, `ConfirmDialog` och `TimePickerPopup` får den hårfina kanten. Listrader,
   pills, rubriker och tomma lägen är platta med avsikt. Färgerna ger appen per tema; utan `depth` är
   allt som förut.
-- Det som bara en app har (t.ex. Dagbokens energiskala, sömnstadier och känslotoner, `IconSize`)
-  stannar i appen.
+- Appens egna färger och det som hör till appens domän (t.ex. Dagbokens energiskala, sömnstadier och
+  känslotoner) stannar i appen.
 
 Appens tema blir en tunn omslutning:
 
@@ -131,13 +131,18 @@ Testas med JUnit och Turbine.
   `ListLoader`, `ListEvent.Retry`; detaljer: `DetailUiState`, `asDetailUiState`, `DetailLoader`.
 - **Formulär:** `EditorState` (validering, ändrat-läge, `saveUnchanged`, läsfel, spara/kör) och
   `EditorLoader` (läsning, "Försök igen", `project`, `prepare`, `afterLoad`).
+- **Formulär i ett ark:** `EditorSheet(scope, errors)` med `open`, `update`, `save` och `close`, och arket som visas
+  (`EditorSheetState`: `editor`, `loaded`, `context`, `error`, `unsaved`, `closing` (klart-läget "Sparat"), `hiding`
+  efter `SAVED_CONFIRMATION_MILLIS`, `canDismiss()`). Ihop med `AppBottomSheet(dirty, canDismiss, hide, error)` och
+  `Modifier.blockInput(closing)`. Flyttad från Dagboken (#57).
 - **`Flow<Boolean>.shownAfter(delay)`** – visar en indikator först efter en fördröjning.
 - **Skrivfel utan ram:** `WriteFailures(scope, errors)` – en skrivning som misslyckas blir ett `UiError` i `failure`
   tills skärmen visat det (`clear()`); `write { … }` kör och rapporterar.
 - **Delade flöden:** `screenSharing(forgetWhenStopped = true)` – `SharingStarted` som stoppar efter
   `STOP_TIMEOUT_MILLIS` utan lyssnare och (som standard) glömmer det senaste värdet.
 - **`DateFormat`** – det enda sättet att visa datum och tider: `display` ("lör 19 dec 2026"), `short`, `weekdayDay`,
-  `month`, `weekdayShort`/`weekdayLong`, `dayAndMonth`, `isoWeek`, `time` ("07:00") och datumväljarens millisekunder.
+  `month`, `weekdayShort`/`weekdayLong`, `dayAndMonth`, `isoWeek`, `time` ("07:00"), `duration` ("1 tim 30 min"),
+  `durationSeconds` ("2 min 15 s") och datumväljarens millisekunder.
   `DateField` och `TimeField` använder den.
 - **Inloggningen:** `AuthGate` (Loading, SignedOut, NeedsAccount, UpdateRequired, Ready) – vad `AuthGateHost` visar;
   appens `AuthViewModel` räknar fram det.
@@ -416,9 +421,11 @@ inte använder ramen rätt.
 | `ColorSwatchPicker` | Färgval; `marker` krävs: `SwatchMarker.RingAndCheck(checkColor)` (ReseApoteket) eller `GridRing` (Dagboken) | `marker` saknar standard – bockens färg är appens |
 | `Confetti` | Kort konfettiregn som belöning | `colors` (standard `AppTheme.extendedColors.accents`) |
 | `ConfirmDialog` | Bekräftelse; `destructive`, `onDecline`, `dismissLabel` (`null` = bara en knapp), `content` (fält under texten) | Dagbokens `dismissLabel: String?` och `content` |
+| `DateTimeRow` | Datum och tid för en post på en rad: `DateField` och `TimeField` bredvid varandra; `dateLabel`, `timeLabel` (standard "Datum", "Tid") | Flyttad från Dagboken (#57) |
 | `DateField` | Datumfält (kotlinx `LocalDate`, "lör 19 dec 2026"); `emptyLabel`, `onClear` (✕ "Till …"), `context` för TalkBack | Dagbokens parametrar |
 | `DeleteConfirmDialog` | Permanent radering av en `DeleteAction` (titel, text, "Radera" i felfärg); titeln t.ex. `R.string.delete_title_format` ("Radera %s?") | Var appens egen (`DeleteAction` från `EntityEditScreen`) |
 | `DiscardChangesDialog` | "Släng ändringar?" – "Släng" / "Fortsätt redigera" | Var appens egen |
+| `DurationRow` | Tidsåtgång: `QuantityStepper` i minuter (`step`, standard 5, tak ett dygn) och snabbval (`quickPicks`, standard 15–120 min) i en `LabeledGroup` som visar "1 tim 30 min" (`DateFormat.duration`); `label` (standard "Tidsåtgång"). `DurationRowDefaults` | Flyttad från Dagboken (#57) |
 | `EmojiPicker` | Välj en emoji ur `emojis` med `ChoiceGrid`s ring | Listan krävs – apparnas listor (`PERSON_EMOJIS`, `DEFAULT_EMOJIS`) stannar i appen; ReseApotekets egen markering ersätts av ringen |
 | `EmptyState` | Tomt läge med ikon, rubrik, text och knapp; `compact` (Dagboken); `actions: List<EmptyAction>` (en eller flera knappar i full bredd, `label`, `onClick`, `icon`, `variant`); med `AppBrandStyle(emptyStateMark = true)` `BrandMark` i ikonrutan, bara i fullstort läge utan fel | Fonders tomma lägen med flera val |
 | `EntityDetailScreen` | Detaljramen: huvud, sektioner, Redigera och meny; underskärm med `title`, flikläge med `onBack = null`; `onRefresh`/`refreshing` | Union av apparnas; se Ramarna |
@@ -428,6 +435,8 @@ inte använder ramen rätt.
 | `ExpandableContent` | Det som fälls ut: fjädrar fram (`defaultSpatialSpec`) och fälls snabbt ihop (`fastSpatialSpec`); `visible` | Flyttad från Dagboken (#46) |
 | `ExampleChips` | Exempel att trycka in i ett fält | – |
 | `Foldout` | Hopfällbar sektion: hela titelraden växlar (`CollapsibleHeader`), `summary` under titeln i stängt läge, `trailing` (egen kontroll före chevronen, växlar inte), `header` (ersätter titeln), `contentSpacing` | Flyttad från Dagboken (#46) |
+| `FavoriteMark` | Den lilla fyllda stjärnan i `primary` efter titeln på en stjärnmärkt post; läses "Favorit" | Flyttad från Dagboken (#57) |
+| `FavoriteStar` | Stjärnan som markerar `name` som favorit: ikonknapp, ifylld när `favorite`, läses "Markera X som favorit"/"Ta bort X som favorit" med läget "Favorit"/"Inte favorit". `favoriteMenuItem(name, favorite, onToggle)` ger samma text och stjärna som menyrad (`AppMenuItem`) | Flyttad från Dagboken (#57), med ikonerna `ic_star`/`ic_star_filled` |
 | `FieldError` | Felraden under ett fält | – |
 | `GroupLabel` | Etikett över en grupp | – |
 | `InfoPill` | Pill med ton; `trailingIcon`, `role`, `onClickLabel`, `colors`, `shape` (standard `AppTheme.shapes.pill`), `contentDescription` | Fonder: `shape = AppTheme.shapes.smallTile`, egna toner för Tertiary/Neutral |
@@ -441,15 +450,18 @@ inte använder ramen rätt.
 | `MessageSnackbar` | Visar en text en gång i `AppSnackbarHost` | – |
 | `MorphingCheck` | Krysset som morfar från ring till kaka med bock (bara visning) | – |
 | `NoteIndicator` | Anteckningsikon som visar anteckningen i en dialog | – |
+| `NoteCard` | Anteckningskortet i ett formulär: `AppCard` med en `Foldout` som stängd visar början av texten (eller "Lägg till en anteckning") och utfälld ett flerradigt fält; ett tömt fält ger `null`. `initiallyExpanded`, `error` (syns också stängd), `maxLength` (standard `AppTextFieldDefaults.LONG_MAX_LENGTH`; Dagboken `TextLimits.LONG`) | Flyttad från Dagboken (#57); taket är en parameter |
 | `NoticeBanner` | Meddelande överst på en skärm: tonat `AppCard` (`tone`, standard `Tone.Primary`) med `icon`, `text`, `detail` och en pil; hela kortet är knappen (`onClick`, läses med `onClickLabel`, standard "Öppna"); `onClick = null` = bara ett meddelande; `action` = en egen knapp under texten (kräver `onClick`) | Flyttad från Dagboken (#54), som skickar sin `Tone.Warning`; ReseApotekets "Notiser är avstängda" |
 | `PausableRow` | Rad som kan pausas: typ som pill, nedtonad "Pausat"; `pillTone` krävs | Tonen är appens (ReseApoteket `Tone.Blue`, Dagboken `Tone.Neutral`) |
 | `PickerField` | Fält som öppnar en väljare; `emptyLabel`, `contentLabel` | – |
 | `QuantityStepper` | − värde +; `step`, `valueText`, `buttonSize` (standard `LocalQuantityStepperButtonSize`: `QuantityStepperDefaults.ButtonSize` 44 dp, `TouchTargetButtonSize` 48 dp) | Dagboken sätter `TouchTargetButtonSize` en gång i sitt tema |
+| `ReminderTimeRow` | En påminnelse: namn och klockslag, tryck öppnar `TimePickerPopup`; med `onEnabledChange` en `SwitchRow` med reglaget som egen kontroll, annars en `ItemRow`. Avslagen (`enabled = false`) eller `inactive` tonar texten, inte reglaget | Flyttad från Dagboken (#57) |
 | `SectionHeader` | Sektionsrubrik med antal; `countTone`; laddningsindikator med `working`; med `AppBrandStyle(sectionDots = true)` två prickar i `primary` före titeln när ikonrutan saknas; titeln högst två rader brutna mellan ord, ett ord som inte ryms kortas med "…" och visar hela titeln i en bubbla vid långt tryck (som `ItemRow`) | – |
 | `SectionFoldout` | `Foldout` med `SectionHeader` i titelraden: `icon`, `count`, `tone`, `countTone`, `trailing` (t.ex. en tonad lägg till-knapp, `AppIconButton(…, variant = IconButtonVariant.Tonal)`) | Flyttad från Dagboken (#46); `trailing` är ny (ReseApotekets persondetalj) |
 | `SignInButton` | **Föråldrad (1.13.0), tas bort i nästa major** – ingen app använder den; utloggad visar appen `SignInScreen`. Googles "G" och "Logga in" (`text`), konturerad i rubrikradens lägre höjd; `loading` | Ny (#42) |
 | `SignInScreen` | Inloggningen i hela skärmen: `appIcon`, `appName`, `welcome`, `note`, knappen "Logga in med Google" (`AppButton` med inloggningsikonen), `busy` ("Loggar in …", spärrad), `error` en gång som meddelande ovanför knappen (`onErrorShown`), `onSignIn` | Flyttad från ReseApoteket och Dagboken (#53); RA:s egna `LaunchedEffect` blir `ErrorSnackbar` |
 | `SignOutRow` | "Logga ut" med utloggningsikonen; frågar "Logga ut?" med `ConfirmDialog` innan `onSignOut`. Likadan i alla appar: bara `appName` i texten skiljer, och bekräftelseknappen är en vanlig knapp i appens färger | Flyttad från ReseApoteket och Dagboken (#54); apparnas egna texter och RA:s röda knapp försvinner (1.15.0, Mats beslut) |
+| `StatPill` | Mätvärde: ikon, värde och etikett i en tonad yta, läses som en enhet; `onClick` (knapp, minst 48 dp), `onClickLabel`, `action` (åtgärden sist, kräver `onClick`). `tone` krävs | Flyttad från Dagboken (#57); tonen är appens (Dagboken `Tone.Neutral`) |
 | `SuggestionField` | Textfält med förslag (`Suggestion`) i ett kort under, antalet läses upp | – |
 | `SwipeBackground` | Det som syns bakom en svept rad: `icon` och `label` i högerkanten, `colors` (`ToneColors`, standard primärtonen), `shape` (standard `row`) | Ersätter bakgrunden i Dagbokens `SwipeToDelete` (`ic_delete`, felfärgen, `card`) |
 | `SwipeToHide` | Arkivera/dölj med svep åt vänster, och samma åtgärd för TalkBack; bakgrunden är `SwipeBackground` med `icon` och `colors` (standard arkivera i primärtonen) | – |
@@ -494,8 +506,9 @@ pusha taggar och använder därför den manuella vägen.
 
 | Version | Ändring |
 |---|---|
-| 1.16.0 | Framstegsraden `AppProgress` (#55), en form för båda apparna (Mats beslut, form A): texten ovanför ett rundat spår i appens färger. `doneDescription` för en egen talad text vid klart. Nya temafärger `ExtendedColors.track` och `ExtendedColors.progressDone` (`ProgressDoneColors`), båda med standard `null` (`primaryContainer` respektive `primary` utan kontur). Inga befintliga skärmdumpar är omtagna |
+| 1.17.0 | Dagbokens generella komponenter (#57): `StatPill` (`tone` krävs), `FavoriteStar`/`favoriteMenuItem`/`FavoriteMark` (ikonerna `ic_star`/`ic_star_filled`), `DateTimeRow`, `DurationRow`, `ReminderTimeRow` och `NoteCard` (`maxLength` som parameter) i `ui-components`; `EditorSheet`/`EditorSheetState` (formulär i ark, med appens `ErrorMapper`) och `DateFormat.duration`/`durationSeconds` i `ui-common`. Regel 2 i `CLAUDE.md`: det som hör till en apps domän stannar i appen, allt annat UI finns här. Inga befintliga skärmdumpar är omtagna |
 | 1.16.1 | Fix: `ItemRow(icon = …)` ritar ikonen i `onSurfaceVariant` (som pilen) i stället för `LocalContentColor`, som är svart på skärmar utan `Surface` – Logga ut-ikonen syntes inte i mörkt läge. Omtagna skärmdumpar: raderna med `icon` (bl.a. `ItemRow_varianter`, `SignOutRow_*`) |
+| 1.16.0 | Framstegsraden `AppProgress` (#55), en form för båda apparna (Mats beslut, form A): texten ovanför ett rundat spår i appens färger. `doneDescription` för en egen talad text vid klart. Nya temafärger `ExtendedColors.track` och `ExtendedColors.progressDone` (`ProgressDoneColors`), båda med standard `null` (`primaryContainer` respektive `primary` utan kontur). Inga befintliga skärmdumpar är omtagna |
 | 1.15.0 | `SignOutRow(appName, onSignOut)`: frågan är likadan i alla appar, bara appens namn skiljer ("Det du sparat i … finns kvar i ditt konto …"), och bekräftelseknappen är en vanlig knapp. Formen från 1.14.0 med `message` och `destructive` är dold (ingen app använde den) och tas bort i nästa major. Skärmdumparna `SignOutRow_*` är omtagna |
 | 1.14.0 | Inställningarnas delar (#54): `AccountRow`, `SignOutRow`, `AboutCard`, `NoticeBanner` (flyttad från Dagboken, standardtonen är `Tone.Primary`) och `rememberNotificationAccess`/`NotificationAccess`/`Context.canPostNotifications()` – flyttade från ReseApoteket och Dagboken, som hade var sin kopia. Texterna och ikonen `ic_logout`. Inga befintliga skärmdumpar är omtagna |
 | 1.13.0 | Inloggningen (#53): `SignInScreen`, `UpdateRequiredScreen` och `AuthGateHost` i `ui-components`, `AuthGate` i `ui-common`, texterna och ikonerna `ic_login`/`ic_download` – flyttade från ReseApoteket och Dagboken, som hade var sin kopia. `SignInButton` är föråldrad (oanvänd) och tas bort i nästa major. Inga befintliga skärmdumpar är omtagna |

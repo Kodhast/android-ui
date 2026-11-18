@@ -25,6 +25,8 @@ object DateFormat {
     private val dayMonth = DateTimeFormatter.ofPattern("EEEE d MMMM", swedish)
     private val dayMonthYear = DateTimeFormatter.ofPattern("EEEE d MMMM yyyy", swedish)
     private const val DAY_MILLIS = 86_400_000L
+    private const val MINUTES_PER_HOUR = 60
+    private const val SECONDS_PER_MINUTE = 60
 
     /** "lör 19 dec 2026". */
     fun display(date: LocalDate): String = display.format(date.toJavaLocalDate()).replace(".", "")
@@ -62,6 +64,23 @@ object DateFormat {
 
     /** "07:00" – 24 timmar, alltid två siffror. */
     fun time(time: LocalTime): String = "%02d:%02d".format(Locale.ROOT, time.hour, time.minute)
+
+    /** En tidsåtgång i minuter: "45 min", "1 tim", "1 tim 30 min" – samma överallt. */
+    fun duration(minutes: Int): String = twoUnits(minutes, MINUTES_PER_HOUR, "min", "tim")
+
+    /** En kortare längd i sekunder: "45 s", "2 min", "2 min 15 s". */
+    fun durationSeconds(seconds: Int): String = twoUnits(seconds, SECONDS_PER_MINUTE, "s", "min")
+
+    /** [value] i den mindre enheten som "stor", "liten" eller "stor liten" – en gång för [duration] och [durationSeconds]. */
+    private fun twoUnits(value: Int, perLarge: Int, small: String, large: String): String {
+        val whole = value / perLarge
+        val rest = value % perLarge
+        return when {
+            whole == 0 -> "$rest $small"
+            rest == 0 -> "$whole $large"
+            else -> "$whole $large $rest $small"
+        }
+    }
 
     /** Midnatt UTC, som Material-datumväljaren räknar. */
     fun toEpochMillis(date: LocalDate): Long = date.toEpochDays().toLong() * DAY_MILLIS
