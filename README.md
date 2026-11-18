@@ -5,7 +5,7 @@ eventuellt Fonder): ett tema-API och de delade komponenterna, så att samma elem
 beter sig likadant i alla appar och bara finns på ett ställe. Varje app behåller sina egna
 färger och typsnitt och skickar in dem i temat; formerna är samma i alla appar.
 
-**Version:** 2.0.0 · Material 3 `1.5.0-beta01` (Expressive) · Compose BOM `2026.09.00` ·
+**Version:** 3.0.0 · Material 3 `1.5.0-beta01` (Expressive) · Compose BOM `2026.09.00` ·
 Kotlin `2.4.20` · AGP `9.4.1` · compileSdk 37 · minSdk 30.
 
 ## Moduler
@@ -40,8 +40,8 @@ dependencyResolutionManagement {
 }
 ```
 
-och i versionskatalogen/byggfilen `implementation("se.kodhast.ui:ui-components:2.0.0")` och
-`testImplementation("se.kodhast.ui:ui-testing:2.0.0")`.
+och i versionskatalogen/byggfilen `implementation("se.kodhast.ui:ui-components:3.0.0")` och
+`testImplementation("se.kodhast.ui:ui-testing:3.0.0")`.
 
 - **CI i appen:** `GITHUB_TOKEN` räcker när paketet gett apprepot läsåtkomst
   (paketets inställningar → *Manage Actions access*) och jobbet har `permissions: packages: read`.
@@ -60,7 +60,6 @@ fun AppTheme(
     colorScheme: ColorScheme,
     extendedColors: ExtendedColors,
     typeScale: Typography,                                     // appens typskala med appens typsnitt
-    shapes: AppShapes = AppShapes(),                           // samma i alla appar – ange inga egna
     typography: AppTypography = AppTypography.from(typeScale), // de namngivna stilarna
     motionScheme: MotionScheme = MotionScheme.expressive(),
     depth: AppDepth? = null,                                   // djup och tryckkänsla; null = platt
@@ -82,8 +81,8 @@ TRACK_HEIGHT, PROGRESS_STROKE // spårets höjd 8 dp, snurrans linje 2,5 dp
   som tillägg, t.ex. `val Tone.Companion.Green get() = Tone("green")`, och ger dem färger i
   `ExtendedColors.tones`. En ton utan färger får primärtonen.
 - **Former:** samma i alla appar (Mats beslut 2026-11-18: bara färger och typsnitt skiljer) – kort 22 dp,
-  rader 18 dp, fält 14 dp, menyer 16 dp, arkets överkant och väljardialogerna 28 dp, FAB 16 dp. ReseApoteket
-  och Dagboken anger inga egna; `shapes` finns kvar i `AppTheme` bara för Fonders egna radier, tills det är beslutat.
+  rader 18 dp, fält 14 dp, menyer 16 dp, arkets överkant och väljardialogerna 28 dp, FAB 16 dp. Formerna är
+  ingen appinställning: `AppTheme` tar inga former (3.0.0).
 - **Ikonstorlekar:** `IconSize` som `Spacing` – samma i alla appar; inget eget dp-värde för en ikon.
 - **Accentfärger:** `ExtendedColors.accents` är appens dekorativa färgserie (personfärger,
   valbara färger) – används av `Confetti`.
@@ -560,13 +559,14 @@ artefakterna till GitHub Packages, antingen när en tagg `v<version>` pushas ell
 (Actions → Publicera → Run workflow på `main`), som då skapar taggen själv. Molnsessioner kan inte
 pusha taggar och använder därför den manuella vägen.
 
-## Byta från 1.x till 2.0
+## Byta från 1.x till 3.0
 
-2.0.0 samlar serien från granskningen 2026-11-18 (#73–#77). Det som bryter, och vad appen gör:
+2.0.0 samlade serien från granskningen 2026-11-18 (#73–#77); 3.0.0 tog bort formerna ur `AppTheme` direkt
+efter, innan någon app bytt. Byt direkt från 1.x till 3.0.0. Det som bryter, och vad appen gör:
 
-- **Former:** ta bort `shapes = AppShapes(cardRadius = …)` ur appens `AppTheme(…)`; standarden är 22 dp-kort.
-  ReseApoteket går från 28 till 22 dp (Mats beslut). `shapes` står nu efter `typeScale` – en app som skickar
-  temats argument utan namn får byta till namngivna.
+- **Former:** ta bort `shapes = …` ur appens `AppTheme(…)` – parametern finns inte längre, och alla appar får
+  bibliotekets former med 22 dp-kort. ReseApoteket går från 28 till 22 dp, Fonder från sina egna radier (kort och
+  rader 18 dp, fält och menyer 12 dp) till bibliotekets (Mats beslut 2026-11-18).
 - **Borttaget:** `SignInButton`, ikonen `ic_google`, strängen `sign_in` och den dolda `SignOutRow(onSignOut, modifier,
   message, destructive)` – ingen app använde dem; använd `SignInScreen` och `SignOutRow(appName, onSignOut)`.
 - **`EmojiPicker(emojis, selected, onSelect)`:** listan först, som `ChoiceGrid` (förut `EmojiPicker(selected, onSelect, emojis)`).
@@ -586,8 +586,9 @@ pusha taggar och använder därför den manuella vägen.
 
 | Version | Ändring |
 |---|---|
-| 2.0.0 | Serien från granskningen 2026-11-18 (#73–#77), en major så att apparna byter en gång. Brytande ändringar och vad appen gör: se Byta från 1.x till 2.0 |
-| ↳ #77 | API-städning: `SignInButton`, `ic_google`, `sign_in` och dolda `SignOutRow` borttagna; `EmojiPicker(emojis, selected, onSelect)`; `ErrorSnackbar` med `key` före `duration`; `ExampleChips(label)` `@Composable`; `ExpandableContent(modifier)`; ikonstorlekarna `IconSize` i `ui-theme` i stället för privata konstanter i nio filer; `PROGRESS_STROKE`, `AppTheme.transparent`, `AppShapes.fab` och `AppShapes.dialog` i stället för hårdkodade värden och Material 3:s standardformer, och `ui-forbidden.txt` fäller dem. Formerna samma i alla appar: `AppShapes` har standardvärdet 22 dp-kort och `AppTheme(shapes)` är valfri. Testtemat använder standardformerna (förut 28 dp-kort), så skärmdumparna med kort, rader i kort och dialoger är omtagna; `SignInButton_standard` och `AppHeader_utloggat` borttagna |
+| 3.0.0 | Formerna är ingen appinställning (Mats 2026-11-18, också för Fonder): `AppTheme` tar inte längre `shapes`, och alla appar får `AppShapes()` med 22 dp-kort. Publicerad direkt efter 2.0.0, innan någon app bytt – apparna byter från 1.x direkt till 3.0.0. Inga skärmdumpar ändrade |
+| 2.0.0 | Serien från granskningen 2026-11-18 (#73–#77), en major så att apparna byter en gång. Brytande ändringar och vad appen gör: se Byta från 1.x till 3.0 |
+| ↳ #77 | API-städning: `SignInButton`, `ic_google`, `sign_in` och dolda `SignOutRow` borttagna; `EmojiPicker(emojis, selected, onSelect)`; `ErrorSnackbar` med `key` före `duration`; `ExampleChips(label)` `@Composable`; `ExpandableContent(modifier)`; ikonstorlekarna `IconSize` i `ui-theme` i stället för privata konstanter i nio filer; `PROGRESS_STROKE`, `AppTheme.transparent`, `AppShapes.fab` och `AppShapes.dialog` i stället för hårdkodade värden och Material 3:s standardformer, och `ui-forbidden.txt` fäller dem. Formerna samma i alla appar: `AppShapes` har standardvärdet 22 dp-kort och `AppTheme(shapes)` är valfri (borttagen i 3.0.0). Testtemat använder standardformerna (förut 28 dp-kort), så skärmdumparna med kort, rader i kort och dialoger är omtagna; `SignInButton_standard` och `AppHeader_utloggat` borttagna |
 | ↳ #75 | ReseApotekets generella delar: `ValueTile` (packlistans förhandsvisning), `UnknownValueNotice` ("kan inte visas i den här versionen"), `PillRow`, `SettingsPage` och `SettingsCard(error)`; nya parametrar `QuantityStepper(showLabel)`, `AppBottomSheet(subtitle)`, `EntityEditScreen(header)` och `SectionFoldout(emptyText)` (med listgruppens tomrad). Standardvärdena ändrar inget; inga befintliga skärmdumpar är omtagna |
 | ↳ #76 | Dagbokens generella delar: nya `AppSlider`, `DateStrip`, `DayTab`, `DayTabWeekday`, `SwipeToDelete`, `ExpandButton`, `StepIndicator`, `StepNavigation`, `DropdownPill`, `SectionCard`, `KeyFigure` och `StatPillGrid`; `ChoiceChips(more, moreLabel, morePickLabel)`; spårets höjd `TRACK_HEIGHT` (8 dp) i `ui-theme`, som `AppProgress` nu läser. Befintliga skärmdumpar oförändrade |
 | ↳ #73 | Rättelser: FAB-menyns Stäng-knapp i huvudknappens färg (`ActionColor.Tertiary` gav förut gråbrunt kryss); dra-för-att-uppdatera även i laddning, tomt och fel i `EntityListScreen` och `EntityDetailScreen`; hopfällt läge per grupp i stället för per rubrik; "Hämta senaste versionen" i `UpdateRequiredScreen` visar ett meddelande i stället för att krascha utan webbläsare; `QuantityStepper`:s 48 dp tryckyta med 44 dp knappar bevakas av ett test (den fanns redan, genom Compose utvidgade tryckyta); klickbara kort läses som knapp, ny parameter `AppCard`/`CardSegment(onClickLabel)`, och lyft och tryckskala bara på klickbara kort (`NoticeBanner` använder kortets klick, så ett klickbart meddelande får med temats djup kortets skugga och tryckskala, som förut klipptes bort); `TabBackStack.entries` byggs inte om vid varje läsning; README:s version och artefaktantal rättade och bevakade av `UiConsistencyTest`, som också kräver ett beteendetest per publik komponent. Nya skärmdumpar `AppFloatingToolbar_fabmeny_tertiary` och `NoticeBanner_djup`; `NoticeBanner_lagen` omtagen (kantutjämning, högst 9/255 i en kanal) |

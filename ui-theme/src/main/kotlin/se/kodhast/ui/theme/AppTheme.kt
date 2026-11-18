@@ -14,8 +14,8 @@ import androidx.compose.ui.graphics.Color
 /**
  * Temat som komponenterna läser: Material 3 Expressive med appens [colorScheme], [typeScale] och
  * [motionScheme], plus appens [extendedColors] och namngivna [typography]. Appen väljer ljust eller
- * mörkt och skickar in rätt färger; biblioteket har inga egna färger eller typsnitt. Formerna ([shapes])
- * är bibliotekets och samma i alla appar – ange inga egna (bara Fonder har kvar sina, tills vidare).
+ * mörkt och skickar in rätt färger; biblioteket har inga egna färger eller typsnitt. Formerna
+ * ([AppTheme.shapes]) är bibliotekets och samma i alla appar – ingen appinställning.
  * [depth] ger knappar, kort och valda element djup och tryckkänsla ([AppDepth]); standard `null` = platt.
  */
 @Composable
@@ -23,7 +23,6 @@ fun AppTheme(
     colorScheme: ColorScheme,
     extendedColors: ExtendedColors,
     typeScale: Typography,
-    shapes: AppShapes = DefaultShapes,
     typography: AppTypography = remember(typeScale) { AppTypography.from(typeScale) },
     motionScheme: MotionScheme = MotionScheme.expressive(),
     depth: AppDepth? = null,
@@ -31,7 +30,7 @@ fun AppTheme(
 ) {
     CompositionLocalProvider(
         LocalExtendedColors provides extendedColors,
-        LocalAppShapes provides shapes,
+        LocalAppShapes provides DefaultShapes,
         LocalAppTypography provides typography,
         LocalAppDepth provides depth
     ) {
