@@ -68,10 +68,10 @@ class SettingsBehaviorTest {
     @Test
     fun `Logga ut frågar först och loggar ut efter bekräftelsen`() {
         var signedOut = 0
-        show { SignOutRow({ signedOut++ }) }
+        show { SignOutRow("ReseApoteket", { signedOut++ }) }
         rule.onNodeWithText("Logga ut").performClick()
         rule.onNodeWithText("Logga ut?").assertIsDisplayed()
-        rule.onNodeWithText("Det du sparat finns kvar i ditt konto och kommer tillbaka när du loggar in igen.").assertIsDisplayed()
+        rule.onNodeWithText("Det du sparat i ReseApoteket finns kvar i ditt konto och kommer tillbaka när du loggar in igen.").assertIsDisplayed()
         assertEquals(0, signedOut)
         // Raden och bekräftelseknappen heter båda "Logga ut"; knappen ligger i dialogen, sist.
         rule.onAllNodesWithText("Logga ut").let { it[it.fetchSemanticsNodes().size - 1] }.performClick()
@@ -82,9 +82,9 @@ class SettingsBehaviorTest {
     @Test
     fun `Avbryt i frågan loggar inte ut`() {
         var signedOut = 0
-        show { SignOutRow({ signedOut++ }, message = "Hushållets data finns kvar i molnet.") }
+        show { SignOutRow("Dagboken", { signedOut++ }) }
         rule.onNodeWithText("Logga ut").performClick()
-        rule.onNodeWithText("Hushållets data finns kvar i molnet.").assertIsDisplayed()
+        rule.onNodeWithText("Det du sparat i Dagboken finns kvar i ditt konto och kommer tillbaka när du loggar in igen.").assertIsDisplayed()
         rule.onNodeWithText("Avbryt").performClick()
         rule.onNodeWithText("Logga ut?").assertDoesNotExist()
         assertEquals(0, signedOut)

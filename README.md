@@ -294,7 +294,7 @@ Delarna som båda apparnas inställningar har; vilka rader och kort inställning
 AppCard {
     AccountRow(user.name, user.email, user.photoUrl)
     AppDivider()
-    SignOutRow(onSignOut = { onEvent(SettingsEvent.SignOut) }, message = stringResource(R.string.sign_out_message))
+    SignOutRow(stringResource(R.string.app_name), onSignOut = { onEvent(SettingsEvent.SignOut) })
 }
 val access = rememberNotificationAccess()                       // läses om varje gång skärmen visas
 if (!access.allowed) {
@@ -311,7 +311,7 @@ AboutCard(stringResource(R.string.app_name), BuildConfig.VERSION_NAME) {
   appens notisinställningar. `Context.canPostNotifications()` är samma kontroll utanför Compose (t.ex. innan en notis visas).
   Dagbokens exakta larm och helskärm stannar i Dagboken.
 - "Logga ut", "Logga ut?", "Inloggad med Google", "Version %s", "Öppna" och ikonen `ic_logout` finns i biblioteket;
-  appen kan ta bort sina kopior. Appens `sign_out_message` med samma namn ersätter bibliotekets standardtext.
+  appen kan ta bort sina kopior (också `sign_out_message`, som biblioteket inte läser).
 
 ## Navigationsramen (ui-navigation)
 
@@ -444,7 +444,7 @@ inte använder ramen rätt.
 | `SectionFoldout` | `Foldout` med `SectionHeader` i titelraden: `icon`, `count`, `tone`, `countTone`, `trailing` (t.ex. en tonad lägg till-knapp, `AppIconButton(…, variant = IconButtonVariant.Tonal)`) | Flyttad från Dagboken (#46); `trailing` är ny (ReseApotekets persondetalj) |
 | `SignInButton` | **Föråldrad (1.13.0), tas bort i nästa major** – ingen app använder den; utloggad visar appen `SignInScreen`. Googles "G" och "Logga in" (`text`), konturerad i rubrikradens lägre höjd; `loading` | Ny (#42) |
 | `SignInScreen` | Inloggningen i hela skärmen: `appIcon`, `appName`, `welcome`, `note`, knappen "Logga in med Google" (`AppButton` med inloggningsikonen), `busy` ("Loggar in …", spärrad), `error` en gång som meddelande ovanför knappen (`onErrorShown`), `onSignIn` | Flyttad från ReseApoteket och Dagboken (#53); RA:s egna `LaunchedEffect` blir `ErrorSnackbar` |
-| `SignOutRow` | "Logga ut" med utloggningsikonen; frågar "Logga ut?" med `ConfirmDialog` (`message`, `destructive`, standard `true`) innan `onSignOut` | Flyttad från ReseApoteket och Dagboken (#54); Dagboken `destructive = false`, egna `message` i båda |
+| `SignOutRow` | "Logga ut" med utloggningsikonen; frågar "Logga ut?" med `ConfirmDialog` innan `onSignOut`. Likadan i alla appar: bara `appName` i texten skiljer, och bekräftelseknappen är en vanlig knapp i appens färger | Flyttad från ReseApoteket och Dagboken (#54); apparnas egna texter och RA:s röda knapp försvinner (1.15.0, Mats beslut) |
 | `SuggestionField` | Textfält med förslag (`Suggestion`) i ett kort under, antalet läses upp | – |
 | `SwipeBackground` | Det som syns bakom en svept rad: `icon` och `label` i högerkanten, `colors` (`ToneColors`, standard primärtonen), `shape` (standard `row`) | Ersätter bakgrunden i Dagbokens `SwipeToDelete` (`ic_delete`, felfärgen, `card`) |
 | `SwipeToHide` | Arkivera/dölj med svep åt vänster, och samma åtgärd för TalkBack; bakgrunden är `SwipeBackground` med `icon` och `colors` (standard arkivera i primärtonen) | – |
@@ -489,6 +489,7 @@ pusha taggar och använder därför den manuella vägen.
 
 | Version | Ändring |
 |---|---|
+| 1.15.0 | `SignOutRow(appName, onSignOut)`: frågan är likadan i alla appar, bara appens namn skiljer ("Det du sparat i … finns kvar i ditt konto …"), och bekräftelseknappen är en vanlig knapp. Formen från 1.14.0 med `message` och `destructive` är dold (ingen app använde den) och tas bort i nästa major. Skärmdumparna `SignOutRow_*` är omtagna |
 | 1.14.0 | Inställningarnas delar (#54): `AccountRow`, `SignOutRow`, `AboutCard`, `NoticeBanner` (flyttad från Dagboken, standardtonen är `Tone.Primary`) och `rememberNotificationAccess`/`NotificationAccess`/`Context.canPostNotifications()` – flyttade från ReseApoteket och Dagboken, som hade var sin kopia. Texterna och ikonen `ic_logout`. Inga befintliga skärmdumpar är omtagna |
 | 1.13.0 | Inloggningen (#53): `SignInScreen`, `UpdateRequiredScreen` och `AuthGateHost` i `ui-components`, `AuthGate` i `ui-common`, texterna och ikonerna `ic_login`/`ic_download` – flyttade från ReseApoteket och Dagboken, som hade var sin kopia. `SignInButton` är föråldrad (oanvänd) och tas bort i nästa major. Inga befintliga skärmdumpar är omtagna |
 | 1.12.0 | Ny modul `ui-navigation` (#52): `TabBackStack`/`rememberTabBackStack` (flikarnas back stackar, sparade i samma format som apparnas `AppBackStack`), `AppTransitions` och `AppNavHost` – flyttade från ReseApoteket och Dagboken, som hade var sin kopia. `SyncUiState` i `ui-common`. Inga befintliga skärmdumpar är omtagna |
