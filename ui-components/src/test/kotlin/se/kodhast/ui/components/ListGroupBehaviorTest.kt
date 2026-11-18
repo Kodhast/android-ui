@@ -121,6 +121,24 @@ class ListGroupBehaviorTest {
     }
 
     @Test
+    fun `en grupp som byggs om per rad med nya lambdor är fortfarande en grupp`() {
+        show {
+            EntityListScreen(
+                "Gran Canaria",
+                ListUiState.Content(persistentListOf("Alvedon", "Ipren")),
+                empty,
+                null,
+                key = { it },
+                group = { row -> ListGroup("Mediciner", action = GroupAction(R.drawable.ic_add, "Lägg till i Mediciner") { println(row) }) },
+                groups = listOf(ListGroup("Mediciner", action = GroupAction(R.drawable.ic_add, "Lägg till i Mediciner") {}, emptyText = "Inget här än"))
+            ) { ItemRow(it) }
+        }
+        assertEquals(1, count("Mediciner"))
+        assertEquals(0, count("Inget här än"))
+        rule.onNodeWithText("Ipren").assertIsDisplayed()
+    }
+
+    @Test
     fun `en tom lista med grupper visar grupperna och det tomma budskapet som kort`() {
         show {
             EntityListScreen<String>(

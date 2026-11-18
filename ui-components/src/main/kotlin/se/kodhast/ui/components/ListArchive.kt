@@ -41,10 +41,10 @@ data class ListArchive(
     val undo: UndoRequest? = null,
     val error: UiError? = null,
     val showToggle: Boolean = true,
-    val onEvent: (ArchiveEvent) -> Unit = {},
     val showLabel: String? = null,
     val hideLabel: String? = null,
-    @param:DrawableRes val toggleIcon: Int? = null
+    @param:DrawableRes val toggleIcon: Int? = null,
+    val onEvent: (ArchiveEvent) -> Unit = {}
 ) {
     /** Svep på en rad: arkivera den och erbjud Ångra. */
     fun archive(id: String, name: String) = onEvent(ArchiveEvent.Archive(id, name))
@@ -65,8 +65,8 @@ class ArchiveActions(
     private val errors: ErrorMapper,
     private val setArchived: suspend (id: String, archived: Boolean) -> Result<Unit>,
     @param:StringRes private val undoFormat: Int = R.string.archived_format,
-    private val errorMessage: (Throwable) -> Int? = { null },
-    showing: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    showing: MutableStateFlow<Boolean> = MutableStateFlow(false),
+    private val errorMessage: (Throwable) -> Int? = { null }
 ) {
     private val _showingArchived = showing
     val showingArchived: StateFlow<Boolean> = _showingArchived.asStateFlow()
@@ -138,5 +138,5 @@ fun ArchiveActions.collectAsListArchive(showToggle: Boolean = true): ListArchive
     val showing by showingArchived.collectAsStateWithLifecycle()
     val request by undo.collectAsStateWithLifecycle()
     val failure by error.collectAsStateWithLifecycle()
-    return ListArchive(showing, request, failure, showToggle, ::onEvent)
+    return ListArchive(showing, request, failure, showToggle, onEvent = ::onEvent)
 }

@@ -122,7 +122,8 @@ data class ListSubgroup(val title: String, val color: Color)
  *
  * [groups] är grupper som alltid visas, i den ordningen och före övriga grupper – också utan rader (med
  * [ListGroup.emptyText]) och när listan är tom: då står [empty] som ett kort överst i stället för hela skärmen.
- * En rad hör till en av dem när [group] ger en lika [ListGroup]. Standard inga: som förut.
+ * En rad hör till en av dem när [group] ger en lika [ListGroup] (knappens och lägets lambdor och `emptyText` räknas inte); en tom
+ * lista med grupper visar [empty] med exempel, lägg till och knappar som kortet överst. Standard inga: som förut.
  *
  * @param group grupp för en rad; grupperna visas i den ordning de först förekommer.
  * @param subgroup undergrupp för en rad inom gruppen, i den ordning de förekommer.
@@ -194,7 +195,8 @@ fun <T> EntityListScreen(
                     ListUiState.Empty -> if (groups.isNotEmpty()) {
                         val card: @Composable () -> Unit = {
                             header?.let { Box(Modifier.padding(bottom = Spacing.m)) { it() } }
-                            AppCard { EmptyState(empty.icon, empty.title, empty.message, compact = true, actions = empty.actions) }
+                            val actions = add != null || empty.actions.isNotEmpty() || empty.examples.isNotEmpty()
+                            AppCard { EmptyState(empty.icon, empty.title, empty.message, compact = true, action = if (actions) ({ EmptyActions(empty, add, null) }) else null) }
                         }
                         ListContent(emptyList(), key, group, groups, subgroup, card, footer, clearance + Spacing.l, row)
                     } else {
@@ -381,9 +383,15 @@ private fun <T> List<T>.runsBy(subgroup: (T) -> ListSubgroup?): List<Pair<ListSu
  */
 private fun <T> grouped(items: List<T>, group: ((T) -> ListGroup)?, fixed: List<ListGroup>): List<Pair<ListGroup?, List<T>>> {
     if (group == null) return listOf(null to items)
-    val byGroup = items.groupBy(group)
-    return fixed.map { it to byGroup[it].orEmpty() } + byGroup.filterKeys { it !in fixed }.toList()
+    // Knappens och lägets lambdor och den tomma texten räknas inte: en grupp som byggs om per rad är samma grupp.
+    val heads = LinkedHashMap<ListGroup, ListGroup>()
+    fixed.forEach { heads.getOrPut(it.identity()) { it } }
+    val byGroup = items.groupBy { row -> group(row).let { heads.getOrPut(it.identity()) { it } }.identity() }
+    return heads.map { (id, head) -> head to byGroup[id].orEmpty() }.filter { (head, rows) -> rows.isNotEmpty() || head in fixed }
 }
+
+/** Gruppen utan lambdor och tom text – det som avgör vilka rader som hör ihop. */
+private fun ListGroup.identity() = copy(action = null, fold = null, emptyText = null)
 
 @Composable
 private fun GroupHeader(group: ListGroup, size: Int, open: Boolean, onToggle: () -> Unit) {
