@@ -165,6 +165,7 @@ internal fun librarySections(): List<GallerySection> = listOf(
     GallerySection("Knappar och meny") { Buttons() },
     GallerySection("Kort, rader och rubriker") { Rows() },
     GallerySection("Fält, val och mängder") { Fields() },
+    GallerySection("Reglage, veckor och steg") { StepsAndSliders() },
     GallerySection("Inställningar och konto") { Settings() },
     GallerySection("Framsteg, laddning och navigering") { Progress() },
     GallerySection("Dialog, sheet, meddelanden") { Overlays() },

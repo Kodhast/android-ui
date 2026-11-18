@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
@@ -23,6 +24,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
 import kotlinx.coroutines.delay
@@ -53,28 +55,13 @@ fun SwipeToHide(
     content: @Composable (Modifier) -> Unit
 ) {
     val hide by rememberUpdatedState(onHide)
-    val state = rememberSwipeToDismissBoxState()
-    val scope = rememberCoroutineScope()
-    SwipeToDismissBox(
-        state = state,
-        backgroundContent = {
-            // Utan svep syns aldrig bakgrunden, inte heller genom en nedtonad rad.
-            if (enabled) SwipeBackground(label, icon, colors = colors)
-        },
+    SwipeRow(
+        onSwiped = { hide() },
+        resetDelayMillis = RESET_DELAY_MILLIS,
         modifier = modifier,
-        enableDismissFromStartToEnd = false,
-        // Samma gren med och utan svep, så att radens tillstånd överlever när den arkiveras.
-        gesturesEnabled = enabled,
-        onDismiss = { value ->
-            if (value == SwipeToDismissBoxValue.EndToStart) {
-                hide()
-                // Försvinner raden avbryts detta med den; står den kvar glider den tillbaka.
-                scope.launch {
-                    delay(RESET_DELAY_MILLIS)
-                    state.reset()
-                }
-            }
-        }
+        enabled = enabled,
+        // Utan svep syns aldrig bakgrunden, inte heller genom en nedtonad rad.
+        background = { if (enabled) SwipeBackground(label, icon, colors = colors) }
     ) {
         // Ogenomskinlig, så att bakgrunden bara syns där raden svepts undan. En arkiverad rad
         // (utan svep) är nedtonad och ska synas mot listans bakgrund, inte mot ett kort.
@@ -95,6 +82,68 @@ fun SwipeToHide(
             )
         }
     }
+}
+
+/**
+ * Radera med svep åt vänster – för ett kort som har Radera också i sin meny: svepet *begär* radering ([onRequest]),
+ * kortet fjädrar genast tillbaka och ligger kvar tills anroparens bekräftelse (`DeleteConfirmDialog`) svarat. Permanent
+ * radering sker alltså aldrig direkt av svepet. Svep åt höger gör ingenting. Bakgrunden är [SwipeBackground] med
+ * "Radera" i felfärgen och formen [shape] (standard kortets); den läses inte, eftersom åtgärden för TalkBack är menyns
+ * Radera – anroparen ska alltid ha den. [content] måste vara ogenomskinligt (ett kort).
+ */
+@Composable
+fun SwipeToDelete(onRequest: () -> Unit, modifier: Modifier = Modifier, shape: Shape = AppTheme.shapes.card, content: @Composable () -> Unit) {
+    val request by rememberUpdatedState(onRequest)
+    val colors = MaterialTheme.colorScheme
+    SwipeRow(
+        onSwiped = { request() },
+        resetDelayMillis = 0L,
+        modifier = modifier,
+        background = {
+            SwipeBackground(
+                stringResource(R.string.delete),
+                R.drawable.ic_delete,
+                Modifier.clearAndSetSemantics {},
+                colors = ToneColors(colors.errorContainer, colors.onErrorContainer),
+                shape = shape
+            )
+        },
+        content = content
+    )
+}
+
+/**
+ * Svepet åt vänster under [SwipeToHide] och [SwipeToDelete]: [onSwiped] när raden svepts undan, och efter
+ * [resetDelayMillis] glider den tillbaka (försvinner raden avbryts det med den). Svep åt höger är avstängt.
+ */
+@Composable
+private fun SwipeRow(
+    onSwiped: () -> Unit,
+    resetDelayMillis: Long,
+    background: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    content: @Composable () -> Unit
+) {
+    val state = rememberSwipeToDismissBoxState()
+    val scope = rememberCoroutineScope()
+    SwipeToDismissBox(
+        state = state,
+        backgroundContent = { background() },
+        modifier = modifier,
+        enableDismissFromStartToEnd = false,
+        // Samma gren med och utan svep, så att radens tillstånd överlever när den arkiveras.
+        gesturesEnabled = enabled,
+        onDismiss = { value ->
+            if (value == SwipeToDismissBoxValue.EndToStart) {
+                onSwiped()
+                scope.launch {
+                    delay(resetDelayMillis)
+                    state.reset()
+                }
+            }
+        }
+    ) { content() }
 }
 
 /**

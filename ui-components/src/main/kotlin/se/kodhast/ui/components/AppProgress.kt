@@ -28,6 +28,7 @@ import androidx.compose.ui.semantics.progressBarRangeInfo
 import androidx.compose.ui.unit.dp
 import se.kodhast.ui.theme.AppTheme
 import se.kodhast.ui.theme.Spacing
+import se.kodhast.ui.theme.TRACK_HEIGHT
 
 /**
  * Framstegsraden: hur många av [total] som är klara ([done]), som text ovanför ett rundat spår som fylls
@@ -109,6 +110,5 @@ private fun Track(fraction: Float, track: Color, fill: Color, outline: Color?, m
 /** Fyllnaden i [AppProgress], för tester. */
 internal const val PROGRESS_FILL_TAG = "progress-fill"
 
-private val TRACK_HEIGHT = 8.dp
 private val COMPACT_WIDTH = 120.dp
 private val OUTLINE_WIDTH = 1.dp
