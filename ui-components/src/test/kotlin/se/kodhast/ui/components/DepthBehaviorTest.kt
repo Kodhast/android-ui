@@ -185,11 +185,18 @@ class DepthBehaviorTest {
     }
 
     @Test
-    fun `raden med växel och djup slås om`() {
+    fun `raden med växel och djup slås om en gång`() {
         var on by mutableStateOf(true)
-        show { SwitchRow("Påminn kvällen innan", on, { on = it }) }
+        var toggles = 0
+        show {
+            SwitchRow("Påminn kvällen innan", on, {
+                on = it
+                toggles++
+            })
+        }
         rule.onNodeWithText("Påminn kvällen innan").performClick()
         assertEquals(false, on)
+        assertEquals(1, toggles)
     }
 
     @Test

@@ -95,8 +95,8 @@ Spacing.xs … Spacing.xxl  // 4, 8, 12, 16, 24, 32 dp
   med egen kontur). Med `cardSheen` får samma kort ett svagt skimmer som tonar ut över de översta 64 dp
   (i en lista av bitar bara den översta; standard `null` = inget). Bitar av ett kort (`CardSegment`) ritas som ett kort utan skarvar. Den ifyllda
   bocken i `MorphingCheck`/`CheckRow` får ljuskant och en liten skugga; `QuantityStepper` får ett sänkt
-  spår och upphöjda knappar som krymper nedtryckta; `SwitchControl`/`SwitchRow` ett sänkt spår och en
-  liten skugga under den påslagna knoppen; det valda i `ChoiceGrid` med ring (`ColorSwatchPicker`,
+  spår och upphöjda knappar som krymper nedtryckta; `SwitchControl`/`SwitchRow` ett sänkt spår, som
+  påslaget får skimmer och ljuskant, och en knopp med knapparnas skugga som sjunker in nedtryckt; det valda i `ChoiceGrid` med ring (`ColorSwatchPicker`,
   `EmojiPicker`) en liten skugga. Fältet i fokus (`AppTextField` och fälten som bygger på det) får en
   mjuk ring i primärfärgen utanför kanten. Meddelandet i `AppSnackbarHost` flyter med skugga och
   hårfin kant; `AppMenuPopup`, `ConfirmDialog` och `TimePickerPopup` får den hårfina kanten. Listrader,
@@ -492,7 +492,7 @@ inte använder ramen rätt.
 | `SuggestionField` | Textfält med förslag (`Suggestion`) i ett kort under, antalet läses upp | – |
 | `SwipeBackground` | Det som syns bakom en svept rad: `icon` och `label` i högerkanten, `colors` (`ToneColors`, standard primärtonen), `shape` (standard `row`) | Ersätter bakgrunden i Dagbokens `SwipeToDelete` (`ic_delete`, felfärgen, `card`) |
 | `SwipeToHide` | Arkivera/dölj med svep åt vänster, och samma åtgärd för TalkBack; bakgrunden är `SwipeBackground` med `icon` och `colors` (standard arkivera i primärtonen) | – |
-| `SwitchControl` | Själva växeln, för appens kort med reglage; `enabled` | – |
+| `SwitchControl` | Själva växeln, för appens kort med reglage; `enabled`, `interactionSource` (ett tryck någon annanstans, som raden, som knoppen ska följa) | – |
 | `SwitchRow` | Inställningsrad med växel; `onClick` (växeln blir egen kontroll), `inactive` (tonar ned texten, inte växeln), `enabled` (låser växeln) | Dagbokens `inactive`; Fonders `enabled` |
 | `TimeField` | Tidsfält (kotlinx `LocalTime`) som öppnar `TimePickerPopup` | – |
 | `TimePickerPopup` | Tidsväljaren som dialog | – |
@@ -533,6 +533,7 @@ pusha taggar och använder därför den manuella vägen.
 
 | Version | Ändring |
 |---|---|
+| 1.20.0 | Reglaget får djup som knapparna (#70, Mats val A): med temats djup får `SwitchControl` i påslaget läge skimmer och ljuskant på spåret, och knoppen lyfts med knapparnas skugga i två lager och sjunker in när den trycks; avslaget ligger platt i sitt sänkta spår, som ett chip som inte är valt. Ny parameter `SwitchControl(interactionSource)`, som `SwitchRow` använder så att knoppen sjunker in också när raden trycks. Utan djup oförändrat (raden skickar bara sitt tryck vidare med djup). Omtagna skärmdumpar: de med reglage och djup (`Kontroller_djup`), nya `SwitchControl_djup_nedtryckt` |
 | 1.19.0 | Välj dag (#68, Mats val B): `DayPicker` (chip och kalenderark), `AppCalendar` med `DayMarkerDot` och `dayDescription` (flyttade från Dagboken) och `EntityListScreen(scrollTo, onScrolled)` som rullar till en rad. Standardvärdena ändrar inget utseende |
 | 1.18.0 | Komponentgalleriet (#56): `ComponentGallery(onBack, appSections)` och `GallerySection` i `ui-navigation` (paketet `se.kodhast.ui.navigation.gallery`) – bibliotekets sektioner med varje publik komponent, sedan appens egna. Ligger i `ui-navigation` och inte i `ui-components`, eftersom galleriet också visar `AppNavHost`. `UiConsistencyTest` kräver att varje publik komponent finns i galleriet. Inga befintliga skärmdumpar är omtagna |
 | 1.17.0 | Dagbokens generella komponenter (#57): `StatPill` (`tone` krävs), `FavoriteStar`/`favoriteMenuItem`/`FavoriteMark` (ikonerna `ic_star`/`ic_star_filled`), `DateTimeRow`, `DurationRow`, `ReminderTimeRow` och `NoteCard` (`maxLength` som parameter) i `ui-components`; `EditorSheet`/`EditorSheetState` (formulär i ark, med appens `ErrorMapper`) och `DateFormat.duration`/`durationSeconds` i `ui-common`. Regel 2 i `CLAUDE.md`: det som hör till en apps domän stannar i appen, allt annat UI finns här. Inga befintliga skärmdumpar är omtagna |
