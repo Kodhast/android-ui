@@ -43,6 +43,8 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import se.kodhast.ui.common.DetailUiState
 import se.kodhast.ui.common.ListUiState
+import se.kodhast.ui.components.testing.FakePhoto
+import se.kodhast.ui.components.testing.PHOTO_COLOR
 import se.kodhast.ui.components.testing.TestTheme
 import se.kodhast.ui.components.testing.assertSameColor
 import se.kodhast.ui.components.testing.pixelAt
@@ -146,6 +148,23 @@ class HeaderBehaviorTest {
         node.performClick()
         assertEquals(1, clicks)
         assertEquals(0, rule.onAllNodesWithTag(ACCOUNT_ONLINE_TAG, useUnmergedTree = true).fetchSemanticsNodes().size)
+    }
+
+    @Test
+    fun `fotot täcker cirkeln och initialerna står kvar under`() {
+        show { FakePhoto(PHOTO_COLOR) { AccountAvatar("Anna Berg", onClick = {}, photoUrl = "https://example.com/foto.jpg") } }
+        val avatar = rule.onNodeWithContentDescription("Konto och inställningar")
+        assertSameColor(PHOTO_COLOR, avatar.pixelAt(rule.density, 24.dp, 24.dp), "fotot mitt i cirkeln")
+        assertEquals(1, rule.onAllNodesWithText("AB", useUnmergedTree = true).fetchSemanticsNodes().size, "initialerna under fotot")
+    }
+
+    @Test
+    fun `en egen photo-slot går före photoUrl`() {
+        var slotShown = false
+        show { FakePhoto(PHOTO_COLOR) { AccountAvatar("Anna Berg", onClick = {}, photoUrl = "https://example.com/foto.jpg", photo = { slotShown = true }) } }
+        assertTrue(slotShown)
+        val center = rule.onNodeWithContentDescription("Konto och inställningar").pixelAt(rule.density, 24.dp, 24.dp)
+        assertTrue(center != PHOTO_COLOR, "photoUrl ritas inte när slotten är satt")
     }
 
     @Test

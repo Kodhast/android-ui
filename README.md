@@ -193,7 +193,7 @@ CompositionLocalProvider(
     LocalTopBarSyncing provides syncing,                                   // prickarna hoppar medan ändringar väntar
     LocalTopBarAccount provides {
         if (user != null) {
-            AccountAvatar(user.name, onClick = openAccount, online = online) { AppPhoto(user.photoUrl) }
+            AccountAvatar(user.name, onClick = openAccount, online = online, photoUrl = user.photoUrl)
         } else {
             SignInButton(onClick = signIn)
         }
@@ -204,9 +204,12 @@ CompositionLocalProvider(
 1. **Ikonen** är en vektor eller bitmapp i appens `res/drawable` – inte den adaptiva startikonen.
 2. **Färgerna:** `ExtendedColors(online = …)` om pluppen inte ska vara `primary`;
    `AppDepth(headerShadow = …)` om sidhuvudets skugga ska skilja sig från kortens.
-3. **Kontot är appens:** inloggningen, fotot (en slot – biblioteket har inget bildberoende; Dagboken cachar
-   det på disk med Coil så att det syns utan nät), anslutningsläget (`online`: `true` plupp, `false` ingen,
-   `null` inget läge) och vad trycket öppnar.
+3. **Kontot:** inloggningen och vad trycket öppnar är appens. Fotot är `photoUrl` – Coil laddar det och sparar
+   det i appens privata cache, så att det syns utan nät; appen anropar `CoilProfilePhotoCache(context).clear()`
+   vid utloggning (`se.kodhast.ui.account.ProfilePhotoCache`) och loggar aldrig adressen. Anslutningsläget
+   (`online`: `true` plupp, `false` ingen, `null` inget läge) kommer från `ConnectivityMonitor(context, scope)`
+   (`NetworkStatus.online`: validerat internet via systemets standardnätverk), en instans per app – i Hilt en
+   `@Singleton`-provider. Biblioteket drar in Coil 3 och behörigheterna `INTERNET` och `ACCESS_NETWORK_STATE`.
 4. **Skärmarna:** flikar på ramarna får sidhuvudet av sig själva. En flik utan ram anropar
    `AppHeader(title, scrollBehavior)` med `TopAppBarDefaults.exitUntilCollapsedScrollBehavior()` och
    `Modifier.nestedScroll(scrollBehavior.nestedScrollConnection)` på skärmen. Underskärmar behåller
@@ -267,7 +270,7 @@ inte använder ramen rätt.
 
 | Komponent | Vad | Skillnad mot apparnas tidigare version |
 |---|---|---|
-| `AccountAvatar` | Kontots avatar: `name` (initialer, "Anna Berg" → "AB"; utan namn en person-ikon), `onClick` (`null` = bara en bild utan semantik), `online` (`true` plupp i `ExtendedColors.online` och "Ansluten", `false` "Utan anslutning", `null` inget läge), `photo` (slot ovanpå initialerna). 36 dp i 48 dp tryckyta, "Konto och inställningar" | Flyttad från Dagboken (#42); fotot är en slot – Coil och cachen stannar i appen |
+| `AccountAvatar` | Kontots avatar: `name` (initialer, "Anna Berg" → "AB"; utan namn en person-ikon), `onClick` (`null` = bara en bild utan semantik), `online` (`true` plupp i `ExtendedColors.online` och "Ansluten", `false` "Utan anslutning", `null` inget läge), `photoUrl` (profilfotot ovanpå initialerna, laddat och cachat på disk med Coil), `photo` (egen slot, går före `photoUrl`). 36 dp i 48 dp tryckyta, "Konto och inställningar" | Flyttad från Dagboken (#42); `photoUrl` och cachen flyttade från Dagboken (#46) |
 | `AddSplitButton` | "Lägg till ▾" – huvudåtgärd och pil med fler val | Menyn är en lucka: `menu = items.asSplitMenu()` (ReseApoteket) i stället för Dagbokens `menuItems` |
 | `AppBottomSheet` | Ark med rubrik; innehållet rullar alltid. `error` (`UiError`), `dirty` ("Släng ändringar?" vid bakåt, svep och tryck utanför), `canDismiss`, `hide`, `footer` (knappraden står fast i botten) | Dagbokens parametrar; ReseApotekets rullning gäller också med `footer` |
 | `AppButton` | Den enda knappen: Primary, Secondary, Outlined, Text, Destructive; `loading`, `compact`, `contentDescription`. Appens knappstil `AppButtonStyle(minHeight, morph, secondaryTone)` sätts en gång med `LocalAppButtonStyle` (eller parametern `style`); `AppButtonDefaults.MinHeight` 56 dp / `CompactHeight` 40 dp | Fonder: `AppButtonStyle(minHeight = 40.dp, morph = true, secondaryTone = Tone.Primary)`; standard bevarar ReseApoteket och Dagboken |
@@ -304,7 +307,9 @@ inte använder ramen rätt.
 | `EntityEditScreen` | Redigeringsramen med `EditorState`: Spara, "Släng ändringar?", sparfel, arkivera/återställ/radera, `formError`, tangentbordet | Union av apparnas; se Ramarna |
 | `EntityListScreen` | Listramen: laddar, tomt, fel, grupper i kort, kolumner efter bredd, arkivering, `filter`, `footer`, `onRefresh`/`refreshing` | Union av apparnas; se Ramarna |
 | `ErrorSnackbar` | Visar ett `UiError` en gång; `template` (t.ex. "Synken nekades: %1$s"), `duration` | Tar `UiError` i stället för appens `DataError` |
+| `ExpandableContent` | Det som fälls ut: fjädrar fram (`defaultSpatialSpec`) och fälls snabbt ihop (`fastSpatialSpec`); `visible` | Flyttad från Dagboken (#46) |
 | `ExampleChips` | Exempel att trycka in i ett fält | – |
+| `Foldout` | Hopfällbar sektion: hela titelraden växlar (`CollapsibleHeader`), `summary` under titeln i stängt läge, `trailing` (egen kontroll före chevronen, växlar inte), `header` (ersätter titeln), `contentSpacing` | Flyttad från Dagboken (#46) |
 | `FieldError` | Felraden under ett fält | – |
 | `GroupLabel` | Etikett över en grupp | – |
 | `InfoPill` | Pill med ton; `trailingIcon`, `role`, `onClickLabel`, `colors`, `shape` (standard `AppTheme.shapes.pill`), `contentDescription` | Fonder: `shape = AppTheme.shapes.smallTile`, egna toner för Tertiary/Neutral |
@@ -321,6 +326,7 @@ inte använder ramen rätt.
 | `PickerField` | Fält som öppnar en väljare; `emptyLabel`, `contentLabel` | – |
 | `QuantityStepper` | − värde +; `step`, `valueText`, `buttonSize` (standard `LocalQuantityStepperButtonSize`: `QuantityStepperDefaults.ButtonSize` 44 dp, `TouchTargetButtonSize` 48 dp) | Dagboken sätter `TouchTargetButtonSize` en gång i sitt tema |
 | `SectionHeader` | Sektionsrubrik med antal; `countTone`; laddningsindikator med `working`; med `AppBrandStyle(sectionDots = true)` två prickar i `primary` före titeln när ikonrutan saknas | – |
+| `SectionFoldout` | `Foldout` med `SectionHeader` i titelraden: `icon`, `count`, `tone`, `countTone`, `trailing` (t.ex. en tonad lägg till-knapp, `AppIconButton(…, variant = IconButtonVariant.Tonal)`) | Flyttad från Dagboken (#46); `trailing` är ny (ReseApotekets persondetalj) |
 | `SignInButton` | Utloggat läge i sidhuvudet: Googles "G" i sina egna färger och "Logga in" (`text`), konturerad i rubrikradens lägre höjd; `loading` | Ny (#42) |
 | `SuggestionField` | Textfält med förslag (`Suggestion`) i ett kort under, antalet läses upp | – |
 | `SwipeBackground` | Det som syns bakom en svept rad: `icon` och `label` i högerkanten, `colors` (`ToneColors`, standard primärtonen), `shape` (standard `row`) | Ersätter bakgrunden i Dagbokens `SwipeToDelete` (`ic_delete`, felfärgen, `card`) |
@@ -365,6 +371,7 @@ pusha taggar och använder därför den manuella vägen.
 
 | Version | Ändring |
 |---|---|
+| 1.8.0 | Kontot och de hopfällbara sektionerna flyttas från Dagboken (#46): `AccountAvatar(photoUrl)` laddar profilfotot med Coil 3.6.3 och cachar det på disk; `ProfilePhotoCache`/`CoilProfilePhotoCache` tömmer cachen vid utloggning och `NetworkStatus`/`ConnectivityMonitor` ger anslutningspluppen (paketet `se.kodhast.ui.account`). `Foldout`, `SectionFoldout` (ny `trailing`) och `ExpandableContent`. Nytt beroende: Coil (`coil-compose`, `coil-network-okhttp`) och behörigheterna `INTERNET`/`ACCESS_NETWORK_STATE` i bibliotekets manifest. Inga befintliga skärmdumpar är omtagna |
 | 1.7.0 | Kodhäst-sidfoten (#44): `ToolbarStyle` (`Toolbar`, `Surface`, `Tonal`, `Filled`) och `ActionMenuStyle` (`Popup`, `Fab`) som parametrar på `AppFloatingToolbar` och som `AppBrandStyle.toolbarStyle`/`actionMenu`. FAB-menyn: valen som kapslar i `primary` ovanför huvudknappen, som blir ett kryss. Standard är dagens utseende; inga befintliga skärmdumpar är omtagna. Se Sidfoten |
 | 1.6.0 | Kodhäst-sidhuvudet (#42): `AppHeader` (144 dp i vila, 64 dp med kortfärg och skugga rullat, rubriken flyttas upp till appikonen, prickar som hoppar vid synk), `AccountAvatar` (flyttad från Dagboken, med `online`-plupp), `SignInButton`, `AppIdentity`/`LocalAppIdentity`, `LocalTopBarAccount`, `LocalTopBarSyncing`, `AppBrandStyle.headerDots`, `ExtendedColors.online` och `AppDepth.headerShadow`. Ramarnas flikläge ritar sidhuvudet bara när appen satt `LocalAppIdentity`; utan den är allt som förut och inga befintliga skärmdumpar är omtagna. Se Sidhuvudet för hur en app slår på det |
 | 1.5.0 | Kortens skimmer (#40): `AppDepth(cardSheen = …)` ger kort i kortfärgen ett svagt skimmer som tonar ut över de översta 64 dp – inte tonade kort eller kort med egen kontur, och i en lista av bitar bara den översta. Standard `null` bevarar dagens utseende; inga befintliga skärmdumpar är omtagna |

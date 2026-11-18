@@ -15,6 +15,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import se.kodhast.ui.components.testing.FakePhoto
+import se.kodhast.ui.components.testing.PHOTO_COLOR
 import se.kodhast.ui.components.testing.SampleCard
 import se.kodhast.ui.components.testing.SampleRow
 import se.kodhast.ui.components.testing.SampleSheet
@@ -91,6 +93,18 @@ class HeaderScreenshotTest {
                 AccountAvatar("Anna Berg", onClick = {}, online = true)
                 AccountAvatar("Anna Berg", onClick = {}, online = false)
                 AccountAvatar(null, onClick = {})
+            }
+        }
+    }
+
+    @Test
+    fun `AccountAvatar - foto`() = captureLightAndDark("AccountAvatar_foto", depth = true) {
+        SampleSheet {
+            FakePhoto(PHOTO_COLOR) {
+                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.l), verticalAlignment = Alignment.CenterVertically) {
+                    AccountAvatar("Anna Berg", onClick = {}, online = true, photoUrl = "https://example.com/foto.jpg")
+                    AccountAvatar("Anna Berg", onClick = {}, online = false, photoUrl = "https://example.com/foto.jpg")
+                }
             }
         }
     }

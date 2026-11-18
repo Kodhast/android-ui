@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -14,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -23,12 +25,15 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import se.kodhast.ui.theme.AppTheme
 
 /**
  * Kontots avatar uppe till höger på varje flik ([AppHeader], via [LocalTopBarAccount]): öppnar kontot
- * och inställningarna med [onClick]. Visar [photo] (en slot – appen laddar och cachar fotot, biblioteket
- * har inget bildberoende) ovanpå initialerna ur [name] ("Anna Berg" → "AB"); utan namn en person-ikon.
+ * och inställningarna med [onClick]. Visar profilfotot ovanpå initialerna ur [name] ("Anna Berg" → "AB");
+ * utan namn en person-ikon. Fotot är [photoUrl] (Googles profilfoto), laddat med Coil och sparat i appens
+ * privata cache så att det syns utan nät – utloggningen tömmer den med `ProfilePhotoCache`
+ * (`se.kodhast.ui.account`); adressen loggas aldrig. [photo] är en egen slot som går före [photoUrl].
  * Går fotot inte att visa syns initialerna. Cirkeln är 36 dp i en tryckyta på 48 dp, och TalkBack läser
  * "Konto och inställningar" som en knapp.
  *
@@ -43,7 +48,8 @@ fun AccountAvatar(
     onClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
     online: Boolean? = null,
-    photo: (@Composable () -> Unit)? = null
+    photoUrl: String? = null,
+    photo: (@Composable () -> Unit)? = photoUrl?.let { url -> { AccountPhoto(url) } }
 ) {
     val colors = MaterialTheme.colorScheme
     val circle = AppTheme.shapes.pill
@@ -84,6 +90,12 @@ fun AccountAvatar(
             }
         }
     }
+}
+
+/** Profilfotot över hela cirkeln; laddas det inte syns initialerna under. Ingen beskrivning – avataren läses som en knapp. */
+@Composable
+private fun AccountPhoto(url: String) {
+    AsyncImage(url, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
 }
 
 /** Första bokstaven i det första och det sista ordet, versalt: "Anna Berg" → "AB", "anna" → "A"; inget namn → `null`. */
