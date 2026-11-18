@@ -157,6 +157,24 @@ class ListGroupBehaviorTest {
     }
 
     @Test
+    fun `en tom lista med grupper visar också lägg till och exempel i kortet`() {
+        show {
+            EntityListScreen<String>(
+                "Familjeartiklar",
+                ListUiState.Empty,
+                EmptyContent(R.drawable.ic_box, "Inga än", "Lägg till något.", examples = listOf(EmptyExample("Solkräm", {}))),
+                AddAction("Lägg till", {}),
+                key = { it },
+                group = { ListGroup("Övrigt") },
+                groups = listOf(ListGroup("Övrigt", emptyText = "Inget här än"))
+            ) {}
+        }
+        rule.onNodeWithTag(ENTITY_LIST_ADD_TAG).assertIsDisplayed()
+        rule.onNodeWithText("Solkräm").assertIsDisplayed()
+        rule.onNodeWithText("Inget här än").assertIsDisplayed()
+    }
+
+    @Test
     fun `menyns val och arkivväxeln med egen text står i samma meny`() {
         var shown = false
         show {
