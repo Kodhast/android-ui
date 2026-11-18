@@ -16,10 +16,15 @@
 \b(fontSize|fontWeight|lineHeight|letterSpacing)\s*=	AppTheme.typography
 \.(height|width|size|clip|requiredHeight|requiredWidth|requiredSize)\(\s*[0-9]+(\.[0-9]+)?\.dp	en namngiven konstant eller Spacing
 \bpadding\([^)]*[0-9]+(\.[0-9]+)?\.dp	Spacing
+\bval\s+ICON(_SIZE)?\s*=	IconSize
+\bstrokeWidth\s*=\s*[0-9]	PROGRESS_STROKE / TRACK_HEIGHT
+\bcolorScheme\.[a-zA-Z]+\.copy\(alpha\s*=\s*0f\)	AppTheme.transparent
+\b[A-Z][A-Za-z]*Defaults\.shape\b	AppTheme.shapes
+\bMaterialTheme\.shapes\b	AppTheme.shapes
 
 [theme]
 \bColor\(	färgen i appens ExtendedColors / ColorScheme
-\bColor\.[A-Z][A-Za-z]*	färgen i appens ExtendedColors / ColorScheme
+\bColor\.(?!Transparent\b)[A-Z][A-Za-z]*	färgen i appens ExtendedColors / ColorScheme (genomskinligt är ingen färg: AppTheme.transparent)
 
 [expressive]
 \bExperimentalMaterial3ExpressiveApi\b	stabilt API, eller ett motiverat undantag i ui-allowlist.txt

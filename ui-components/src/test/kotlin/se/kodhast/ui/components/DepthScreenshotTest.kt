@@ -264,7 +264,7 @@ class DepthScreenshotTest {
                 SwitchRow("Påminnelse 08:00", checked = true, onCheckedChange = {}, onClick = {})
             }
             ColorSwatchPicker(SampleSwatches.hexes, "#3B7EA1", {}, SampleSwatches::color, { SampleSwatches.label(it) }, SwatchMarker.GridRing)
-            EmojiPicker("🐻", {}, listOf("🦊", "🐻", "🐰", "🦉"))
+            EmojiPicker(listOf("🦊", "🐻", "🐰", "🦉"), "🐻", {})
         }
     }
 

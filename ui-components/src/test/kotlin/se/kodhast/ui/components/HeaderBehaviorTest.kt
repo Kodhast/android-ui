@@ -215,15 +215,6 @@ class HeaderBehaviorTest {
         assertEquals(0, rule.onAllNodesWithText("AB", useUnmergedTree = true).fetchSemanticsNodes().size)
     }
 
-    @Suppress("DEPRECATION") // SignInButton är föråldrad men finns kvar till nästa major.
-    @Test
-    fun `inloggningsknappen säger Logga in och anropar onClick`() {
-        var clicks = 0
-        show { SignInButton(onClick = { clicks++ }) }
-        rule.onNodeWithText("Logga in").performClick()
-        assertEquals(1, clicks)
-    }
-
     @Test
     fun `listramen utan identitet ritar dagens topprad`() {
         show { EntityListScreen("Dagbok", ListUiState.Content(persistentListOf("Promenad")), EMPTY, add = null, key = { it }) { ItemRow(it) } }

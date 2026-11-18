@@ -35,6 +35,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import se.kodhast.ui.theme.AppTheme
+import se.kodhast.ui.theme.IconSize
 import se.kodhast.ui.theme.Spacing
 
 /**
@@ -100,7 +101,7 @@ fun AppFilterChip(
             },
             modifier = chipModifier,
             enabled = enabled,
-            leadingIcon = leading ?: leadingIcon?.let { { Icon(painterResource(it), contentDescription = null, modifier = Modifier.size(ICON)) } },
+            leadingIcon = leading ?: leadingIcon?.let { { Icon(painterResource(it), contentDescription = null, modifier = Modifier.size(IconSize.small)) } },
             shape = shape,
             colors = when {
                 pending != null -> pendingChipColors()
@@ -167,6 +168,5 @@ private fun Modifier.dashedOutline(shape: Shape, color: Color): Modifier = drawW
 }
 
 private val CHIP_HEIGHT = 36.dp
-private val ICON = 18.dp
 private val DASH = 4.dp
 private val DASH_WIDTH = 1.dp

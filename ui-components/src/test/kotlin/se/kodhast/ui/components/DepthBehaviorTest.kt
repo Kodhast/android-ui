@@ -270,7 +270,7 @@ class DepthBehaviorTest {
         show {
             Column {
                 AppCalendar(LocalDate(2026, 6, 1), {}, emptySet(), day, { day = it })
-                EmojiPicker(emoji, { emoji = it }, listOf("🦊", "🐻"))
+                EmojiPicker(listOf("🦊", "🐻"), emoji, { emoji = it })
                 AddSplitButton("Lägg till", { split++ }, menu = listOf(AppMenuItem("Från listan", {})).asSplitMenu())
                 AppSlider("Energi", value, { value = it }, value.toString())
                 CheckRow("Solkräm", checked, { checked = it })

@@ -26,6 +26,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import se.kodhast.ui.components.R
 import se.kodhast.ui.theme.AppTheme
+import se.kodhast.ui.theme.IconSize
 import se.kodhast.ui.theme.Spacing
 
 /**
@@ -84,7 +85,7 @@ fun AddSplitButton(
                     elevation = elevation,
                     interactionSource = leadingPress
                 ) {
-                    Icon(painterResource(R.drawable.ic_add), contentDescription = null, modifier = Modifier.size(ICON))
+                    Icon(painterResource(R.drawable.ic_add), contentDescription = null, modifier = Modifier.size(IconSize.button))
                     Spacer(Modifier.width(Spacing.s))
                     Text(label, style = AppTheme.typography.button)
                 }
@@ -102,7 +103,7 @@ fun AddSplitButton(
                     Icon(
                         painterResource(R.drawable.ic_expand_more),
                         contentDescription = menuDescription,
-                        modifier = Modifier.size(ICON).rotate(rotation)
+                        modifier = Modifier.size(IconSize.button).rotate(rotation)
                     )
                 }
             }
@@ -110,5 +111,3 @@ fun AddSplitButton(
         menu(expanded) { expanded = false }
     }
 }
-
-private val ICON = 20.dp

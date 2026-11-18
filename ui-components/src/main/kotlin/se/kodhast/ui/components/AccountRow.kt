@@ -48,10 +48,3 @@ fun SignOutRow(appName: String, onSignOut: () -> Unit, modifier: Modifier = Modi
         )
     }
 }
-
-/** Formen från 1.14.0, där varje app hade egen text och knappfärg. Ingen app använde den; ta bort i nästa major. */
-@Deprecated("Frågan är likadan i alla appar – använd SignOutRow(appName, onSignOut)", level = DeprecationLevel.HIDDEN)
-@Composable
-fun SignOutRow(onSignOut: () -> Unit, modifier: Modifier = Modifier, message: String? = null, destructive: Boolean = true) {
-    SignOutRow(appName = "", onSignOut = onSignOut, modifier = modifier)
-}

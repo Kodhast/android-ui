@@ -42,7 +42,7 @@ class ProgressScreenshotTest {
     fun `AppProgress - klart med kontur`() = captureLightAndDark("AppProgress_kontur") {
         val dark = MaterialTheme.colorScheme.surface.luminance() < HALF
         val done = if (dark) ProgressDoneColors(Color(0xFFE0A21F), Color(0xFFFCEBC4)) else ProgressDoneColors(Color(0xFFF5B631), Color(0xFF4D3500))
-        AppTheme(MaterialTheme.colorScheme, AppTheme.extendedColors.copy(progressDone = done), AppTheme.shapes, MaterialTheme.typography) {
+        AppTheme(MaterialTheme.colorScheme, AppTheme.extendedColors.copy(progressDone = done), MaterialTheme.typography) {
             Sample {
                 AppCard { Packed(14, 14) }
                 AppCard { Packed(14, 14, compact = true) }

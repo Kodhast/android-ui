@@ -23,6 +23,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import se.kodhast.ui.theme.AppTheme
+import se.kodhast.ui.theme.IconSize
 import se.kodhast.ui.theme.Spacing
 
 /**
@@ -117,13 +118,13 @@ private fun Message(@DrawableRes icon: Int, title: String, message: String, isEr
             contentAlignment = Alignment.Center
         ) {
             if (LocalAppBrandStyle.current.emptyStateMark && !isError && !compact) {
-                BrandMark(Modifier.size(ICON).testTag(EMPTY_STATE_MARK_TAG), horseColor = onTile)
+                BrandMark(Modifier.size(GLYPH).testTag(EMPTY_STATE_MARK_TAG), horseColor = onTile)
             } else {
                 Icon(
                     painterResource(icon),
                     contentDescription = null,
                     tint = onTile,
-                    modifier = Modifier.size(if (compact) COMPACT_ICON else ICON)
+                    modifier = Modifier.size(if (compact) IconSize.standard else GLYPH)
                 )
             }
         }
@@ -146,9 +147,8 @@ private fun Message(@DrawableRes icon: Int, title: String, message: String, isEr
 }
 
 private val ICON_TILE = 120.dp
-private val ICON = 56.dp
+private val GLYPH = 56.dp
 private val COMPACT_ICON_TILE = 48.dp
-private val COMPACT_ICON = 24.dp
 
 /** Märket i ikonrutan i [EmptyState] (`AppBrandStyle.emptyStateMark`), för tester. */
 internal const val EMPTY_STATE_MARK_TAG = "empty-state-mark"

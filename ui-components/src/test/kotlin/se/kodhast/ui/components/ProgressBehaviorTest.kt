@@ -100,7 +100,7 @@ class ProgressBehaviorTest {
         rule.setContent {
             TestTheme {
                 val extended = AppTheme.extendedColors.copy(progressDone = ProgressDoneColors(DONE))
-                AppTheme(MaterialTheme.colorScheme, extended, AppTheme.shapes, MaterialTheme.typography) {
+                AppTheme(MaterialTheme.colorScheme, extended, MaterialTheme.typography) {
                     Column {
                         Progress(9, 9)
                     }

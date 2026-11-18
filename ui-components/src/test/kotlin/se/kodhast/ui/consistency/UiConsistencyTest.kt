@@ -68,14 +68,26 @@ class UiConsistencyTest {
             "Text(text, fontSize = 14.sp)",
             "Modifier.padding(horizontal = 12.dp)",
             "Modifier.size(20.dp)",
-            "style = MaterialTheme.typography.bodyLarge"
+            "style = MaterialTheme.typography.bodyLarge",
+            "private val ICON = 20.dp",
+            "CircularProgressIndicator(strokeWidth = 2.5.dp)",
+            "inactiveContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0f)",
+            "Modifier.clip(FloatingActionButtonDefaults.shape)",
+            "shape = MaterialTheme.shapes.large"
         ).forEach { assertTrue(findViolations(file, it).isNotEmpty(), it) }
         listOf(
             "Box(Modifier.background(AppTheme.extendedColors.card, AppTheme.shapes.row))",
             "Text(text, style = AppTheme.typography.button)",
             "Modifier.padding(horizontal = Spacing.m).size(ICON_SIZE)",
-            "// Color(0xFF000000) i en kommentar"
+            "// Color(0xFF000000) i en kommentar",
+            "Icon(painter, null, Modifier.size(IconSize.row))",
+            "CircularProgressIndicator(strokeWidth = PROGRESS_STROKE)",
+            "val brush = Brush.verticalGradient(0f to depth.sheen, 1f to depth.sheen.copy(alpha = 0f))",
+            "val shape = SegmentedButtonDefaults.itemShape(index, count)"
         ).forEach { assertEquals(emptyList(), findViolations(file, it), it) }
+        val theme = "ui-theme/src/main/kotlin/se/kodhast/ui/theme/X.kt"
+        assertEquals(emptyList(), findViolations(theme, "val transparent: Color = Color.Transparent"))
+        assertTrue(findViolations(theme, "val card = Color.White").isNotEmpty())
     }
 
     /** En komponent ritar något: en publik `@Composable` som returnerar `Unit`. En som ger ett värde (t.ex. `chipColors()`) är ingen komponent. */
@@ -93,7 +105,7 @@ class UiConsistencyTest {
         assertTrue(components.isNotEmpty(), "hittade inga komponenter")
         val gallery = File(repoRoot, GALLERY_DIR).listFiles { file -> file.extension == "kt" }.orEmpty().joinToString("\n") { it.readText() }
         assertTrue(gallery.contains("fun ComponentGallery("), "ComponentGallery saknas i $GALLERY_DIR")
-        // En föråldrad form (`@Deprecated`, t.ex. `SignInButton`) ska inte användas och visas inte i galleriet.
+        // En föråldrad form (`@Deprecated`) ska inte användas och visas inte i galleriet.
         val current = componentFunctions.filterNot { it.hasAnnotationWithName("Deprecated") }.map { it.name }.toSet()
         val missing = (current - "ComponentGallery").filterNot { Regex("""\b$it\s*[({<]""").containsMatchIn(gallery) }
         assertTrue(missing.isEmpty(), "Saknas i galleriet ($GALLERY_DIR/LibraryGallery.kt): ${missing.sorted()}")

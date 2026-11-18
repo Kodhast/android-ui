@@ -385,7 +385,7 @@ private fun Fields() {
     }
     var emoji by remember { mutableStateOf("🦉") }
     GroupLabel("EmojiPicker")
-    EmojiPicker(emoji, { emoji = it }, listOf("🦊", "🐻", "🐰", "🦉", "🐯", "🐢", "🦄", "🐧"))
+    EmojiPicker(listOf("🦊", "🐻", "🐰", "🦉", "🐯", "🐢", "🦄", "🐧"), emoji, { emoji = it })
     val accents = AppTheme.extendedColors.accents
     val swatches = accents.indices.map { "accent$it" }
     var swatch by remember { mutableStateOf(swatches.first()) }

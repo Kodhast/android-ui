@@ -64,7 +64,7 @@ fun <K : NavKey> AppNavHost(
     require(tabs.size == backStack.tabs.size) { "verktygsraden har ${tabs.size} flikar, back stacken ${backStack.tabs.size}" }
     val clearance = if (backStack.atTopLevel) FloatingToolbarClearance else NoBottomClearance
     val messages = remember { SnackbarHostState() }
-    ErrorSnackbar(sync.writeError, messages, R.string.sync_write_rejected, SnackbarDuration.Long, onShown = onSyncErrorShown)
+    ErrorSnackbar(sync.writeError, messages, R.string.sync_write_rejected, duration = SnackbarDuration.Long, onShown = onSyncErrorShown)
     Box(modifier.fillMaxSize()) {
         CompositionLocalProvider(LocalBottomClearance provides clearance, LocalTopBarSyncing provides sync.pending, LocalTopBarAccount provides account) {
             NavDisplay(

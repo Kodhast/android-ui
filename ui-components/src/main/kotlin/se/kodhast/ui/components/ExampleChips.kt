@@ -14,7 +14,7 @@ fun <T> ExampleChips(
     onPick: (T) -> Unit,
     modifier: Modifier = Modifier,
     chosen: T? = null,
-    label: (T) -> String = { it.toString() }
+    label: @Composable (T) -> String = { it.toString() }
 ) {
     ChipRow(modifier) {
         options.forEach { option -> AppFilterChip(label(option), selected = option == chosen, onClick = { onPick(option) }, icon = R.drawable.ic_add) }

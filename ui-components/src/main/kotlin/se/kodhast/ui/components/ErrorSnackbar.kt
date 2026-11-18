@@ -22,8 +22,8 @@ fun ErrorSnackbar(
     error: UiError?,
     hostState: SnackbarHostState,
     @StringRes template: Int? = null,
-    duration: SnackbarDuration = SnackbarDuration.Short,
     key: Any? = error,
+    duration: SnackbarDuration = SnackbarDuration.Short,
     onShown: () -> Unit
 ) {
     val text = error?.let { stringResource(it.message) }?.let { text -> template?.let { stringResource(it, text) } ?: text }

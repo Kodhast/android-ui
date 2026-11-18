@@ -70,6 +70,7 @@ import androidx.compose.ui.window.PopupPositionProvider
 import androidx.compose.ui.window.PopupProperties
 import kotlin.math.roundToInt
 import se.kodhast.ui.theme.AppTheme
+import se.kodhast.ui.theme.IconSize
 import se.kodhast.ui.theme.Spacing
 
 /**
@@ -223,7 +224,8 @@ private fun ToolbarActionButton(action: ToolbarAction, menuStyle: ActionMenuStyl
             val lift = rememberLift(interactionSource)
             FloatingActionButton(
                 onClick,
-                described.fillMaxSize().depthSurface(depth, FloatingActionButtonDefaults.shape, { lift.value }, raised = true),
+                described.fillMaxSize().depthSurface(depth, AppTheme.shapes.fab, { lift.value }, raised = true),
+                shape = AppTheme.shapes.fab,
                 containerColor = colors.container,
                 contentColor = colors.content,
                 elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp),
@@ -305,8 +307,8 @@ private fun FabMenu(action: ToolbarAction, anchor: Rect, colors: ActionColors, o
                     val closePress = remember { MutableInteractionSource() }
                     Box(
                         Modifier
-                            .depth(FloatingActionButtonDefaults.shape, closePress)
-                            .clip(FloatingActionButtonDefaults.shape)
+                            .depth(AppTheme.shapes.fab, closePress)
+                            .clip(AppTheme.shapes.fab)
                             .background(colors.container)
                             .clickable(closePress, LocalIndication.current, onClickLabel = closeLabel, role = Role.Button, onClick = onDismiss)
                             .semantics { contentDescription = closeLabel },
@@ -357,7 +359,7 @@ private fun FabMenuItem(item: AppMenuItem, modifier: Modifier = Modifier, onClic
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.s)
     ) {
-        item.icon?.let { Icon(painterResource(it), contentDescription = null, tint = scheme.onPrimary, modifier = Modifier.size(ICON)) }
+        item.icon?.let { Icon(painterResource(it), contentDescription = null, tint = scheme.onPrimary, modifier = Modifier.size(IconSize.row)) }
         Text(item.label, style = AppTheme.typography.button, color = scheme.onPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
@@ -390,7 +392,7 @@ private fun ToolbarTab(item: ToolbarItem, palette: ToolbarPalette, selected: Boo
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.xs, Alignment.CenterHorizontally)
     ) {
-        Icon(painterResource(item.icon), contentDescription = null, tint = content, modifier = Modifier.size(ICON))
+        Icon(painterResource(item.icon), contentDescription = null, tint = content, modifier = Modifier.size(IconSize.row))
         if (selected) Text(item.label, style = AppTheme.typography.button, color = content, maxLines = 1)
         badge?.let { ToolbarBadge(it) }
     }
@@ -416,7 +418,6 @@ private val TAB_HEIGHT = 48.dp
 
 /** Verktygsradens höjd med temats djup – en tydlig men mjuk skugga under raden. */
 private val TOOLBAR_ELEVATION = 6.dp
-private val ICON = 22.dp
 private val BADGE = 18.dp
 private val BADGE_PADDING = 5.dp
 

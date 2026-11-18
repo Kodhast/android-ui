@@ -10,7 +10,7 @@ import se.kodhast.ui.theme.AppTheme
  * (personens avatar, en aktivitetstyp) – biblioteket har ingen egen.
  */
 @Composable
-fun EmojiPicker(selected: String, onSelect: (String) -> Unit, emojis: List<String>, modifier: Modifier = Modifier) {
+fun EmojiPicker(emojis: List<String>, selected: String, onSelect: (String) -> Unit, modifier: Modifier = Modifier) {
     ChoiceGrid(emojis, selected, onSelect, label = { it }, modifier = modifier, selectionRing = true) { emoji, _ ->
         Text(emoji, style = AppTheme.typography.sectionTitle)
     }

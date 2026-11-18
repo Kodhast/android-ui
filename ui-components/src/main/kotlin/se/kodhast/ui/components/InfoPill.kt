@@ -24,6 +24,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import se.kodhast.ui.theme.AppTheme
+import se.kodhast.ui.theme.IconSize
 import se.kodhast.ui.theme.Spacing
 import se.kodhast.ui.theme.Tone
 import se.kodhast.ui.theme.ToneColors
@@ -68,7 +69,5 @@ fun InfoPill(
 
 @Composable
 private fun PillIcon(@DrawableRes icon: Int, colors: ToneColors) {
-    Icon(painterResource(icon), contentDescription = null, tint = colors.content, modifier = Modifier.size(ICON))
+    Icon(painterResource(icon), contentDescription = null, tint = colors.content, modifier = Modifier.size(IconSize.pill))
 }
-
-private val ICON = 16.dp
