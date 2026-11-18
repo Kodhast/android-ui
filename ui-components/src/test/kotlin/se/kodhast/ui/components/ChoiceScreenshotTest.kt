@@ -4,8 +4,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -42,6 +44,16 @@ class ChoiceScreenshotTest {
                 AppFilterChip("Illamående", selected = true, onClick = {}, value = "2")
                 AppFilterChip("Yrsel", selected = false, onClick = {})
                 AppFilterChip("Ipren 400 mg", selected = false, onClick = {}, pending = ChipPending(R.drawable.ic_clock, "från 15:40", "för tidigt, nästa dos från 15:40"))
+            }
+        }
+    }
+
+    @Test
+    fun `AppFilterChip - eget ledande element, valt och inte`() = captureLightAndDark("AppFilterChip_ledande") {
+        SampleSheet {
+            ChipRow {
+                AppFilterChip("Anna", selected = true, onClick = {}, leading = { LeadingDot(MaterialTheme.colorScheme.tertiary) })
+                AppFilterChip("Erik", selected = false, onClick = {}, leading = { LeadingDot(MaterialTheme.colorScheme.primary) })
             }
         }
     }
@@ -100,4 +112,10 @@ class ChoiceScreenshotTest {
             ColorSwatchPicker(SampleSwatches.hexes, "#3B7EA1", {}, SampleSwatches::color, { SampleSwatches.label(it) }, SwatchMarker.GridRing)
         }
     }
+}
+
+/** En liten rund avatar i testerna, i stället för en apps egen. */
+@Composable
+private fun LeadingDot(color: Color) {
+    Box(Modifier.size(24.dp).background(color, AppTheme.shapes.pill))
 }

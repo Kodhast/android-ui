@@ -1,6 +1,5 @@
 package se.kodhast.ui.components
 
-import android.provider.Settings
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -8,11 +7,9 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import kotlin.math.PI
 import kotlin.math.min
 import kotlin.math.sin
@@ -25,7 +22,7 @@ import kotlin.math.sin
  */
 @Composable
 internal fun BrandDots(color: Color, modifier: Modifier = Modifier, bouncing: Boolean = false) {
-    if (bouncing && animationsEnabled()) {
+    if (bouncing && !rememberReducedMotion()) {
         val phase = rememberInfiniteTransition(label = "brand-dots").animateFloat(
             initialValue = 0f,
             targetValue = PERIOD_MS,
@@ -57,12 +54,6 @@ private fun DotsCanvas(color: Color, bouncing: Boolean, modifier: Modifier = Mod
 private fun jump(t: Float): Float {
     val local = ((t % PERIOD_MS) + PERIOD_MS) % PERIOD_MS
     return if (local < AIR_MS) sin(PI.toFloat() * local / AIR_MS) else 0f
-}
-
-@Composable
-private fun animationsEnabled(): Boolean {
-    val resolver = LocalContext.current.contentResolver
-    return remember(resolver) { Settings.Global.getFloat(resolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) != 0f }
 }
 
 private const val PERIOD_MS = 900f

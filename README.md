@@ -13,7 +13,7 @@ Kotlin `2.4.20` · AGP `9.4.1` · compileSdk 37 · minSdk 30.
 | Artefakt | Paket | Innehåll |
 |---|---|---|
 | `se.kodhast.ui:ui-theme` | `se.kodhast.ui.theme` | `AppTheme`, `Spacing`, `AppShapes`, `AppTypography`, `ExtendedColors`, `Tone`, `ToneColors` |
-| `se.kodhast.ui:ui-common` | `se.kodhast.ui.common` | ramarnas tillstånd utan UI: `UiError`/`ErrorMapper`, `ListUiState`, `DetailUiState`, `EditorState`, `EditorLoader`, `shownAfter` |
+| `se.kodhast.ui:ui-common` | `se.kodhast.ui.common` | ramarnas tillstånd utan UI: `UiError`/`ErrorMapper`, `ListUiState`, `DetailUiState`, `EditorState`, `EditorLoader`, `shownAfter`, `WriteFailures`, `screenSharing`, `DateFormat` |
 | `se.kodhast.ui:ui-components` | `se.kodhast.ui.components` | komponenterna och ramarna nedan (drar in `ui-theme` och `ui-common`) |
 | `se.kodhast.ui:ui-testing` | `se.kodhast.ui.testing` | ramarnas kontraktstester, för appens enhetstester (`testImplementation`) |
 
@@ -127,6 +127,13 @@ Testas med JUnit och Turbine.
 - **Formulär:** `EditorState` (validering, ändrat-läge, `saveUnchanged`, läsfel, spara/kör) och
   `EditorLoader` (läsning, "Försök igen", `project`, `prepare`, `afterLoad`).
 - **`Flow<Boolean>.shownAfter(delay)`** – visar en indikator först efter en fördröjning.
+- **Skrivfel utan ram:** `WriteFailures(scope, errors)` – en skrivning som misslyckas blir ett `UiError` i `failure`
+  tills skärmen visat det (`clear()`); `write { … }` kör och rapporterar.
+- **Delade flöden:** `screenSharing(forgetWhenStopped = true)` – `SharingStarted` som stoppar efter
+  `STOP_TIMEOUT_MILLIS` utan lyssnare och (som standard) glömmer det senaste värdet.
+- **`DateFormat`** – det enda sättet att visa datum och tider: `display` ("lör 19 dec 2026"), `short`, `weekdayDay`,
+  `month`, `weekdayShort`/`weekdayLong`, `dayAndMonth`, `isoWeek`, `time` ("07:00") och datumväljarens millisekunder.
+  `DateField` och `TimeField` använder den.
 
 ## Ramarna
 
@@ -322,7 +329,8 @@ inte använder ramen rätt.
 | `ItemRow` | Den enda listraden: `leading`, `trailing`, `tinted`, `done`, `accent`, `navigates`, `inactive`, `below`, `titleHighlight`, `icon`, `belowAlignsWithTitle`, `overline` (ovanför titeln), `titleStyle` (standard `itemTitle`). Kapad titel: långtryck visar hela titeln och undertexten i en bubbla | Dagbokens `icon`, `belowAlignsWithTitle`; bubblan nu även i Dagboken. Avståndet titel–undertext: `LocalItemRowTextGap` (standard 2 dp; Dagboken `Spacing.xs`) |
 | `ItemRowText` | Listradens titel och undertext, för appens egna kort | Dagbokens `RowText` |
 | `LabeledGroup` | Etikett, hjälptext och innehåll; `helperAbove` (Dagboken) | – |
-| `LeadingSlot` | 48 dp-ruta för det ledande elementet, så att titlarna linjerar | – |
+| `LeadingSlot` | 48 dp-ruta för det ledande elementet, så att titlarna linjerar; `TOUCH_TARGET` (48 dp) är den minsta tryckytan för apparnas egna klickbara ytor | – |
+| `rememberReducedMotion()`, `Modifier.blockInput(block)` | Om systemets animationer är avstängda; låser beröring medan `block` är sant | – |
 | `LoadErrorState` | Läsfel med "Försök igen" (bara om `retryable`) | Tar `UiError` |
 | `MakerMark` | Kodhästs signatur: `BrandMark` och "En kodhäst-app" (`text`, sträng `maker_mark`) i `caption` och `onSurfaceVariant`, en nod som läses som texten | Ny (android-ui #28) |
 | `MessageSnackbar` | Visar en text en gång i `AppSnackbarHost` | – |
@@ -377,6 +385,7 @@ pusha taggar och använder därför den manuella vägen.
 
 | Version | Ändring |
 |---|---|
+| 1.11.0 | Gemensamma verktyg ur apparna (#51): `DateFormat`, `WriteFailures` och `screenSharing` i `ui-common` (nytt beroende där: kotlinx-datetime, som `ui-components` redan hade), `rememberReducedMotion()`, `Modifier.blockInput` och den publika `TOUCH_TARGET` i `ui-components`, och `AppFilterChip(leading)` för ett eget ledande element. `DateField`/`TimeField` formaterar med `DateFormat` (samma text som förut). Inga befintliga skärmdumpar är omtagna |
 | 1.10.0 | För packlistan i ReseApoteket (#172): `ListGroup.action` (`GroupAction`, plus i rubriken), `ListGroup.fold` (`GroupFold`, hopfällt läge utifrån), `ListGroup.emptyText` och `EntityListScreen.groups` (grupper som alltid visas, också i en tom lista), `EntityListScreen.menu` (en ⋮ med arkivväxeln sist), `ListArchive.showLabel`/`hideLabel`/`toggleIcon` och `ArchiveActions.showing`. `SectionHeader`-titeln står på högst två rader brutna mellan ord; ett ord som inte ryms kortas med "…" och visar hela titeln vid långt tryck – bubblan är utbruten ur `ItemRow` (`FullTextBubble`). Rubrikändringen gäller alla appar men ändrar ingen befintlig skärmdump i biblioteket; övriga standardvärden bevarar utseendet |
 | 1.9.0 | `AppBrandStyle.actionColor` (`ActionColor.Secondary` standard, `Tertiary`) och parametern `actionColor` i `AppFloatingToolbar`: huvudknappens färg, för en app vars `secondary` är neutral (ReseApotekets blåa plusknapp). Standardvärdet bevarar dagens utseende |
 | 1.8.1 | `EntityListScreen`: exemplen i tomt läge (`EmptyContent.examples`) syns också utan lägg till-knapp (`add = null`) – för en flik med plusmeny (ReseApotekets Gemensamt). Ingen app hade exempel utan knapp, så inget utseende ändras |

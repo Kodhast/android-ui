@@ -19,10 +19,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.toJavaLocalDate
+import se.kodhast.ui.common.DateFormat
 import se.kodhast.ui.theme.AppTheme
 import se.kodhast.ui.theme.Spacing
 
@@ -52,7 +50,7 @@ fun DateField(
     val field: @Composable (Modifier) -> Unit = { fieldModifier ->
         PickerField(
             label = label,
-            shown = date?.let(DateFieldFormat::display).orEmpty(),
+            shown = date?.let(DateFormat::display).orEmpty(),
             pickLabel = stringResource(R.string.pick_date),
             icon = R.drawable.ic_calendar,
             onPick = { picking = true },
@@ -77,12 +75,12 @@ fun DateField(
         field(modifier)
     }
     if (picking) {
-        val state = rememberDatePickerState(initialSelectedDateMillis = date?.let(DateFieldFormat::toEpochMillis))
+        val state = rememberDatePickerState(initialSelectedDateMillis = date?.let(DateFormat::toEpochMillis))
         DatePickerDialog(
             onDismissRequest = { picking = false },
             confirmButton = {
                 AppButton(stringResource(R.string.ok), onClick = {
-                    state.selectedDateMillis?.let { onDateChange(DateFieldFormat.fromEpochMillis(it)) }
+                    state.selectedDateMillis?.let { onDateChange(DateFormat.fromEpochMillis(it)) }
                     picking = false
                 }, variant = ButtonVariant.Text)
             },
@@ -92,18 +90,4 @@ fun DateField(
             DatePicker(state)
         }
     }
-}
-
-/** Datumfältets visning och Material-väljarens millisekunder – samma regler som apparnas `DateFormat`. */
-internal object DateFieldFormat {
-    private val display = DateTimeFormatter.ofPattern("EEE d MMM yyyy", Locale.forLanguageTag("sv-SE"))
-    private const val DAY_MILLIS = 86_400_000L
-
-    /** "lör 19 dec 2026" – utan punkterna som svensk CLDR sätter efter förkortningar. */
-    fun display(date: LocalDate): String = display.format(date.toJavaLocalDate()).replace(".", "")
-
-    /** Midnatt UTC, som Material-datumväljaren räknar. */
-    fun toEpochMillis(date: LocalDate): Long = date.toEpochDays().toLong() * DAY_MILLIS
-
-    fun fromEpochMillis(millis: Long): LocalDate = LocalDate.fromEpochDays(Math.floorDiv(millis, DAY_MILLIS).toInt())
 }

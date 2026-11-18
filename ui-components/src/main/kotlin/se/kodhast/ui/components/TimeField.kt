@@ -15,8 +15,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import java.util.Locale
 import kotlinx.datetime.LocalTime
+import se.kodhast.ui.common.DateFormat
 import se.kodhast.ui.theme.AppTheme
 
 /**
@@ -36,7 +36,7 @@ fun TimeField(
     val pickLabel = stringResource(R.string.pick_time)
     PickerField(
         label = label,
-        shown = "%02d:%02d".format(Locale.ROOT, time.hour, time.minute),
+        shown = DateFormat.time(time),
         pickLabel = pickLabel,
         icon = R.drawable.ic_clock,
         onPick = { picking = true },

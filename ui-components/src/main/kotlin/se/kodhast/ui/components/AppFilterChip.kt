@@ -54,7 +54,8 @@ data class ChipPending(@param:DrawableRes val icon: Int, val text: String, val d
  *
  * [value] står efter etiketten (t.ex. styrkan "4" i "Huvudvärk 4") och läses som en egen del av TalkBack.
  * [emphasized] är det aktiva bland flera valda: fylld primärfärg i stället för `primaryContainer`.
- * [pending] ger det väntande läget ([ChipPending]). Standardvärdena bevarar det vanliga chipet.
+ * [pending] ger det väntande läget ([ChipPending]). [leading] är ett eget ledande element (t.ex. en persons avatar) som
+ * står kvar också när chipet är valt, i stället för bocken och [icon]. Standardvärdena bevarar det vanliga chipet.
  *
  * Chipet är alltid en rad högt: en etikett som inte får plats kortas med ellips (hela etiketten läses
  * fortfarande av TalkBack), och värdet och tilläggstexten bryts aldrig. Med temats djup krymper chipet
@@ -72,9 +73,10 @@ fun AppFilterChip(
     onLongClickLabel: String? = null,
     value: String? = null,
     emphasized: Boolean = false,
-    pending: ChipPending? = null
+    pending: ChipPending? = null,
+    leading: (@Composable () -> Unit)? = null
 ) {
-    val leading = if (selected) R.drawable.ic_check else pending?.icon ?: icon
+    val leadingIcon = if (selected) R.drawable.ic_check else pending?.icon ?: icon
     val dashColor = MaterialTheme.colorScheme.outline
     val shape = AppTheme.shapes.pill
     val chipModifier = Modifier
@@ -98,7 +100,7 @@ fun AppFilterChip(
             },
             modifier = chipModifier,
             enabled = enabled,
-            leadingIcon = leading?.let { { Icon(painterResource(it), contentDescription = null, modifier = Modifier.size(ICON)) } },
+            leadingIcon = leading ?: leadingIcon?.let { { Icon(painterResource(it), contentDescription = null, modifier = Modifier.size(ICON)) } },
             shape = shape,
             colors = when {
                 pending != null -> pendingChipColors()
