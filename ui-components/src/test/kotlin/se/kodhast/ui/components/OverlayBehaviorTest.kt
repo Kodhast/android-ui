@@ -1,11 +1,17 @@
 package se.kodhast.ui.components
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
@@ -15,8 +21,11 @@ import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.click
+import androidx.compose.ui.test.isRoot
 import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onLast
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -41,6 +50,9 @@ class OverlayBehaviorTest {
     val rule = createComposeRule()
 
     private fun show(content: @Composable () -> Unit) = rule.setContent { TestTheme(content = content) }
+
+    /** Som i apparna: raden längst ned, så att FAB-menyns val får plats ovanför knappen. */
+    private fun showAtBottom(content: @Composable () -> Unit) = show { Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) { content() } }
 
     private var dismissed = 0
 
@@ -338,6 +350,82 @@ class OverlayBehaviorTest {
         Espresso.pressBack()
         rule.onNodeWithText("Köp").assertDoesNotExist()
         assertEquals(listOf("sälj"), picked)
+    }
+
+    @Test
+    fun `FAB-menyn fäller ut valen, stänger med krysset, bakåt och efter ett val`() {
+        val picked = mutableListOf<String>()
+        showAtBottom {
+            AppFloatingToolbar(
+                listOf(ToolbarItem("Idag", R.drawable.ic_clock), ToolbarItem("Dagbok", R.drawable.ic_note)),
+                0,
+                {},
+                action = ToolbarAction(
+                    "Logga",
+                    R.drawable.ic_add,
+                    listOf(AppMenuItem("Mående", { picked += "mående" }, icon = R.drawable.ic_person), AppMenuItem("Dos", { picked += "dos" }))
+                ),
+                actionMenu = ActionMenuStyle.Fab
+            )
+        }
+        val button = rule.onNodeWithContentDescription("Logga")
+        button.assert(SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, "Hopfälld"))
+        rule.onNodeWithText("Mående").assertDoesNotExist()
+
+        button.performClick()
+        rule.onNodeWithText("Mående").assertExists()
+        rule.onNodeWithText("Dos").performClick()
+        assertEquals(listOf("dos"), picked)
+        rule.onNodeWithText("Mående").assertDoesNotExist()
+
+        rule.onNodeWithContentDescription("Logga").performClick()
+        // Menyns fönster måste finnas innan bakåt skickas, annars går bakåt till fönstret under.
+        rule.onNodeWithText("Mående").assertExists()
+        Espresso.pressBack()
+        rule.onNodeWithText("Mående").assertDoesNotExist()
+
+        rule.onNodeWithContentDescription("Logga").performClick()
+        // Krysset står där knappen stod och stänger.
+        rule.onNodeWithContentDescription("Stäng").performClick()
+        rule.onNodeWithText("Mående").assertDoesNotExist()
+        assertEquals(listOf("dos"), picked)
+    }
+
+    @Test
+    fun `FAB-menyns slöja stänger vid tryck och valen läses som knappar`() {
+        var picked = 0
+        showAtBottom {
+            AppFloatingToolbar(
+                listOf(ToolbarItem("Idag", R.drawable.ic_clock)),
+                0,
+                {},
+                action = ToolbarAction("Logga", R.drawable.ic_add, listOf(AppMenuItem("Mående", { picked++ }))),
+                actionMenu = ActionMenuStyle.Fab
+            )
+        }
+        rule.onNodeWithContentDescription("Logga").performClick()
+        rule.onNodeWithText("Mående").assert(SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Button))
+        // Slöjan är menyfönstrets rot; ett tryck i hörnet (inte på ett val) stänger utan att välja.
+        rule.onAllNodes(isRoot()).onLast().performTouchInput { click(Offset(1f, 1f)) }
+        rule.onNodeWithText("Mående").assertDoesNotExist()
+        assertEquals(0, picked)
+    }
+
+    @Test
+    fun `utan stil i anropet följer verktygsraden appens AppBrandStyle`() {
+        showAtBottom {
+            CompositionLocalProvider(LocalAppBrandStyle provides AppBrandStyle(actionMenu = ActionMenuStyle.Fab)) {
+                AppFloatingToolbar(
+                    listOf(ToolbarItem("Idag", R.drawable.ic_clock)),
+                    0,
+                    {},
+                    action = ToolbarAction("Logga", R.drawable.ic_add, listOf(AppMenuItem("Mående", {})))
+                )
+            }
+        }
+        rule.onNodeWithContentDescription("Logga").performClick()
+        // FAB-menyn har krysset; rullgardinen har inget.
+        rule.onNodeWithContentDescription("Stäng").assertExists()
     }
 
     @Test

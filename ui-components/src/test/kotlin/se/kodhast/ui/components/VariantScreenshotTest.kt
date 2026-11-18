@@ -141,6 +141,16 @@ class VariantScreenshotTest {
         }
     }
 
+    @Test
+    fun `AppFloatingToolbar - stilar`() = captureLightAndDark("AppFloatingToolbar_stilar", depth = true) {
+        // Samma knappar på de fyra bakgrunderna: Toolbar (standard), Surface, Tonal (Dagboken) och Filled.
+        SampleSheet {
+            ToolbarStyle.entries.forEach { style ->
+                AppFloatingToolbar(TOOLBAR_TABS, 0, {}, action = ToolbarAction("Logga", R.drawable.ic_add) {}, style = style)
+            }
+        }
+    }
+
     // --- 0.7.0 ---
 
     @Test
@@ -191,3 +201,10 @@ class VariantScreenshotTest {
         }
     }
 }
+
+private val TOOLBAR_TABS = listOf(
+    ToolbarItem("Idag", R.drawable.ic_clock),
+    ToolbarItem("Dagbok", R.drawable.ic_note),
+    ToolbarItem("Trender", R.drawable.ic_calendar, badgeCount = 2),
+    ToolbarItem("Mediciner", R.drawable.ic_box)
+)
