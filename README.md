@@ -286,6 +286,33 @@ AuthGateHost(
 och `ic_download` finns i biblioteket; appen kan ta bort sina kopior. Appens eget `AuthGate`-enum ersätts av
 bibliotekets (`NeedsHousehold`/`NeedsUser` heter `NeedsAccount`). `SignInButton` är föråldrad.
 
+## Inställningarna
+
+Delarna som båda apparnas inställningar har; vilka rader och kort inställningarna har stannar i appen.
+
+```kotlin
+AppCard {
+    AccountRow(user.name, user.email, user.photoUrl)
+    AppDivider()
+    SignOutRow(onSignOut = { onEvent(SettingsEvent.SignOut) }, message = stringResource(R.string.sign_out_message))
+}
+val access = rememberNotificationAccess()                       // läses om varje gång skärmen visas
+if (!access.allowed) {
+    NoticeBanner(stringResource(R.string.notifications_off), R.drawable.ic_bell, onClick = access.openSettings,
+        detail = stringResource(R.string.notifications_off_note))
+}
+AboutCard(stringResource(R.string.app_name), BuildConfig.VERSION_NAME) {
+    AppDivider()
+    ItemRow(stringResource(R.string.settings_medicines), subtitle = …)  // appens egna rader
+}
+```
+
+- `NotificationAccess(allowed, ask, openSettings)`: `ask` frågar om behörigheten (Android 13+), `openSettings` öppnar
+  appens notisinställningar. `Context.canPostNotifications()` är samma kontroll utanför Compose (t.ex. innan en notis visas).
+  Dagbokens exakta larm och helskärm stannar i Dagboken.
+- "Logga ut", "Logga ut?", "Inloggad med Google", "Version %s", "Öppna" och ikonen `ic_logout` finns i biblioteket;
+  appen kan ta bort sina kopior. Appens `sign_out_message` med samma namn ersätter bibliotekets standardtext.
+
 ## Navigationsramen (ui-navigation)
 
 Flikarna med egna back stackar, skärmbytena och skalet runt `NavDisplay` – samma i alla appar.
@@ -352,7 +379,9 @@ inte använder ramen rätt.
 
 | Komponent | Vad | Skillnad mot apparnas tidigare version |
 |---|---|---|
+| `AboutCard` | Om-kortet: `appName`, "Version …" (`version`) och `MakerMark` under texten; `extra` är appens egna rader i samma kort | Flyttad från ReseApoteket och Dagboken (#54) |
 | `AccountAvatar` | Kontots avatar: `name` (initialer, "Anna Berg" → "AB"; utan namn en person-ikon), `onClick` (`null` = bara en bild utan semantik), `online` (`true` plupp i `ExtendedColors.online` och "Ansluten", `false` "Utan anslutning", `null` inget läge), `photoUrl` (profilfotot ovanpå initialerna, laddat och cachat på disk med Coil), `photo` (egen slot, går före `photoUrl`). 36 dp i 48 dp tryckyta, "Konto och inställningar" | Flyttad från Dagboken (#42); `photoUrl` och cachen flyttade från Dagboken (#46) |
+| `AccountRow` | Kontot överst i inställningarna: `AccountAvatar`, `name` och `email` under (utan e-post "Inloggad med Google"; utan namn står e-posten som titel), `photoUrl`; ingen tonad bakgrund | Flyttad från ReseApoteket och Dagboken (#54); Dagbokens tonade rad och extra rad "Inloggad med Google" försvinner (Mats beslut) |
 | `AddSplitButton` | "Lägg till ▾" – huvudåtgärd och pil med fler val | Menyn är en lucka: `menu = items.asSplitMenu()` (ReseApoteket) i stället för Dagbokens `menuItems` |
 | `AppBottomSheet` | Ark med rubrik; innehållet rullar alltid. `error` (`UiError`), `dirty` ("Släng ändringar?" vid bakåt, svep och tryck utanför), `canDismiss`, `hide`, `footer` (knappraden står fast i botten) | Dagbokens parametrar; ReseApotekets rullning gäller också med `footer` |
 | `AppButton` | Den enda knappen: Primary, Secondary, Outlined, Text, Destructive; `loading`, `compact`, `contentDescription`. Appens knappstil `AppButtonStyle(minHeight, morph, secondaryTone)` sätts en gång med `LocalAppButtonStyle` (eller parametern `style`); `AppButtonDefaults.MinHeight` 56 dp / `CompactHeight` 40 dp | Fonder: `AppButtonStyle(minHeight = 40.dp, morph = true, secondaryTone = Tone.Primary)`; standard bevarar ReseApoteket och Dagboken |
@@ -407,6 +436,7 @@ inte använder ramen rätt.
 | `MessageSnackbar` | Visar en text en gång i `AppSnackbarHost` | – |
 | `MorphingCheck` | Krysset som morfar från ring till kaka med bock (bara visning) | – |
 | `NoteIndicator` | Anteckningsikon som visar anteckningen i en dialog | – |
+| `NoticeBanner` | Meddelande överst på en skärm: tonat `AppCard` (`tone`, standard `Tone.Primary`) med `icon`, `text`, `detail` och en pil; hela kortet är knappen (`onClick`, läses med `onClickLabel`, standard "Öppna"); `onClick = null` = bara ett meddelande; `action` = en egen knapp under texten (kräver `onClick`) | Flyttad från Dagboken (#54), som skickar sin `Tone.Warning`; ReseApotekets "Notiser är avstängda" |
 | `PausableRow` | Rad som kan pausas: typ som pill, nedtonad "Pausat"; `pillTone` krävs | Tonen är appens (ReseApoteket `Tone.Blue`, Dagboken `Tone.Neutral`) |
 | `PickerField` | Fält som öppnar en väljare; `emptyLabel`, `contentLabel` | – |
 | `QuantityStepper` | − värde +; `step`, `valueText`, `buttonSize` (standard `LocalQuantityStepperButtonSize`: `QuantityStepperDefaults.ButtonSize` 44 dp, `TouchTargetButtonSize` 48 dp) | Dagboken sätter `TouchTargetButtonSize` en gång i sitt tema |
@@ -414,6 +444,7 @@ inte använder ramen rätt.
 | `SectionFoldout` | `Foldout` med `SectionHeader` i titelraden: `icon`, `count`, `tone`, `countTone`, `trailing` (t.ex. en tonad lägg till-knapp, `AppIconButton(…, variant = IconButtonVariant.Tonal)`) | Flyttad från Dagboken (#46); `trailing` är ny (ReseApotekets persondetalj) |
 | `SignInButton` | **Föråldrad (1.13.0), tas bort i nästa major** – ingen app använder den; utloggad visar appen `SignInScreen`. Googles "G" och "Logga in" (`text`), konturerad i rubrikradens lägre höjd; `loading` | Ny (#42) |
 | `SignInScreen` | Inloggningen i hela skärmen: `appIcon`, `appName`, `welcome`, `note`, knappen "Logga in med Google" (`AppButton` med inloggningsikonen), `busy` ("Loggar in …", spärrad), `error` en gång som meddelande ovanför knappen (`onErrorShown`), `onSignIn` | Flyttad från ReseApoteket och Dagboken (#53); RA:s egna `LaunchedEffect` blir `ErrorSnackbar` |
+| `SignOutRow` | "Logga ut" med utloggningsikonen; frågar "Logga ut?" med `ConfirmDialog` (`message`, `destructive`, standard `true`) innan `onSignOut` | Flyttad från ReseApoteket och Dagboken (#54); Dagboken `destructive = false`, egna `message` i båda |
 | `SuggestionField` | Textfält med förslag (`Suggestion`) i ett kort under, antalet läses upp | – |
 | `SwipeBackground` | Det som syns bakom en svept rad: `icon` och `label` i högerkanten, `colors` (`ToneColors`, standard primärtonen), `shape` (standard `row`) | Ersätter bakgrunden i Dagbokens `SwipeToDelete` (`ic_delete`, felfärgen, `card`) |
 | `SwipeToHide` | Arkivera/dölj med svep åt vänster, och samma åtgärd för TalkBack; bakgrunden är `SwipeBackground` med `icon` och `colors` (standard arkivera i primärtonen) | – |
@@ -458,6 +489,7 @@ pusha taggar och använder därför den manuella vägen.
 
 | Version | Ändring |
 |---|---|
+| 1.14.0 | Inställningarnas delar (#54): `AccountRow`, `SignOutRow`, `AboutCard`, `NoticeBanner` (flyttad från Dagboken, standardtonen är `Tone.Primary`) och `rememberNotificationAccess`/`NotificationAccess`/`Context.canPostNotifications()` – flyttade från ReseApoteket och Dagboken, som hade var sin kopia. Texterna och ikonen `ic_logout`. Inga befintliga skärmdumpar är omtagna |
 | 1.13.0 | Inloggningen (#53): `SignInScreen`, `UpdateRequiredScreen` och `AuthGateHost` i `ui-components`, `AuthGate` i `ui-common`, texterna och ikonerna `ic_login`/`ic_download` – flyttade från ReseApoteket och Dagboken, som hade var sin kopia. `SignInButton` är föråldrad (oanvänd) och tas bort i nästa major. Inga befintliga skärmdumpar är omtagna |
 | 1.12.0 | Ny modul `ui-navigation` (#52): `TabBackStack`/`rememberTabBackStack` (flikarnas back stackar, sparade i samma format som apparnas `AppBackStack`), `AppTransitions` och `AppNavHost` – flyttade från ReseApoteket och Dagboken, som hade var sin kopia. `SyncUiState` i `ui-common`. Inga befintliga skärmdumpar är omtagna |
 | 1.11.0 | Gemensamma verktyg ur apparna (#51): `DateFormat`, `WriteFailures` och `screenSharing` i `ui-common` (nytt beroende där: kotlinx-datetime, som `ui-components` redan hade), `rememberReducedMotion()`, `Modifier.blockInput` och den publika `TOUCH_TARGET` i `ui-components`, och `AppFilterChip(leading)` för ett eget ledande element. `DateField`/`TimeField` formaterar med `DateFormat` (samma text som förut). Inga befintliga skärmdumpar är omtagna |
