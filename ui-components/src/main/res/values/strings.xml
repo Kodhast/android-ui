@@ -72,6 +72,20 @@
     <string name="version_format">Version %s</string>
     <!-- NoticeBanner: vad ett tryck på bannern gör, för TalkBack -->
     <string name="open">Öppna</string>
+    <!-- DateTimeRow -->
+    <string name="date">Datum</string>
+    <string name="time">Tid</string>
+    <!-- DurationRow -->
+    <string name="duration">Tidsåtgång</string>
+    <string name="minutes">minuter</string>
+    <!-- NoteCard -->
+    <string name="note">Anteckning</string>
+    <string name="note_placeholder">Lägg till en anteckning</string>
+    <!-- FavoriteStar, favoriteMenuItem och FavoriteMark: vad ett tryck gör och läget, för TalkBack -->
+    <string name="favorite_add">Markera %s som favorit</string>
+    <string name="favorite_remove">Ta bort %s som favorit</string>
+    <string name="favorite_on">Favorit</string>
+    <string name="favorite_off">Inte favorit</string>
     <!-- AppCalendar och DayPicker -->
     <string name="calendar_previous_month">Föregående månad</string>
     <string name="calendar_next_month">Nästa månad</string>

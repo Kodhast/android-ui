@@ -6,4 +6,9 @@
 <resources>
     <!-- AppNavHost: en skrivning servern nekade; %1$s = felets text -->
     <string name="sync_write_rejected">En ändring kunde inte sparas och har ångrats. %1$s</string>
+    <!-- ComponentGallery: rubriken och de påhittade felen och fältfelet i galleriets exempel -->
+    <string name="gallery_title">Komponenter</string>
+    <string name="gallery_error_offline">Ingen anslutning just nu. Det du sparar skickas när nätet är tillbaka.</string>
+    <string name="gallery_error_not_found">Det finns inte längre – det kan ha raderats på en annan enhet.</string>
+    <string name="gallery_name_required">Ange ett namn</string>
 </resources>
