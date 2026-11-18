@@ -135,6 +135,8 @@ Testas med JUnit och Turbine.
 - **`DateFormat`** – det enda sättet att visa datum och tider: `display` ("lör 19 dec 2026"), `short`, `weekdayDay`,
   `month`, `weekdayShort`/`weekdayLong`, `dayAndMonth`, `isoWeek`, `time` ("07:00") och datumväljarens millisekunder.
   `DateField` och `TimeField` använder den.
+- **Inloggningen:** `AuthGate` (Loading, SignedOut, NeedsAccount, UpdateRequired, Ready) – vad `AuthGateHost` visar;
+  appens `AuthViewModel` räknar fram det.
 
 ## Ramarna
 
@@ -204,13 +206,8 @@ CompositionLocalProvider(
     LocalAppIdentity provides AppIdentity(R.drawable.ic_app_header, stringResource(R.string.app_name)),
     LocalAppBrandStyle provides AppBrandStyle(headerDots = true),          // Kodhästs prickar före rubriken
     LocalTopBarSyncing provides syncing,                                   // prickarna hoppar medan ändringar väntar
-    LocalTopBarAccount provides {
-        if (user != null) {
-            AccountAvatar(user.name, onClick = openAccount, online = online, photoUrl = user.photoUrl)
-        } else {
-            SignInButton(onClick = signIn)
-        }
-    }
+    // Sidhuvudet syns bara inloggad; utloggad visar AuthGateHost inloggningen (se Inloggningen).
+    LocalTopBarAccount provides { AccountAvatar(user.name, onClick = openAccount, online = online, photoUrl = user.photoUrl) }
 ) { content() }
 ```
 
@@ -254,6 +251,40 @@ LocalAppBrandStyle provides AppBrandStyle(
   eller ett val stänger).
 - Plusknappens meny är `ToolbarAction(label, icon, menu = listOf(AppMenuItem(…)))`; ett eget ark för valen behövs inte.
 - Utan inställning ser raden ut som förut.
+
+## Inloggningen
+
+`AuthGateHost` är appens rot och visar det `AuthGate` säger; inloggningen själv (Credential Manager,
+Firebase, hushåll eller användare) stannar i appens `AuthViewModel` – biblioteket har ingen Firebase.
+
+```kotlin
+AuthGateHost(
+    gate = state.gate,
+    signIn = {
+        SignInScreen(
+            appIcon = R.drawable.ic_luggage,                         // appens ikon, inte Kodhästs häst
+            appName = stringResource(R.string.app_name),
+            welcome = stringResource(R.string.sign_in_welcome),
+            note = stringResource(R.string.sign_in_note),
+            busy = state.busy,
+            error = remember(state.error) { state.error?.let(AppErrors::map) },
+            onErrorShown = { onEvent(AuthEvent.ErrorShown) },
+            onSignIn = { onEvent(AuthEvent.SignIn(context)) }
+        )
+    },
+    updateRequired = {
+        UpdateRequiredScreen(
+            message = stringResource(R.string.update_required_message),
+            note = stringResource(R.string.update_required_note),
+            releasesUrl = stringResource(R.string.releases_url)
+        )
+    }
+) { AppNavigation() }
+```
+
+"Logga in med Google", "Loggar in …", "Uppdatera appen", "Hämta senaste versionen" och ikonerna `ic_login`
+och `ic_download` finns i biblioteket; appen kan ta bort sina kopior. Appens eget `AuthGate`-enum ersätts av
+bibliotekets (`NeedsHousehold`/`NeedsUser` heter `NeedsAccount`). `SignInButton` är föråldrad.
 
 ## Navigationsramen (ui-navigation)
 
@@ -340,6 +371,7 @@ inte använder ramen rätt.
 | `AppSnackbarHost` | Den enda platsen där meddelanden visas | – |
 | `AppTextField` | Det enda textfältet; `maxLength` (`AppTextFieldDefaults.SHORT_MAX_LENGTH` 200 / `LONG_MAX_LENGTH` 2000), `maxLines`, `suffix`, `valueIsPlaceholder` | Dagboken anger `maxLength = 5000` för långa fält |
 | `AppTopBar` | Skärmrubriken, stor eller liten; tillbakapilen `TopBarBackStyle(variant, tone)` via `LocalTopBarBackStyle` (eller parametern `backStyle`), som också ramarna följer | Synkindikatorn är appens: den sätts som `LocalTopBarStatus` (eller parametern `status`). `titleModifier` läggs på rubriken (också via `EntityDetailScreen`). Standardpilen är den tonade plattan; Fonder: `TopBarBackStyle(variant = IconButtonVariant.Plain)` |
+| `AuthGateHost` | Appens rot: `gate` (`AuthGate`) visar `AppLoading`, `signIn` (utloggad och `NeedsAccount`), `updateRequired` eller `content`; sätter appens bakgrund en gång | Flyttad från apparnas `AppRootContent` (#53) |
 | `BrandMark` | Kodhästs märke: hästen (`horseColor`, standard `onSurfaceVariant`) och de två prickarna (`dotsColor`, standard `primary`), dekor utan semantik; storlek med `modifier`, standard `BrandMarkDefaults.Size` 16 dp (profilens minsta) | Ny (android-ui #28) |
 | `CardSegment` | Ett segment i ett sammanfogat kort (`top`, `bottom`), `contentColor`, `onClick`, `style`; med kontur delar bitarna skiljelinje | Ersätter Fonders `AppCardGroupPosition` |
 | `CheckRow` | Kryssrad med morfande kryss; `onClick` (krysset blir egen knapp), `accent`, `note`, `menu` (långtryck + ⋮, går före bubblan), `below`, `enabled`, `done`/`tinted` (standard `checked`: överstruken och tonad) | Dagbokens `note`, `menu`, `below`, `enabled`; Fonder `done = false, tinted = false` för "ta med" |
@@ -380,7 +412,8 @@ inte använder ramen rätt.
 | `QuantityStepper` | − värde +; `step`, `valueText`, `buttonSize` (standard `LocalQuantityStepperButtonSize`: `QuantityStepperDefaults.ButtonSize` 44 dp, `TouchTargetButtonSize` 48 dp) | Dagboken sätter `TouchTargetButtonSize` en gång i sitt tema |
 | `SectionHeader` | Sektionsrubrik med antal; `countTone`; laddningsindikator med `working`; med `AppBrandStyle(sectionDots = true)` två prickar i `primary` före titeln när ikonrutan saknas; titeln högst två rader brutna mellan ord, ett ord som inte ryms kortas med "…" och visar hela titeln i en bubbla vid långt tryck (som `ItemRow`) | – |
 | `SectionFoldout` | `Foldout` med `SectionHeader` i titelraden: `icon`, `count`, `tone`, `countTone`, `trailing` (t.ex. en tonad lägg till-knapp, `AppIconButton(…, variant = IconButtonVariant.Tonal)`) | Flyttad från Dagboken (#46); `trailing` är ny (ReseApotekets persondetalj) |
-| `SignInButton` | Utloggat läge i sidhuvudet: Googles "G" i sina egna färger och "Logga in" (`text`), konturerad i rubrikradens lägre höjd; `loading` | Ny (#42) |
+| `SignInButton` | **Föråldrad (1.13.0), tas bort i nästa major** – ingen app använder den; utloggad visar appen `SignInScreen`. Googles "G" och "Logga in" (`text`), konturerad i rubrikradens lägre höjd; `loading` | Ny (#42) |
+| `SignInScreen` | Inloggningen i hela skärmen: `appIcon`, `appName`, `welcome`, `note`, knappen "Logga in med Google" (`AppButton` med inloggningsikonen), `busy` ("Loggar in …", spärrad), `error` en gång som meddelande ovanför knappen (`onErrorShown`), `onSignIn` | Flyttad från ReseApoteket och Dagboken (#53); RA:s egna `LaunchedEffect` blir `ErrorSnackbar` |
 | `SuggestionField` | Textfält med förslag (`Suggestion`) i ett kort under, antalet läses upp | – |
 | `SwipeBackground` | Det som syns bakom en svept rad: `icon` och `label` i högerkanten, `colors` (`ToneColors`, standard primärtonen), `shape` (standard `row`) | Ersätter bakgrunden i Dagbokens `SwipeToDelete` (`ic_delete`, felfärgen, `card`) |
 | `SwipeToHide` | Arkivera/dölj med svep åt vänster, och samma åtgärd för TalkBack; bakgrunden är `SwipeBackground` med `icon` och `colors` (standard arkivera i primärtonen) | – |
@@ -388,6 +421,7 @@ inte använder ramen rätt.
 | `SwitchRow` | Inställningsrad med växel; `onClick` (växeln blir egen kontroll), `inactive` (tonar ned texten, inte växeln), `enabled` (låser växeln) | Dagbokens `inactive`; Fonders `enabled` |
 | `TimeField` | Tidsfält (kotlinx `LocalTime`) som öppnar `TimePickerPopup` | – |
 | `TimePickerPopup` | Tidsväljaren som dialog | – |
+| `UpdateRequiredScreen` | "Uppdatera appen": `message`, `note`, knappen "Hämta senaste versionen" som öppnar `releasesUrl` | Flyttad från ReseApoteket och Dagboken (#53) |
 | `UndoSnackbar` | "Arkiverad – Ångra" för `UndoRequest`; `format`, `onRequestDismissed` | – |
 
 **Modifierare:** `Modifier.longPress(label, onLongPress, haptic = false, semantics = LongPressSemantics.LongClick)` –
@@ -424,6 +458,7 @@ pusha taggar och använder därför den manuella vägen.
 
 | Version | Ändring |
 |---|---|
+| 1.13.0 | Inloggningen (#53): `SignInScreen`, `UpdateRequiredScreen` och `AuthGateHost` i `ui-components`, `AuthGate` i `ui-common`, texterna och ikonerna `ic_login`/`ic_download` – flyttade från ReseApoteket och Dagboken, som hade var sin kopia. `SignInButton` är föråldrad (oanvänd) och tas bort i nästa major. Inga befintliga skärmdumpar är omtagna |
 | 1.12.0 | Ny modul `ui-navigation` (#52): `TabBackStack`/`rememberTabBackStack` (flikarnas back stackar, sparade i samma format som apparnas `AppBackStack`), `AppTransitions` och `AppNavHost` – flyttade från ReseApoteket och Dagboken, som hade var sin kopia. `SyncUiState` i `ui-common`. Inga befintliga skärmdumpar är omtagna |
 | 1.11.0 | Gemensamma verktyg ur apparna (#51): `DateFormat`, `WriteFailures` och `screenSharing` i `ui-common` (nytt beroende där: kotlinx-datetime, som `ui-components` redan hade), `rememberReducedMotion()`, `Modifier.blockInput` och den publika `TOUCH_TARGET` i `ui-components`, och `AppFilterChip(leading)` för ett eget ledande element. `DateField`/`TimeField` formaterar med `DateFormat` (samma text som förut). Inga befintliga skärmdumpar är omtagna |
 | 1.10.0 | För packlistan i ReseApoteket (#172): `ListGroup.action` (`GroupAction`, plus i rubriken), `ListGroup.fold` (`GroupFold`, hopfällt läge utifrån), `ListGroup.emptyText` och `EntityListScreen.groups` (grupper som alltid visas, också i en tom lista), `EntityListScreen.menu` (en ⋮ med arkivväxeln sist), `ListArchive.showLabel`/`hideLabel`/`toggleIcon` och `ArchiveActions.showing`. `SectionHeader`-titeln står på högst två rader brutna mellan ord; ett ord som inte ryms kortas med "…" och visar hela titeln vid långt tryck – bubblan är utbruten ur `ItemRow` (`FullTextBubble`). Rubrikändringen gäller alla appar men ändrar ingen befintlig skärmdump i biblioteket; övriga standardvärden bevarar utseendet |

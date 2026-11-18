@@ -215,6 +215,7 @@ class HeaderBehaviorTest {
         assertEquals(0, rule.onAllNodesWithText("AB", useUnmergedTree = true).fetchSemanticsNodes().size)
     }
 
+    @Suppress("DEPRECATION") // SignInButton är föråldrad men finns kvar till nästa major.
     @Test
     fun `inloggningsknappen säger Logga in och anropar onClick`() {
         var clicks = 0

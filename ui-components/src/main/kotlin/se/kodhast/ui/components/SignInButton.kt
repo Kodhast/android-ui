@@ -8,7 +8,11 @@ import androidx.compose.ui.res.stringResource
  * Utloggat läge i stället för [AccountAvatar] i [AppHeader]: Googles "G" i sina egna färger och
  * [text] (standard "Logga in"), som en konturerad [AppButton] i rubrikradens lägre höjd. [loading]
  * visar knappens arbetar-läge medan inloggningen pågår.
+ *
+ * Föråldrad: ingen app använder den – utloggad visar appen [SignInScreen] i stället för sidhuvudet.
+ * Tas bort i nästa major.
  */
+@Deprecated("Utloggad visar appen SignInScreen; sidhuvudet syns bara inloggad. Tas bort i nästa major.")
 @Composable
 fun SignInButton(
     onClick: () -> Unit,

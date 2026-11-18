@@ -73,6 +73,7 @@ class HeaderScreenshotTest {
         }
     }
 
+    @Suppress("DEPRECATION") // SignInButton är föråldrad men finns kvar till nästa major.
     @Test
     fun `AppHeader - utloggat`() = captureLightAndDark("AppHeader_utloggat", depth = true) {
         Dots { WithContent { SampleHeader(collapsed = 0f, subtitle = null, account = { SignInButton(onClick = {}) }) } }
@@ -109,6 +110,7 @@ class HeaderScreenshotTest {
         }
     }
 
+    @Suppress("DEPRECATION") // SignInButton är föråldrad men finns kvar till nästa major.
     @Test
     fun `SignInButton - standard`() = captureLightAndDark("SignInButton_standard", depth = true) {
         // Arbetar-läget är AppButtons och fotograferas där (AppButton_varianter).
