@@ -151,7 +151,7 @@ tomt läge, fel, "Försök igen", "Släng ändringar?", sparfel och arkivering b
 EntityListScreen(title, state: ListUiState<T>, empty: EmptyContent, add: AddAction?, key, …,
     onRetry, group: ((T) -> ListGroup)?, archive: ListArchive?, subtitle, onBack, actions, header,
     subgroup, filter, topBarSize = TopBarSize.Large, footer, refreshing = false, onRefresh = null,
-    errorTitle = null, groups = emptyList(), menu = emptyList(), row)
+    errorTitle = null, groups = emptyList(), menu = emptyList(), scrollTo = null, onScrolled = {}, row)
 EntityEditScreen(title, state: EditorUiState<*>, events: EditorEvents, onSave, onClose, …,
     saveLabel, onArchive, onRestore, delete: DeleteAction?, onRetry, onSaved = onClose, formError,
     horizontalMargin = LocalEditScreenMargin.current, content)
@@ -165,6 +165,7 @@ EntityDetailScreen(state: DetailUiState<T>, header: ((T) -> DetailHeader)?, onBa
 | Lägg till-knapp | `add: AddAction(label, onClick, menu)`; `null` = ingen knapp, varken i listan eller i tomt läge | `AddAction(…)` (förr `onAdd` + `EmptyContent.actionLabel` + `addMenu`) | `AddAction` eller `null` |
 | Kolumner | `ListGroup.columns` är ett tak; så många kolumner om minst 260 dp som får plats används | som förut | nytt: en kolumn på telefon |
 | Filter, sidfot, postkort, räknare | `filter`, `footer`, `ListGroup.cards`, `ListGroup.showCount`, `topBarSize` | – | som förut |
+| Rulla till en rad | `scrollTo: ListScrollRequest(key)` – till gruppens rubrik när raden är först i gruppen, väntar tills raden finns; `onScrolled` släpper begäran | – | Välj dag i Dagbok (#68) |
 | Arkiveringsfel | `ListArchive.error: UiError` | som förut | förr `failure: Failure` |
 | Formulärets sidomarginal | `horizontalMargin`, standard `LocalEditScreenMargin` (sätts en gång i appens tema) | `Spacing.xl` (standard) | `Spacing.l` |
 | Formulärfel överst | `formError` | – | som förut |
@@ -389,6 +390,7 @@ inte använder ramen rätt.
 | `AddSplitButton` | "Lägg till ▾" – huvudåtgärd och pil med fler val | Menyn är en lucka: `menu = items.asSplitMenu()` (ReseApoteket) i stället för Dagbokens `menuItems` |
 | `AppBottomSheet` | Ark med rubrik; innehållet rullar alltid. `error` (`UiError`), `dirty` ("Släng ändringar?" vid bakåt, svep och tryck utanför), `canDismiss`, `hide`, `footer` (knappraden står fast i botten) | Dagbokens parametrar; ReseApotekets rullning gäller också med `footer` |
 | `AppButton` | Den enda knappen: Primary, Secondary, Outlined, Text, Destructive; `loading`, `compact`, `contentDescription`. Appens knappstil `AppButtonStyle(minHeight, morph, secondaryTone)` sätts en gång med `LocalAppButtonStyle` (eller parametern `style`); `AppButtonDefaults.MinHeight` 56 dp / `CompactHeight` 40 dp | Fonder: `AppButtonStyle(minHeight = 40.dp, morph = true, secondaryTone = Tone.Primary)`; standard bevarar ReseApoteket och Dagboken |
+| `AppCalendar` | Månadskalendern: `month`, `onMonthChange`, `marked` (punkt), `selectedDate` (fylld primärfärg i `shapes.row`), `onDateClick`, `today` (punkt i `secondary` med ring i `progressDone.outline`), `dimFuture` (framtiden nedtonad och ovalbar, pilen till nästa månad stängd). TalkBack läser datum, "idag" och "har poster". `DayMarkerDot` och `dayDescription` är samma markering och uppläsning för en datumremsa | Flyttad från Dagbokens `DagbokenCalendar` och `DayMarker` (#68); ser ut som förut, men med `dimFuture` stängs nu också pilen till månaden efter idag |
 | `AppCard` | Kortet: `tone`, `contentColor` (standard `null`: ärver omgivande `LocalContentColor`; Dagboken `onSurface`), `onClick` (hela kortet en nod). Appens kortstil `AppCardStyle(border, padding, segmentGap, contentSpacing)` med `LocalAppCardStyle` (eller `style`); ett tonat kort har ingen kontur | ReseApotekets `ApotekCard` heter nu `AppCard`. Fonder: kontur 1 dp `outlineVariant`, `padding = Spacing.l`, `contentSpacing = 0.dp`; Filled/Error är Fonders egna toner |
 | `AppDivider` | Avdelare mellan rader i ett kort | – |
 | `AppFilterChip` | Filterchip; `icon`, `onLongClick`, `value` (värde efter etiketten), `emphasized` (det aktiva bland flera valda), `pending` (`ChipPending`: väntande läge, tonat med streckad kant, ikon och tilläggstext) | `chipColors()` är publik för egna chips |
@@ -417,6 +419,8 @@ inte använder ramen rätt.
 | `Confetti` | Kort konfettiregn som belöning | `colors` (standard `AppTheme.extendedColors.accents`) |
 | `ConfirmDialog` | Bekräftelse; `destructive`, `onDecline`, `dismissLabel` (`null` = bara en knapp), `content` (fält under texten) | Dagbokens `dismissLabel: String?` och `content` |
 | `DateField` | Datumfält (kotlinx `LocalDate`, "lör 19 dec 2026"); `emptyLabel`, `onClear` (✕ "Till …"), `context` för TalkBack | Dagbokens parametrar |
+| `DayMarkerDot` | En dags markering i kalender och datumremsa: `isToday` (punkt i `secondary` med ring i `progressDone.outline`, annars `outline`), `marked` (punkt i `primary`), `selected` (punkt och ring i `onPrimary`); läses inte – dagens knapp läser `dayDescription` | Flyttad från Dagbokens `DayMarker` (#68) |
+| `DayPicker` | "Välj dag" i en lista över datum (Kodhäst-standard): chip med kalenderikon först i filterraden som öppnar ett ark med `AppCalendar` (`marked`, `today`, framtiden ovalbar) och knappen Idag; valet ges till `onPick`, och appen rullar listan dit med `EntityListScreen(scrollTo = …)` | Nytt (#68): ersätter Dagbokens list- och kalenderikoner i sidhuvudet |
 | `DeleteConfirmDialog` | Permanent radering av en `DeleteAction` (titel, text, "Radera" i felfärg); titeln t.ex. `R.string.delete_title_format` ("Radera %s?") | Var appens egen (`DeleteAction` från `EntityEditScreen`) |
 | `DiscardChangesDialog` | "Släng ändringar?" – "Släng" / "Fortsätt redigera" | Var appens egen |
 | `EmojiPicker` | Välj en emoji ur `emojis` med `ChoiceGrid`s ring | Listan krävs – apparnas listor (`PERSON_EMOJIS`, `DEFAULT_EMOJIS`) stannar i appen; ReseApotekets egen markering ersätts av ringen |
@@ -494,6 +498,7 @@ pusha taggar och använder därför den manuella vägen.
 
 | Version | Ändring |
 |---|---|
+| 1.17.0 | Välj dag (#68, Mats val B): `DayPicker` (chip och kalenderark), `AppCalendar` med `DayMarkerDot` och `dayDescription` (flyttade från Dagboken) och `EntityListScreen(scrollTo, onScrolled)` som rullar till en rad. Standardvärdena ändrar inget utseende |
 | 1.16.0 | Framstegsraden `AppProgress` (#55), en form för båda apparna (Mats beslut, form A): texten ovanför ett rundat spår i appens färger. `doneDescription` för en egen talad text vid klart. Nya temafärger `ExtendedColors.track` och `ExtendedColors.progressDone` (`ProgressDoneColors`), båda med standard `null` (`primaryContainer` respektive `primary` utan kontur). Inga befintliga skärmdumpar är omtagna |
 | 1.15.0 | `SignOutRow(appName, onSignOut)`: frågan är likadan i alla appar, bara appens namn skiljer ("Det du sparat i … finns kvar i ditt konto …"), och bekräftelseknappen är en vanlig knapp. Formen från 1.14.0 med `message` och `destructive` är dold (ingen app använde den) och tas bort i nästa major. Skärmdumparna `SignOutRow_*` är omtagna |
 | 1.14.0 | Inställningarnas delar (#54): `AccountRow`, `SignOutRow`, `AboutCard`, `NoticeBanner` (flyttad från Dagboken, standardtonen är `Tone.Primary`) och `rememberNotificationAccess`/`NotificationAccess`/`Context.canPostNotifications()` – flyttade från ReseApoteket och Dagboken, som hade var sin kopia. Texterna och ikonen `ic_logout`. Inga befintliga skärmdumpar är omtagna |
