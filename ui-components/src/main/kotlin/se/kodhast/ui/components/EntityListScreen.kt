@@ -74,9 +74,10 @@ data class AddAction(val label: String, val onClick: () -> Unit, val menu: List<
 /**
  * En begäran om att rulla `EntityListScreen` till raden med nyckeln [key] (samma som listans `key`), t.ex. dagen
  * som valts i [DayPicker]. Varje begäran är ett eget objekt (likhet efter identitet), så att samma rad kan begäras
- * igen. Saknas raden väntar listan tills den finns.
+ * igen. Saknas raden väntar listan tills den finns. [message] visas som snackbar när begäran kommer, t.ex. "Inga
+ * poster den 4 oktober" när listan går till en annan dag än den som valdes.
  */
-class ListScrollRequest(val key: Any)
+class ListScrollRequest(val key: Any, val message: String? = null)
 
 /**
  * En grupp i en grupperad lista: rubrik, valfri ikon och ton. [count] ersätter antalet rader i
@@ -172,6 +173,10 @@ fun <T> EntityListScreen(
 ) {
     val snackbar = remember { SnackbarHostState() }
     ErrorSnackbar(archive?.error, snackbar) { archive?.onEvent(ArchiveEvent.ErrorShown) }
+    // Rullningens meddelande hålls kvar tills det visats – begäran släpps redan när listan rullat.
+    var note by remember { mutableStateOf<ListScrollRequest?>(null) }
+    LaunchedEffect(scrollTo) { if (scrollTo?.message != null) note = scrollTo }
+    MessageSnackbar(note?.message, snackbar, key = note) { note = null }
     val scroll = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val clearance = LocalBottomClearance.current
     UndoSnackbar(archive?.undo, snackbar, { archive?.onEvent(ArchiveEvent.Undo) }, { archive?.onEvent(ArchiveEvent.UndoDismissed) })

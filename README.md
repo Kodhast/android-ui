@@ -170,7 +170,7 @@ EntityDetailScreen(state: DetailUiState<T>, header: ((T) -> DetailHeader)?, onBa
 | Lägg till-knapp | `add: AddAction(label, onClick, menu)`; `null` = ingen knapp, varken i listan eller i tomt läge | `AddAction(…)` (förr `onAdd` + `EmptyContent.actionLabel` + `addMenu`) | `AddAction` eller `null` |
 | Kolumner | `ListGroup.columns` är ett tak; så många kolumner om minst 260 dp som får plats används | som förut | nytt: en kolumn på telefon |
 | Filter, sidfot, postkort, räknare | `filter`, `footer`, `ListGroup.cards`, `ListGroup.showCount`, `topBarSize` | – | som förut |
-| Rulla till en rad | `scrollTo: ListScrollRequest(key)` – till gruppens rubrik när raden är först i gruppen, väntar tills raden finns; `onScrolled` släpper begäran | – | Välj dag i Dagbok (#68) |
+| Rulla till en rad | `scrollTo: ListScrollRequest(key, message)` – till gruppens rubrik när raden är först i gruppen, väntar tills raden finns; `onScrolled` släpper begäran; `message` visas som snackbar (t.ex. "Inga poster den …") | – | Välj dag i Dagbok (#68) |
 | Arkiveringsfel | `ListArchive.error: UiError` | som förut | förr `failure: Failure` |
 | Formulärets sidomarginal | `horizontalMargin`, standard `LocalEditScreenMargin` (sätts en gång i appens tema) | `Spacing.xl` (standard) | `Spacing.l` |
 | Formulärfel överst | `formError` | – | som förut |
@@ -533,6 +533,7 @@ pusha taggar och använder därför den manuella vägen.
 
 | Version | Ändring |
 |---|---|
+| 1.20.0 | `ListScrollRequest(message)`: listramen visar ett meddelande som snackbar när den rullar på begäran – Dagbokens "Inga poster den …" när Välj dag går till en annan dag (#68). Standardvärdet ändrar inget |
 | 1.19.0 | Välj dag (#68, Mats val B): `DayPicker` (chip och kalenderark), `AppCalendar` med `DayMarkerDot` och `dayDescription` (flyttade från Dagboken) och `EntityListScreen(scrollTo, onScrolled)` som rullar till en rad. Standardvärdena ändrar inget utseende |
 | 1.18.0 | Komponentgalleriet (#56): `ComponentGallery(onBack, appSections)` och `GallerySection` i `ui-navigation` (paketet `se.kodhast.ui.navigation.gallery`) – bibliotekets sektioner med varje publik komponent, sedan appens egna. Ligger i `ui-navigation` och inte i `ui-components`, eftersom galleriet också visar `AppNavHost`. `UiConsistencyTest` kräver att varje publik komponent finns i galleriet. Inga befintliga skärmdumpar är omtagna |
 | 1.17.0 | Dagbokens generella komponenter (#57): `StatPill` (`tone` krävs), `FavoriteStar`/`favoriteMenuItem`/`FavoriteMark` (ikonerna `ic_star`/`ic_star_filled`), `DateTimeRow`, `DurationRow`, `ReminderTimeRow` och `NoteCard` (`maxLength` som parameter) i `ui-components`; `EditorSheet`/`EditorSheetState` (formulär i ark, med appens `ErrorMapper`) och `DateFormat.duration`/`durationSeconds` i `ui-common`. Regel 2 i `CLAUDE.md`: det som hör till en apps domän stannar i appen, allt annat UI finns här. Inga befintliga skärmdumpar är omtagna |
