@@ -96,6 +96,18 @@ class CalendarBehaviorTest {
     }
 
     @Test
+    fun `begärans meddelande visas som snackbar också när begäran släppts`() {
+        var request by mutableStateOf<ListScrollRequest?>(null)
+        show {
+            EntityListScreen("Dagbok", ListUiState.Content(days.toImmutableList()), EmptyContent(R.drawable.ic_box, "Tomt", "Inget här"), null, key = { it }, group = group, scrollTo = request, onScrolled = { request = null }) { ItemRow(it) }
+        }
+        request = ListScrollRequest("Dag 24", message = "Inga poster den 25 november")
+        rule.waitForIdle()
+        assertEquals(null, request)
+        rule.onNodeWithText("Inga poster den 25 november").assertIsDisplayed()
+    }
+
+    @Test
     fun `en rad som inte finns än rullas till när den kommer`() {
         var rows by mutableStateOf(days.take(6))
         var scrolled = 0
