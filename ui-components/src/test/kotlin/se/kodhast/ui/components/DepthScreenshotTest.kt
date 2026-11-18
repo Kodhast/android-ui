@@ -74,37 +74,57 @@ class DepthScreenshotTest {
     }
 
     @Test
-    fun `AppButton - nedtryckt med djup, ljust`() = capturePressed(dark = false)
+    fun `AppButton - nedtryckt med djup, ljust`() = capturePressed("AppButton_djup_nedtryckt", dark = false) { PressedButtons() }
 
     @Test
-    fun `AppButton - nedtryckt med djup, mörkt`() = capturePressed(dark = true)
+    fun `AppButton - nedtryckt med djup, mörkt`() = capturePressed("AppButton_djup_nedtryckt", dark = true) { PressedButtons() }
+
+    @Test
+    fun `SwitchControl - nedtryckt med djup, ljust`() = capturePressed("SwitchControl_djup_nedtryckt", dark = false) { PressedSwitches() }
+
+    @Test
+    fun `SwitchControl - nedtryckt med djup, mörkt`() = capturePressed("SwitchControl_djup_nedtryckt", dark = true) { PressedSwitches() }
+
+    @Composable
+    private fun PressedButtons() {
+        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
+            AppButton("Spara", {})
+            AppButton("Spara", {}, Modifier.testTag("tryckt"))
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
+            AppButton("Lägg till", {}, variant = ButtonVariant.Secondary)
+            AppButton("Lägg till", {}, Modifier.testTag("tryckt2"), variant = ButtonVariant.Secondary)
+        }
+    }
+
+    /** Växeln i vila och nedtryckt, och en rad som trycks: knoppen sjunker in också då. */
+    @Composable
+    private fun PressedSwitches() {
+        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
+            SwitchControl(true, onCheckedChange = {}, label = "I vila")
+            SwitchControl(true, onCheckedChange = {}, Modifier.testTag("tryckt"), label = "Nedtryckt")
+        }
+        AppCard { SwitchRow("Aktivt", checked = true, onCheckedChange = {}, Modifier.testTag("tryckt2"), subtitle = "Räknas med i packförslaget") }
+    }
 
     /**
      * Klockan står still: trycket hålls kvar och fjädern har landat när bilden tas. Rippeln är avstängd,
-     * eftersom den växer på väggklockan och annars gör bilden olika från körning till körning.
+     * eftersom den växer på väggklockan och annars gör bilden olika från körning till körning. [content]
+     * märker de två elementen som trycks med `tryckt` och `tryckt2`.
      */
-    private fun capturePressed(dark: Boolean) {
+    private fun capturePressed(name: String, dark: Boolean, content: @Composable () -> Unit) {
         rule.mainClock.autoAdvance = false
         rule.setContent {
             TestTheme(darkTheme = dark, depth = true) {
                 CompositionLocalProvider(LocalRippleConfiguration provides null) {
-                    SampleSheet {
-                        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
-                            AppButton("Spara", {})
-                            AppButton("Spara", {}, Modifier.testTag("tryckt"))
-                        }
-                        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
-                            AppButton("Lägg till", {}, variant = ButtonVariant.Secondary)
-                            AppButton("Lägg till", {}, Modifier.testTag("tryckt2"), variant = ButtonVariant.Secondary)
-                        }
-                    }
+                    SampleSheet { content() }
                 }
             }
         }
         rule.onNodeWithTag("tryckt").performTouchInput { down(0, center) }
         rule.onNodeWithTag("tryckt2").performTouchInput { down(1, center) }
         rule.mainClock.advanceTimeBy(SETTLE_MILLIS)
-        rule.onRoot().captureRoboImage("AppButton_djup_nedtryckt_${if (dark) "dark" else "light"}.png")
+        rule.onRoot().captureRoboImage("${name}_${if (dark) "dark" else "light"}.png")
     }
 
     @Test

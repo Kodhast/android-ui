@@ -160,18 +160,28 @@ internal fun Modifier.cardSheen(shape: Shape, color: Color): Modifier = drawWith
 /**
  * Skugga bara utanför [shape] – för det som inte täcker hela sin form: en bock som tonar in, en vald ring med
  * luft innanför, reglagets knopp. En vanlig skugga skulle synas genom det genomskinliga. Tonar med [lift].
+ * [kind] = [Lift.Selected]: bara den nära skuggan, svagare (som ett valt chip); [Lift.Button]: knapparnas två lager.
  */
 @Composable
-internal fun Modifier.outerShadow(shape: Shape, color: Color, lift: () -> Float = { 1f }): Modifier {
+internal fun Modifier.outerShadow(shape: Shape, color: Color, lift: () -> Float = { 1f }, kind: Lift = Lift.Selected): Modifier {
     val shadows = LocalGraphicsContext.current.shadowContext
-    val painter = remember(shadows, shape, color) {
-        shadows.createDropShadowPainter(shape, Shadow(NEAR_RADIUS, color, offset = DpOffset(0.dp, NEAR_OFFSET), alpha = SELECTED_ALPHA))
+    val near = remember(shadows, shape, color, kind) {
+        val alpha = if (kind == Lift.Selected) SELECTED_ALPHA else 1f
+        shadows.createDropShadowPainter(shape, Shadow(NEAR_RADIUS, color, offset = DpOffset(0.dp, NEAR_OFFSET), alpha = alpha))
+    }
+    val far = remember(shadows, shape, color, kind) {
+        if (kind == Lift.Button) shadows.createDropShadowPainter(shape, Shadow(FAR_RADIUS, color, spread = FAR_SPREAD, offset = DpOffset(0.dp, FAR_OFFSET))) else null
     }
     return drawWithCache {
         val body = Path().apply { addOutline(shape.createOutline(size, layoutDirection, this@drawWithCache)) }
         onDrawBehind {
             val alpha = lift().coerceIn(0f, 1f)
-            if (alpha > 0f) clipPath(body, ClipOp.Difference) { with(painter) { draw(size, alpha) } }
+            if (alpha > 0f) {
+                clipPath(body, ClipOp.Difference) {
+                    far?.let { with(it) { draw(size, alpha) } }
+                    with(near) { draw(size, alpha) }
+                }
+            }
         }
     }
 }
