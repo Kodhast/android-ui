@@ -93,4 +93,5 @@
     <string name="calendar_has_entries">har poster</string>
     <string name="day_picker_label">Välj dag</string>
     <string name="day_picker_today">Idag</string>
+    <string name="unknown_value">Det här kan inte visas i den här versionen. Uppdatera appen för att ändra.</string>
 </resources>

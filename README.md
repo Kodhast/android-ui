@@ -299,12 +299,18 @@ bibliotekets (`NeedsHousehold`/`NeedsUser` heter `NeedsAccount`). `SignInButton`
 ## Inställningarna
 
 Delarna som båda apparnas inställningar har; vilka rader och kort inställningarna har stannar i appen.
+`SettingsPage` är sidan (topprad, rullning, marginal, luft för flikraden) och `SettingsCard` ett kort som visar ett
+fel från en åtgärd i just det kortet sist i sig.
 
 ```kotlin
-AppCard {
-    AccountRow(user.name, user.email, user.photoUrl)
-    AppDivider()
-    SignOutRow(stringResource(R.string.app_name), onSignOut = { onEvent(SettingsEvent.SignOut) })
+SettingsPage(stringResource(R.string.tab_settings), onBack = onBack) {
+    GroupLabel(stringResource(R.string.settings_account))
+    SettingsCard(error = state.error?.takeIf { it.section == Account }?.let { stringResource(it.error.toMessage()) }) {
+        AccountRow(user.name, user.email, user.photoUrl)
+        AppDivider()
+        SignOutRow(stringResource(R.string.app_name), onSignOut = { onEvent(SettingsEvent.SignOut) })
+    }
+    …
 }
 val access = rememberNotificationAccess()                       // läses om varje gång skärmen visas
 if (!access.allowed) {
@@ -415,7 +421,7 @@ inte använder ramen rätt.
 | `AccountAvatar` | Kontots avatar: `name` (initialer, "Anna Berg" → "AB"; utan namn en person-ikon), `onClick` (`null` = bara en bild utan semantik), `online` (`true` plupp i `ExtendedColors.online` och "Ansluten", `false` "Utan anslutning", `null` inget läge), `photoUrl` (profilfotot ovanpå initialerna, laddat och cachat på disk med Coil), `photo` (egen slot, går före `photoUrl`). 36 dp i 48 dp tryckyta, "Konto och inställningar" | Flyttad från Dagboken (#42); `photoUrl` och cachen flyttade från Dagboken (#46) |
 | `AccountRow` | Kontot överst i inställningarna: `AccountAvatar`, `name` och `email` under (utan e-post "Inloggad med Google"; utan namn står e-posten som titel), `photoUrl`; ingen tonad bakgrund | Flyttad från ReseApoteket och Dagboken (#54); Dagbokens tonade rad och extra rad "Inloggad med Google" försvinner (Mats beslut) |
 | `AddSplitButton` | "Lägg till ▾" – huvudåtgärd och pil med fler val | Menyn är en lucka: `menu = items.asSplitMenu()` (ReseApoteket) i stället för Dagbokens `menuItems` |
-| `AppBottomSheet` | Ark med rubrik; innehållet rullar alltid. `error` (`UiError`), `dirty` ("Släng ändringar?" vid bakåt, svep och tryck utanför), `canDismiss`, `hide`, `footer` (knappraden står fast i botten) | Dagbokens parametrar; ReseApotekets rullning gäller också med `footer` |
+| `AppBottomSheet` | Ark med rubrik; innehållet rullar alltid. `error` (`UiError`), `dirty` ("Släng ändringar?" vid bakåt, svep och tryck utanför), `canDismiss`, `hide`, `footer` (knappraden står fast i botten), `subtitle` (en rad under rubriken) | Dagbokens parametrar; ReseApotekets rullning gäller också med `footer`; `subtitle` från ReseApoteket (#75) |
 | `AppButton` | Den enda knappen: Primary, Secondary, Outlined, Text, Destructive; `loading`, `compact`, `contentDescription`. Appens knappstil `AppButtonStyle(minHeight, morph, secondaryTone)` sätts en gång med `LocalAppButtonStyle` (eller parametern `style`); `AppButtonDefaults.MinHeight` 56 dp / `CompactHeight` 40 dp | Fonder: `AppButtonStyle(minHeight = 40.dp, morph = true, secondaryTone = Tone.Primary)`; standard bevarar ReseApoteket och Dagboken |
 | `AppCalendar` | Månadskalendern: `month`, `onMonthChange`, `marked` (punkt), `selectedDate` (fylld primärfärg i `shapes.row`), `onDateClick`, `today` (punkt i `secondary` med ring i `progressDone.outline`), `dimFuture` (framtiden nedtonad och ovalbar, pilen till nästa månad stängd). TalkBack läser datum, "idag" och "har poster". `DayMarkerDot` och `dayDescription` är samma markering och uppläsning för en datumremsa | Flyttad från Dagbokens `DagbokenCalendar` och `DayMarker` (#68); ser ut som förut, men med `dimFuture` stängs nu också pilen till månaden efter idag |
 | `AppCard` | Kortet: `tone`, `contentColor` (standard `null`: ärver omgivande `LocalContentColor`; Dagboken `onSurface`), `onClick` (hela kortet en nod). Appens kortstil `AppCardStyle(border, padding, segmentGap, contentSpacing)` med `LocalAppCardStyle` (eller `style`); ett tonat kort har ingen kontur | ReseApotekets `ApotekCard` heter nu `AppCard`. Fonder: kontur 1 dp `outlineVariant`, `padding = Spacing.l`, `contentSpacing = 0.dp`; Filled/Error är Fonders egna toner |
@@ -456,7 +462,7 @@ inte använder ramen rätt.
 | `EmojiPicker` | Välj en emoji ur `emojis` med `ChoiceGrid`s ring | Listan krävs – apparnas listor (`PERSON_EMOJIS`, `DEFAULT_EMOJIS`) stannar i appen; ReseApotekets egen markering ersätts av ringen |
 | `EmptyState` | Tomt läge med ikon, rubrik, text och knapp; `compact` (Dagboken); `actions: List<EmptyAction>` (en eller flera knappar i full bredd, `label`, `onClick`, `icon`, `variant`); med `AppBrandStyle(emptyStateMark = true)` `BrandMark` i ikonrutan, bara i fullstort läge utan fel | Fonders tomma lägen med flera val |
 | `EntityDetailScreen` | Detaljramen: huvud, sektioner, Redigera och meny; underskärm med `title`, flikläge med `onBack = null`; `onRefresh`/`refreshing` | Union av apparnas; se Ramarna |
-| `EntityEditScreen` | Redigeringsramen med `EditorState`: Spara, "Släng ändringar?", sparfel, arkivera/återställ/radera, `formError`, tangentbordet | Union av apparnas; se Ramarna |
+| `EntityEditScreen` | Redigeringsramen med `EditorState`: Spara, "Släng ändringar?", sparfel, arkivera/återställ/radera, `formError`, `header` (centrerat överst, t.ex. en stor avatar), tangentbordet | Union av apparnas; se Ramarna. `header` från ReseApotekets personformulär (#75) |
 | `EntityListScreen` | Listramen: laddar, tomt, fel, grupper i kort, kolumner efter bredd, arkivering, `filter`, `footer`, `onRefresh`/`refreshing` | Union av apparnas; se Ramarna |
 | `ErrorSnackbar` | Visar ett `UiError` en gång; `template` (t.ex. "Synken nekades: %1$s"), `duration` | Tar `UiError` i stället för appens `DataError` |
 | `ExpandableContent` | Det som fälls ut: fjädrar fram (`defaultSpatialSpec`) och fälls snabbt ihop (`fastSpatialSpec`); `visible` | Flyttad från Dagboken (#46) |
@@ -480,11 +486,14 @@ inte använder ramen rätt.
 | `NoteCard` | Anteckningskortet i ett formulär: `AppCard` med en `Foldout` som stängd visar början av texten (eller "Lägg till en anteckning") och utfälld ett flerradigt fält; ett tömt fält ger `null`. `initiallyExpanded`, `error` (syns också stängd), `maxLength` (standard `AppTextFieldDefaults.LONG_MAX_LENGTH`; Dagboken `TextLimits.LONG`) | Flyttad från Dagboken (#57); taket är en parameter |
 | `NoticeBanner` | Meddelande överst på en skärm: tonat `AppCard` (`tone`, standard `Tone.Primary`) med `icon`, `text`, `detail` och en pil; hela kortet är knappen (`onClick`, läses med `onClickLabel`, standard "Öppna"); `onClick = null` = bara ett meddelande; `action` = en egen knapp under texten (kräver `onClick`) | Flyttad från Dagboken (#54), som skickar sin `Tone.Warning`; ReseApotekets "Notiser är avstängda" |
 | `PausableRow` | Rad som kan pausas: typ som pill, nedtonad "Pausat"; `pillTone` krävs | Tonen är appens (ReseApoteket `Tone.Blue`, Dagboken `Tone.Neutral`) |
+| `PillRow` | Några `InfoPill` tätt i en rad som inte bryts eller rullar, t.ex. etiketterna sist i en listrad | Flyttad från ReseApoteket (#75, packlistans etiketter) |
 | `PickerField` | Fält som öppnar en väljare; `emptyLabel`, `contentLabel` | – |
-| `QuantityStepper` | − värde +; `step`, `valueText`, `buttonSize` (standard `LocalQuantityStepperButtonSize`: `QuantityStepperDefaults.ButtonSize` 44 dp, `TouchTargetButtonSize` 48 dp) | Dagboken sätter `TouchTargetButtonSize` en gång i sitt tema |
+| `QuantityStepper` | − värde +; `step`, `valueText`, `buttonSize` (standard `LocalQuantityStepperButtonSize`: `QuantityStepperDefaults.ButtonSize` 44 dp, `TouchTargetButtonSize` 48 dp), `showLabel` (etiketten som text till höger, läses bara en gång) | Dagboken sätter `TouchTargetButtonSize` en gång i sitt tema; `showLabel` är ReseApotekets `LabeledStepper` (#75) |
 | `ReminderTimeRow` | En påminnelse: namn och klockslag, tryck öppnar `TimePickerPopup`; med `onEnabledChange` en `SwitchRow` med reglaget som egen kontroll, annars en `ItemRow`. Avslagen (`enabled = false`) eller `inactive` tonar texten, inte reglaget | Flyttad från Dagboken (#57) |
 | `SectionHeader` | Sektionsrubrik med antal; `countTone`; laddningsindikator med `working`; med `AppBrandStyle(sectionDots = true)` två prickar i `primary` före titeln när ikonrutan saknas; titeln högst två rader brutna mellan ord, ett ord som inte ryms kortas med "…" och visar hela titeln i en bubbla vid långt tryck (som `ItemRow`) | – |
-| `SectionFoldout` | `Foldout` med `SectionHeader` i titelraden: `icon`, `count`, `tone`, `countTone`, `trailing` (t.ex. en tonad lägg till-knapp, `AppIconButton(…, variant = IconButtonVariant.Tonal)`) | Flyttad från Dagboken (#46); `trailing` är ny (ReseApotekets persondetalj) |
+| `SectionFoldout` | `Foldout` med `SectionHeader` i titelraden: `icon`, `count`, `tone`, `countTone`, `trailing` (t.ex. en tonad lägg till-knapp, `AppIconButton(…, variant = IconButtonVariant.Tonal)`), `emptyText` (tomraden som i en listgrupp) | Flyttad från Dagboken (#46); `trailing` är ny (ReseApotekets persondetalj); `emptyText` från ReseApoteket (#75) |
+| `SettingsCard` | Kort på en inställningssida; `error` visas sist i kortet, där åtgärden gjordes | Flyttad från ReseApoteket (#75) |
+| `SettingsPage` | Inställningssidans ram: liten topprad med `title` och `onBack`, innehållet rullar med toppraden, `GroupLabel` + kort med samma marginal och avstånd, luft för flikraden sist | Flyttad från ReseApoteket (#75) |
 | `SignInButton` | **Föråldrad (1.13.0), tas bort i nästa major** – ingen app använder den; utloggad visar appen `SignInScreen`. Googles "G" och "Logga in" (`text`), konturerad i rubrikradens lägre höjd; `loading` | Ny (#42) |
 | `SignInScreen` | Inloggningen i hela skärmen: `appIcon`, `appName`, `welcome`, `note`, knappen "Logga in med Google" (`AppButton` med inloggningsikonen), `busy` ("Loggar in …", spärrad), `error` en gång som meddelande ovanför knappen (`onErrorShown`), `onSignIn` | Flyttad från ReseApoteket och Dagboken (#53); RA:s egna `LaunchedEffect` blir `ErrorSnackbar` |
 | `SignOutRow` | "Logga ut" med utloggningsikonen; frågar "Logga ut?" med `ConfirmDialog` innan `onSignOut`. Likadan i alla appar: bara `appName` i texten skiljer, och bekräftelseknappen är en vanlig knapp i appens färger | Flyttad från ReseApoteket och Dagboken (#54); apparnas egna texter och RA:s röda knapp försvinner (1.15.0, Mats beslut) |
@@ -496,8 +505,10 @@ inte använder ramen rätt.
 | `SwitchRow` | Inställningsrad med växel; `onClick` (växeln blir egen kontroll), `inactive` (tonar ned texten, inte växeln), `enabled` (låser växeln) | Dagbokens `inactive`; Fonders `enabled` |
 | `TimeField` | Tidsfält (kotlinx `LocalTime`) som öppnar `TimePickerPopup` | – |
 | `TimePickerPopup` | Tidsväljaren som dialog | – |
+| `UnknownValueNotice` | I stället för ett värde som appversionen inte känner till (t.ex. en typ som en nyare version sparat); `text`, standard "Det här kan inte visas i den här versionen. Uppdatera appen för att ändra." | Flyttad från ReseApoteket (#75) |
 | `UpdateRequiredScreen` | "Uppdatera appen": `message`, `note`, knappen "Hämta senaste versionen" som öppnar `releasesUrl` | Flyttad från ReseApoteket och Dagboken (#53) |
 | `UndoSnackbar` | "Arkiverad – Ångra" för `UndoRequest`; `format`, `onRequestDismissed` | – |
+| `ValueTile` | Ett beräknat värde i en tonad ruta: `label`, `value` i stor stil, `supporting` (förklaringen), `tone` (standard `Tone.Primary`); läses som en enhet och upp igen när värdet ändras | ReseApotekets `PackingPreview` (#75), som skickar `Tone.Blue` |
 
 **Modifierare:** `Modifier.longPress(label, onLongPress, haptic = false, semantics = LongPressSemantics.LongClick)` –
 långtryck ovanpå en yta vars klick ägs av något annat (`AppFilterChip`, Dagbokens känslor): avbryts av
@@ -533,6 +544,8 @@ pusha taggar och använder därför den manuella vägen.
 
 | Version | Ändring |
 |---|---|
+| 2.0.0 (under arbete) | Serien från granskningen 2026-11-18 (#73–#77). Publiceras som en version när #77 är klar |
+| ↳ #75 | ReseApotekets generella delar: `ValueTile` (packlistans förhandsvisning), `UnknownValueNotice` ("kan inte visas i den här versionen"), `PillRow`, `SettingsPage` och `SettingsCard(error)`; nya parametrar `QuantityStepper(showLabel)`, `AppBottomSheet(subtitle)`, `EntityEditScreen(header)` och `SectionFoldout(emptyText)` (med listgruppens tomrad). Standardvärdena ändrar inget; inga befintliga skärmdumpar är omtagna |
 | 1.21.0 | Reglaget får djup som knapparna (#70, Mats val A): med temats djup får `SwitchControl` i påslaget läge skimmer och ljuskant på spåret, och knoppen lyfts med knapparnas skugga i två lager och sjunker in när den trycks; avslaget ligger platt i sitt sänkta spår, som ett chip som inte är valt. Ny parameter `SwitchControl(interactionSource)`, som `SwitchRow` använder så att knoppen sjunker in också när raden trycks. Utan djup oförändrat (raden skickar bara sitt tryck vidare med djup). Omtagna skärmdumpar: de med reglage och djup (`Kontroller_djup`), nya `SwitchControl_djup_nedtryckt` |
 | 1.20.0 | `ListScrollRequest(message)`: listramen visar ett meddelande som snackbar när den rullar på begäran – Dagbokens "Inga poster den …" när Välj dag går till en annan dag (#68). Standardvärdet ändrar inget |
 | 1.19.0 | Välj dag (#68, Mats val B): `DayPicker` (chip och kalenderark), `AppCalendar` med `DayMarkerDot` och `dayDescription` (flyttade från Dagboken) och `EntityListScreen(scrollTo, onScrolled)` som rullar till en rad. Standardvärdena ändrar inget utseende |
