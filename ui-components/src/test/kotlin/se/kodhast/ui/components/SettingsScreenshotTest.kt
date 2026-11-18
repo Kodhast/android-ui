@@ -46,14 +46,14 @@ class SettingsScreenshotTest {
             AppCard {
                 AccountRow("Anna Lind", "anna.lind@exempel.se", photoUrl = null)
                 AppDivider()
-                SignOutRow({})
+                SignOutRow("ReseApoteket", {})
             }
         }
     }
 
     @Test
     fun `SignOutRow - fråga`() = rule.captureScreenLightAndDark("SignOutRow_fraga", open = { onNodeWithText("Logga ut").clickWithoutRipple() }) {
-        Sample { AppCard { SignOutRow({}) } }
+        Sample { AppCard { SignOutRow("ReseApoteket", {}) } }
     }
 
     @Test

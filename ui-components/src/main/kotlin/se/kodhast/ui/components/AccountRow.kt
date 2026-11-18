@@ -27,30 +27,31 @@ fun AccountRow(name: String?, email: String?, photoUrl: String?, modifier: Modif
 }
 
 /**
- * "Logga ut" med utloggningsikonen. Frågar med [ConfirmDialog] ("Logga ut?" och [message]) innan
- * [onSignOut] anropas; Avbryt gör ingenting. [destructive] färgar bekräftelseknappen som en
- * radering (ReseApoteket); Dagboken har en vanlig knapp (`false`).
+ * "Logga ut" med utloggningsikonen – likadan i alla appar, bara [appName] i frågan skiljer (Mats 2026-11-18).
+ * Frågar med [ConfirmDialog] ("Logga ut?") innan [onSignOut] anropas; Avbryt gör ingenting. Bekräftelseknappen
+ * är en vanlig knapp i appens färger: inget raderas, kontots data finns kvar.
  */
 @Composable
-fun SignOutRow(
-    onSignOut: () -> Unit,
-    modifier: Modifier = Modifier,
-    message: String = stringResource(R.string.sign_out_message),
-    destructive: Boolean = true
-) {
+fun SignOutRow(appName: String, onSignOut: () -> Unit, modifier: Modifier = Modifier) {
     var confirm by rememberSaveable { mutableStateOf(false) }
     ItemRow(stringResource(R.string.sign_out), modifier, icon = R.drawable.ic_logout, onClick = { confirm = true })
     if (confirm) {
         ConfirmDialog(
             title = stringResource(R.string.sign_out_title),
-            message = message,
+            message = stringResource(R.string.sign_out_message_format, appName),
             confirmLabel = stringResource(R.string.sign_out),
             onConfirm = {
                 confirm = false
                 onSignOut()
             },
-            onDismiss = { confirm = false },
-            destructive = destructive
+            onDismiss = { confirm = false }
         )
     }
+}
+
+/** Formen från 1.14.0, där varje app hade egen text och knappfärg. Ingen app använde den; ta bort i nästa major. */
+@Deprecated("Frågan är likadan i alla appar – använd SignOutRow(appName, onSignOut)", level = DeprecationLevel.HIDDEN)
+@Composable
+fun SignOutRow(onSignOut: () -> Unit, modifier: Modifier = Modifier, message: String? = null, destructive: Boolean = true) {
+    SignOutRow(appName = "", onSignOut = onSignOut, modifier = modifier)
 }
