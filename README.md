@@ -15,7 +15,7 @@ Kotlin `2.4.20` · AGP `9.4.1` · compileSdk 37 · minSdk 30.
 | `se.kodhast.ui:ui-theme` | `se.kodhast.ui.theme` | `AppTheme`, `Spacing`, `AppShapes`, `AppTypography`, `ExtendedColors`, `ProgressDoneColors`, `Tone`, `ToneColors` |
 | `se.kodhast.ui:ui-common` | `se.kodhast.ui.common` | ramarnas tillstånd utan UI: `UiError`/`ErrorMapper`, `ListUiState`, `DetailUiState`, `EditorState`, `EditorLoader`, `EditorSheet`, `shownAfter`, `WriteFailures`, `screenSharing`, `DateFormat`, `SyncUiState` |
 | `se.kodhast.ui:ui-components` | `se.kodhast.ui.components` | komponenterna och ramarna nedan (drar in `ui-theme` och `ui-common`) |
-| `se.kodhast.ui:ui-navigation` | `se.kodhast.ui.navigation` | navigationsramen: `TabBackStack`, `AppTransitions`, `AppNavHost` (drar in `ui-components`, Navigation 3 och kotlinx-serialization) |
+| `se.kodhast.ui:ui-navigation` | `se.kodhast.ui.navigation` | navigationsramen: `TabBackStack`, `AppTransitions`, `AppNavHost`, och komponentgalleriet `ComponentGallery` (drar in `ui-components`, Navigation 3 och kotlinx-serialization) |
 | `se.kodhast.ui:ui-testing` | `se.kodhast.ui.testing` | ramarnas kontraktstester, för appens enhetstester (`testImplementation`) |
 
 ## Lägga till i en app
@@ -359,6 +359,28 @@ AppNavHost(
 - `AppTransitions.forward()`/`back()`: skärmbytet – glider en fjärdedel och tonas med fjädring; tillbaka
   baklänges. Används av `AppNavHost`; en egen `NavDisplay` skriver `transitionSpec = { AppTransitions.forward() }`.
 
+## Komponentgalleriet
+
+`ComponentGallery` (i `ui-navigation`, paketet `se.kodhast.ui.navigation.gallery`) visar varje publik
+komponent i `ui-components` och `ui-navigation` på en skärm, i appens tema och med påhittad data –
+ramarna i fast höjd, dialoger, ark och meddelanden bakom knappar. Bibliotekets sektioner kommer först,
+appens egna (det som hör till appens domän) efter. Appen visar galleriet bara i debug-bygget:
+
+```kotlin
+ComponentGallery(
+    onBack = onBack,
+    appSections = listOf(
+        GallerySection("Personer och dosering") { PersonRows() },
+        GallerySection("Diagram") { Diagrams() }
+    )
+)
+```
+
+Bibliotekets `UiConsistencyTest` kräver att varje publik komponent (utom en `@Deprecated`) står i
+`LibraryGallery.kt`; en ny komponent läggs in där i samma PR. Apparnas test kräver bara appens egna
+komponenter i `appSections`. Texterna `gallery_title`, `gallery_error_offline`, `gallery_error_not_found`
+och `gallery_name_required` kan ersättas av appen.
+
 ## ui-testing – kontraktstesterna
 
 En skärm som använder en ram kör ramens kontrakt i sitt Robolectric-test och testar sedan bara det
@@ -419,6 +441,7 @@ inte använder ramen rätt.
 | `ChoiceChips` | Ett val av flera som chips; `onClear` (Dagboken). Överlagring för flerval (`selected: Set<T>`, `onToggle`) | Flervalet är nytt (Dagboken #321) |
 | `ChoiceGrid` | Val i ett rutnät med egen cell; `selectionRing` (Dagboken: ring i primärfärg) | – |
 | `ColorSwatchPicker` | Färgval; `marker` krävs: `SwatchMarker.RingAndCheck(checkColor)` (ReseApoteket) eller `GridRing` (Dagboken) | `marker` saknar standard – bockens färg är appens |
+| `ComponentGallery` | Komponentgalleriet i `ui-navigation` (se Komponentgalleriet): `onBack`, `appSections` (`GallerySection(title, content)`, appens egna sektioner efter bibliotekets) | Ersätter apparnas skal och deras sektioner för bibliotekets komponenter (#56) |
 | `Confetti` | Kort konfettiregn som belöning | `colors` (standard `AppTheme.extendedColors.accents`) |
 | `ConfirmDialog` | Bekräftelse; `destructive`, `onDecline`, `dismissLabel` (`null` = bara en knapp), `content` (fält under texten) | Dagbokens `dismissLabel: String?` och `content` |
 | `DateTimeRow` | Datum och tid för en post på en rad: `DateField` och `TimeField` bredvid varandra; `dateLabel`, `timeLabel` (standard "Datum", "Tid") | Flyttad från Dagboken (#57) |
@@ -506,6 +529,7 @@ pusha taggar och använder därför den manuella vägen.
 
 | Version | Ändring |
 |---|---|
+| 1.18.0 | Komponentgalleriet (#56): `ComponentGallery(onBack, appSections)` och `GallerySection` i `ui-navigation` (paketet `se.kodhast.ui.navigation.gallery`) – bibliotekets sektioner med varje publik komponent, sedan appens egna. Ligger i `ui-navigation` och inte i `ui-components`, eftersom galleriet också visar `AppNavHost`. `UiConsistencyTest` kräver att varje publik komponent finns i galleriet. Inga befintliga skärmdumpar är omtagna |
 | 1.17.0 | Dagbokens generella komponenter (#57): `StatPill` (`tone` krävs), `FavoriteStar`/`favoriteMenuItem`/`FavoriteMark` (ikonerna `ic_star`/`ic_star_filled`), `DateTimeRow`, `DurationRow`, `ReminderTimeRow` och `NoteCard` (`maxLength` som parameter) i `ui-components`; `EditorSheet`/`EditorSheetState` (formulär i ark, med appens `ErrorMapper`) och `DateFormat.duration`/`durationSeconds` i `ui-common`. Regel 2 i `CLAUDE.md`: det som hör till en apps domän stannar i appen, allt annat UI finns här. Inga befintliga skärmdumpar är omtagna |
 | 1.16.1 | Fix: `ItemRow(icon = …)` ritar ikonen i `onSurfaceVariant` (som pilen) i stället för `LocalContentColor`, som är svart på skärmar utan `Surface` – Logga ut-ikonen syntes inte i mörkt läge. Omtagna skärmdumpar: raderna med `icon` (bl.a. `ItemRow_varianter`, `SignOutRow_*`) |
 | 1.16.0 | Framstegsraden `AppProgress` (#55), en form för båda apparna (Mats beslut, form A): texten ovanför ett rundat spår i appens färger. `doneDescription` för en egen talad text vid klart. Nya temafärger `ExtendedColors.track` och `ExtendedColors.progressDone` (`ProgressDoneColors`), båda med standard `null` (`primaryContainer` respektive `primary` utan kontur). Inga befintliga skärmdumpar är omtagna |
