@@ -63,7 +63,9 @@ fun Foldout(
  * Rubrikvarianten av [Foldout] för ett sektionskort med [SectionHeader]: ikonrutan, titeln och räknaren i [countTone]
  * står i titelraden, som växlar kortet, med chevronen sist. Stängt visas bara raden – räknaren talar om läget utan att man
  * fäller ut. [trailing] står mellan rubriken och chevronen, t.ex. en tonad lägg till-knapp
- * (`AppIconButton(R.drawable.ic_add, "Lägg till recept", onAdd, variant = IconButtonVariant.Tonal)`). Resten som i [Foldout].
+ * (`AppIconButton(R.drawable.ic_add, "Lägg till recept", onAdd, variant = IconButtonVariant.Tonal)`). [emptyText] står
+ * först i det utfällda, som tomraden i en listgrupp – skicka den när sektionen saknar rader ("Inga recept än").
+ * Resten som i [Foldout].
  */
 @Composable
 fun SectionFoldout(
@@ -76,6 +78,7 @@ fun SectionFoldout(
     tone: Tone = Tone.Primary,
     countTone: Tone = tone,
     trailing: (@Composable () -> Unit)? = null,
+    emptyText: String? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
     Foldout(
@@ -85,9 +88,11 @@ fun SectionFoldout(
         modifier,
         trailing = trailing,
         header = { SectionHeader(title, Modifier.weight(1f), icon = icon, count = count, tone = tone, countTone = countTone) },
-        contentSpacing = Spacing.xs,
-        content = content
-    )
+        contentSpacing = Spacing.xs
+    ) {
+        emptyText?.let { GroupEmpty(it) }
+        content()
+    }
 }
 
 /** Det som fälls ut: fjädrar fram och fälls snabbt ihop – [Foldout] och appernas egna utfällbara detaljer (t.ex. ett postkort). */

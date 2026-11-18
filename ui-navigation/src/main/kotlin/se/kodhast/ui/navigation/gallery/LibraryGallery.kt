@@ -121,11 +121,14 @@ import se.kodhast.ui.components.NoteIndicator
 import se.kodhast.ui.components.NoticeBanner
 import se.kodhast.ui.components.PausableRow
 import se.kodhast.ui.components.PickerField
+import se.kodhast.ui.components.PillRow
 import se.kodhast.ui.components.QuantityStepper
 import se.kodhast.ui.components.R as ComponentsR
 import se.kodhast.ui.components.ReminderTimeRow
 import se.kodhast.ui.components.SectionFoldout
 import se.kodhast.ui.components.SectionHeader
+import se.kodhast.ui.components.SettingsCard
+import se.kodhast.ui.components.SettingsPage
 import se.kodhast.ui.components.SignInScreen
 import se.kodhast.ui.components.SignOutRow
 import se.kodhast.ui.components.StatPill
@@ -143,7 +146,9 @@ import se.kodhast.ui.components.ToolbarItem
 import se.kodhast.ui.components.TopBarSize
 import se.kodhast.ui.components.UndoRequest
 import se.kodhast.ui.components.UndoSnackbar
+import se.kodhast.ui.components.UnknownValueNotice
 import se.kodhast.ui.components.UpdateRequiredScreen
+import se.kodhast.ui.components.ValueTile
 import se.kodhast.ui.components.asSplitMenu
 import se.kodhast.ui.navigation.AppNavHost
 import se.kodhast.ui.navigation.R
@@ -263,6 +268,19 @@ private fun Rows() {
         InfoPill("Betapred")
         FavoriteMark()
     }
+    GroupLabel("PillRow – etiketterna sist i en rad")
+    AppCard {
+        ItemRow(
+            "Levaxin 50 µg",
+            subtitle = "9 tabletter",
+            trailing = {
+                PillRow {
+                    InfoPill("Ändrad")
+                    InfoPill("07:30")
+                }
+            }
+        )
+    }
     Row(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
         StatPill(ComponentsR.drawable.ic_clock, "7 842", "Steg", tone = Tone.Primary)
         StatPill(ComponentsR.drawable.ic_calendar, "–", "Sömn", tone = Tone.Primary, onClick = {}, onClickLabel = "Begär åtkomst")
@@ -281,6 +299,9 @@ private fun Rows() {
         SectionFoldout("Recept", section, { section = !section }, icon = ComponentsR.drawable.ic_box, count = "1") {
             ItemRow("Levaxin 50 µg", subtitle = "1 tablett dagligen", navigates = true, onClick = {})
         }
+    }
+    AppCard {
+        SectionFoldout("Kosttillskott", expanded = true, onToggle = {}, count = "0", emptyText = "Inga kosttillskott än") {}
     }
     AppCard {
         CollapsibleHeader(header, { header = !header }) { Text("Egen rubrikrad", Modifier.weight(1f), style = AppTheme.typography.itemTitle) }
@@ -351,6 +372,11 @@ private fun Fields() {
     AppSegmentedChoice(listOf("Ljust", "Mörkt", "System"), theme, { theme = it })
     var count by remember { mutableIntStateOf(7) }
     QuantityStepper(count, { count = it }, "dagar")
+    var doses by remember { mutableIntStateOf(2) }
+    QuantityStepper(doses, { doses = it }, "doser per dag", range = 1..24, showLabel = true)
+    GroupLabel("ValueTile · UnknownValueNotice")
+    ValueTile("För en 7-dagarsresa", "18 tabletter · 2 kartor", supporting = "2 × 1 tablett/dag × (7 + 2) dagar")
+    UnknownValueNotice()
     var cell by remember { mutableIntStateOf(1) }
     GroupLabel("ChoiceGrid")
     ChoiceGrid(FORMS.indices.toList(), cell, { cell = it }, { FORMS[it] }, selectionRing = true) { item, _ ->
@@ -379,6 +405,10 @@ private fun Settings() {
     AppCard {
         AccountRow("Anna Berg", "anna.berg@exempel.se", photoUrl = null)
         SignOutRow(appName, {})
+    }
+    GroupLabel("SettingsCard – med fel från en åtgärd i kortet")
+    SettingsCard(error = "Ingen anslutning just nu. Försök igen.") {
+        ItemRow("Exportera", subtitle = "Spara allt som en fil", onClick = {}, navigates = true)
     }
     AboutCard(appName, "1.0 (bygge 1)")
     NoticeBanner("Påminnelser är avstängda", ComponentsR.drawable.ic_clock, {}, detail = "Tillåt aviseringar i Androids inställningar.", action = "Öppna inställningar")
@@ -518,6 +548,7 @@ private fun Overlays() {
         AppBottomSheet(
             "Promenad",
             onDismiss = { sheet = false },
+            subtitle = "Ändra tiden och spara",
             dirty = minutes != 45,
             footer = { AppButton("Spara", { sheet = false }) }
         ) {
@@ -648,9 +679,19 @@ private fun Frames() {
             onSave = {},
             onClose = {},
             onArchive = {},
-            delete = DeleteAction("Radera Solkräm?", "Den tas bort för gott. Det går inte att ångra.") {}
+            delete = DeleteAction("Radera Solkräm?", "Den tas bort för gott. Det går inte att ångra.") {},
+            header = { AccountAvatar(name.ifBlank { null }, onClick = null) }
         ) {
             AppTextField(name, { name = it }, "Namn", error = if (name.isBlank()) "Ange ett namn" else null)
+        }
+    }
+    GroupLabel("SettingsPage")
+    Box(Modifier.fillMaxWidth().height(FRAME_HEIGHT)) {
+        SettingsPage("Inställningar", onBack = {}) {
+            GroupLabel("Packlista")
+            SettingsCard { SwitchRow("Flytta avprickade sist", checked = true, onCheckedChange = {}) }
+            GroupLabel("Om")
+            AboutCard(appName(), "1.0 (bygge 1)")
         }
     }
     GroupLabel("EntityDetailScreen")
