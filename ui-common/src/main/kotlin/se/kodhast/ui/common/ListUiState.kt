@@ -7,7 +7,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flatMapLatest
@@ -104,7 +103,7 @@ class DetailLoader<T : Any>(source: Flow<T?>, scope: CoroutineScope, errors: Err
 private fun <R> Flow<Unit>.restarting(block: () -> Flow<R>): Flow<R> = onStart { emit(Unit) }.flatMapLatest { block() }
 
 /** Delat medan någon prenumererar; efter [STOP_TIMEOUT_MILLIS] utan börjar det om från [initial]. */
-private fun <S> Flow<S>.stateWhileSubscribed(scope: CoroutineScope, initial: S): StateFlow<S> = stateIn(scope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS, replayExpirationMillis = 0), initial)
+private fun <S> Flow<S>.stateWhileSubscribed(scope: CoroutineScope, initial: S): StateFlow<S> = stateIn(scope, screenSharing(), initial)
 
 /** Hur länge ett flöde lever vidare utan prenumerant – överlever en rotation. */
 const val STOP_TIMEOUT_MILLIS = 5_000L

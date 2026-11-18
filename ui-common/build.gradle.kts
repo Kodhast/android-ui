@@ -16,6 +16,8 @@ dependencies {
     api(libs.androidx.annotation)
     api(libs.kotlinx.coroutines.core)
     api(libs.kotlinx.collections.immutable)
+    // DateFormat: datum och tider i UI.
+    api(libs.kotlinx.datetime)
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlin.test)

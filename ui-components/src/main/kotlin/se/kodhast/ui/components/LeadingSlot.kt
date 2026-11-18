@@ -5,10 +5,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
-/** Minsta tryckyta för det interaktiva i raderna (48 dp) – ett värde för kryss, rensa-knapp och ledande ruta. */
-internal val TOUCH_TARGET = 48.dp
+/** Minsta tryckyta för allt interaktivt (48 dp) – ett värde för kryss, rensa-knapp, ledande ruta och apparnas egna klickbara ytor. */
+val TOUCH_TARGET: Dp = 48.dp
 
 /**
  * Det ledande elementet i en rad (kryss, ikon, avatar) i en ruta på 48 dp, så att titlarna linjerar

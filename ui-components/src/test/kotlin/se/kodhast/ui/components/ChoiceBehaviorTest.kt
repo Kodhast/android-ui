@@ -46,6 +46,19 @@ class ChoiceBehaviorTest {
     private val forms = listOf("Tablett", "Kapsel", "Kräm")
 
     @Test
+    fun `ett eget ledande element står kvar också när chipet är valt, i stället för bocken`() {
+        show {
+            ChipRow {
+                AppFilterChip("Anna", selected = true, onClick = {}, leading = { Text("A") })
+                AppFilterChip("Erik", selected = false, onClick = {}, leading = { Text("E") })
+            }
+        }
+        rule.onNodeWithText("A", useUnmergedTree = true).assertExists()
+        rule.onNodeWithText("E", useUnmergedTree = true).assertExists()
+        rule.onNodeWithText("Anna").assertIsSelected()
+    }
+
+    @Test
     fun `filterchipet läses som valt eller inte och anropar onClick`() {
         var clicks = 0
         show {
