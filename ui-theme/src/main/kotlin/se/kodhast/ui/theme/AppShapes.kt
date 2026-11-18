@@ -9,7 +9,7 @@ import androidx.compose.ui.unit.dp
 
 /**
  * Formerna – samma i alla appar (Mats beslut 2026-11-18: bara färger och typsnitt skiljer). [AppTheme]
- * använder standardvärdena; ReseApoteket och Dagboken anger inga egna.
+ * använder alltid standardvärdena; appen kan inte ange egna.
  */
 @Immutable
 data class AppShapes(
