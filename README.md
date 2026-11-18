@@ -12,7 +12,7 @@ Kotlin `2.4.20` · AGP `9.4.1` · compileSdk 37 · minSdk 30.
 
 | Artefakt | Paket | Innehåll |
 |---|---|---|
-| `se.kodhast.ui:ui-theme` | `se.kodhast.ui.theme` | `AppTheme`, `Spacing`, `AppShapes`, `AppTypography`, `ExtendedColors`, `Tone`, `ToneColors` |
+| `se.kodhast.ui:ui-theme` | `se.kodhast.ui.theme` | `AppTheme`, `Spacing`, `AppShapes`, `AppTypography`, `ExtendedColors`, `ProgressDoneColors`, `Tone`, `ToneColors` |
 | `se.kodhast.ui:ui-common` | `se.kodhast.ui.common` | ramarnas tillstånd utan UI: `UiError`/`ErrorMapper`, `ListUiState`, `DetailUiState`, `EditorState`, `EditorLoader`, `shownAfter`, `WriteFailures`, `screenSharing`, `DateFormat`, `SyncUiState` |
 | `se.kodhast.ui:ui-components` | `se.kodhast.ui.components` | komponenterna och ramarna nedan (drar in `ui-theme` och `ui-common`) |
 | `se.kodhast.ui:ui-navigation` | `se.kodhast.ui.navigation` | navigationsramen: `TabBackStack`, `AppTransitions`, `AppNavHost` (drar in `ui-components`, Navigation 3 och kotlinx-serialization) |
@@ -67,7 +67,7 @@ fun AppTheme(
     content: @Composable () -> Unit
 )
 
-AppTheme.extendedColors   // card, rowTint, toolbar, onToolbar, tones, accents, online
+AppTheme.extendedColors   // card, rowTint, toolbar, onToolbar, tones, accents, online, track, progressDone
 AppTheme.shapes           // card, cardSegment(top, bottom), row, pill, field, menu, sheet, smallTile, iconTile
 AppTheme.typography       // screenTitle, bigNumber, headline, sectionTitle, quantity, itemTitle, itemSubtitle, body, pill, caption, button
 AppTheme.tone(tone)       // ToneColors(container, content)
@@ -84,6 +84,10 @@ Spacing.xs … Spacing.xxl  // 4, 8, 12, 16, 24, 32 dp
   valbara färger) – används av `Confetti`.
 - **Ansluten:** `ExtendedColors.online` är pluppen på `AccountAvatar(online = true)`; standard `null` =
   `colorScheme.primary` (Dagboken sätter sin gröna).
+- **Framstegsraden:** `ExtendedColors.track` är spåret i `AppProgress` (standard `null` =
+  `colorScheme.primaryContainer`) och `ExtendedColors.progressDone` fyllnaden när allt är klart,
+  `ProgressDoneColors(fill, outline)` (standard `null` = `colorScheme.primary` utan kontur; Dagboken sätter
+  solgult med mörk kontur, ReseApoteket grönt).
 - **Djup (#35):** med `depth = AppDepth(…)` får knappar en ljuskant upptill, ett svagt skimmer och
   en tonad skugga, och sjunker in (krymper till `pressedScale`, skuggan tonar bort) när de trycks.
   Valda chips, segment och verktygsradens flik får ljuskanten och skimret, tonade ikonknappar en
@@ -392,6 +396,7 @@ inte använder ramen rätt.
 | `AppHeader` | Kodhäst-sidhuvudet på en flik (se Sidhuvudet): `title`, `scrollBehavior`, `subtitle`, `syncing` (`LocalTopBarSyncing`), `identity` (`LocalAppIdentity`), `status`, `account` (`LocalTopBarAccount`), `actions`, `titleModifier`; taggen `APP_HEADER_TAG` | Ny (#42); ramarnas flikläge med `LocalAppIdentity` |
 | `AppIconButton` | Ikonknapp, minst 48 dp, alltid `contentDescription`; `tone` (platta och ikon för Tonal, ikonen för Plain; standard Material-färgerna) | – |
 | `AppLoading` | Expressive laddningsindikator mitt på ytan; med `AppBrandStyle(dotLoading = true)` Kodhästs två prickar som hoppar | – |
+| `AppProgress` | Framstegsraden "x av y": appens text (`label`, `doneLabel`) ovanför ett rundat spår (`ExtendedColors.track`, standard `primaryContainer`) som fylls fjädrande i `primary`; när allt är klart fyllnaden i `ExtendedColors.progressDone` (`ProgressDoneColors(fill, outline)`, standard `primary` utan kontur) och `doneLabel`. `celebrate = false` håller raden i primärfärgen (en tidigare dag), `compact` ger ett kort spår och "9 / 14" för en listrad. TalkBack läser texten och framsteget (`progressBarRangeInfo`); `doneDescription` = egen talad text vid klart (standard `doneLabel`) | Ersätter Dagbokens `ProgressBar` och ReseApotekets `SuitcaseProgress` (#55, form A): Dagboken ser ut och låter som förut med sin `track`, solgula `progressDone` med kontur och `doneDescription`; i ReseApoteket försvinner vågen, det stora talet, resväskerutan och det gröna klart-kortet |
 | `AppMenu` | Menyn bakom ⋮ (`AppMenuItem`: `icon`, `destructive`, `section` (rubrik), `checked` (kryssrad som håller menyn öppen), `supporting`/`supportingTone` (undertext), `muted` (dämpad etikett)) | `section`, `checked` från Dagboken; `asSplitMenu()` från ReseApoteket |
 | `AppNavHost` | Navigationsramen i `ui-navigation` (se Navigationsramen): `backStack`, `tabs`, `entryProvider`, `sync`, `onSyncErrorShown`, `action`, `onPopped`, `account` | Flyttad från ReseApoteket och Dagboken (#52); appens `onExit` behövs inte – i första flikens rot stänger systemet appen |
 | `AppMenuPopup` | Själva menyn, för egna knappar som öppnar en meny | Publik (Dagboken använder den direkt) |
@@ -489,6 +494,7 @@ pusha taggar och använder därför den manuella vägen.
 
 | Version | Ändring |
 |---|---|
+| 1.16.0 | Framstegsraden `AppProgress` (#55), en form för båda apparna (Mats beslut, form A): texten ovanför ett rundat spår i appens färger. `doneDescription` för en egen talad text vid klart. Nya temafärger `ExtendedColors.track` och `ExtendedColors.progressDone` (`ProgressDoneColors`), båda med standard `null` (`primaryContainer` respektive `primary` utan kontur). Inga befintliga skärmdumpar är omtagna |
 | 1.15.0 | `SignOutRow(appName, onSignOut)`: frågan är likadan i alla appar, bara appens namn skiljer ("Det du sparat i … finns kvar i ditt konto …"), och bekräftelseknappen är en vanlig knapp. Formen från 1.14.0 med `message` och `destructive` är dold (ingen app använde den) och tas bort i nästa major. Skärmdumparna `SignOutRow_*` är omtagna |
 | 1.14.0 | Inställningarnas delar (#54): `AccountRow`, `SignOutRow`, `AboutCard`, `NoticeBanner` (flyttad från Dagboken, standardtonen är `Tone.Primary`) och `rememberNotificationAccess`/`NotificationAccess`/`Context.canPostNotifications()` – flyttade från ReseApoteket och Dagboken, som hade var sin kopia. Texterna och ikonen `ic_logout`. Inga befintliga skärmdumpar är omtagna |
 | 1.13.0 | Inloggningen (#53): `SignInScreen`, `UpdateRequiredScreen` och `AuthGateHost` i `ui-components`, `AuthGate` i `ui-common`, texterna och ikonerna `ic_login`/`ic_download` – flyttade från ReseApoteket och Dagboken, som hade var sin kopia. `SignInButton` är föråldrad (oanvänd) och tas bort i nästa major. Inga befintliga skärmdumpar är omtagna |
