@@ -276,7 +276,7 @@ class OverlayScreenshotTest {
 
     @Test
     fun `EmojiPicker - val`() = captureLightAndDark("EmojiPicker_val") {
-        SampleSheet { EmojiPicker("🐻", {}, listOf("🦊", "🐻", "🐰", "🦉", "🐯", "🐢", "🦄", "🐧", "🐼", "🐨")) }
+        SampleSheet { EmojiPicker(listOf("🦊", "🐻", "🐰", "🦉", "🐯", "🐢", "🦄", "🐧", "🐼", "🐨"), "🐻", {}) }
     }
 
     private companion object {

@@ -30,6 +30,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import se.kodhast.ui.theme.AppTheme
+import se.kodhast.ui.theme.IconSize
 import se.kodhast.ui.theme.Spacing
 import se.kodhast.ui.theme.Tone
 
@@ -64,7 +65,7 @@ fun SectionHeader(
     ) {
         if (icon != null) {
             Box(Modifier.size(TILE).background(colors.container, AppTheme.shapes.smallTile), contentAlignment = Alignment.Center) {
-                Icon(painterResource(icon), contentDescription = null, tint = colors.content, modifier = Modifier.size(ICON))
+                Icon(painterResource(icon), contentDescription = null, tint = colors.content, modifier = Modifier.size(IconSize.small))
             }
         } else if (LocalAppBrandStyle.current.sectionDots) {
             BrandDots(MaterialTheme.colorScheme.primary, Modifier.size(DOTS_WIDTH, DOTS_HEIGHT).testTag(SECTION_DOTS_TAG))
@@ -115,7 +116,6 @@ internal fun TextLayoutResult.breaksMidWord(text: String): Boolean = (0 until li
 
 private const val TITLE_MAX_LINES = 2
 private val TILE = 32.dp
-private val ICON = 18.dp
 private val WORKING = 24.dp
 private val DOTS_WIDTH = 18.dp
 private val DOTS_HEIGHT = 6.dp

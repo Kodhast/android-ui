@@ -437,7 +437,7 @@ class OverlayBehaviorTest {
     @Test
     fun `emojiväljaren läser varje emoji som ett radioval och väljer`() {
         var picked by mutableStateOf("🦊")
-        show { EmojiPicker(picked, { picked = it }, listOf("🦊", "🐻", "🐰")) }
+        show { EmojiPicker(listOf("🦊", "🐻", "🐰"), picked, { picked = it }) }
         rule.onNodeWithContentDescription("🦊").assertIsSelected()
         rule.onNodeWithContentDescription("🐻").performClick()
         assertEquals("🐻", picked)

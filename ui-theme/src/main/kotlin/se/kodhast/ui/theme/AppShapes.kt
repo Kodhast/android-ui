@@ -8,13 +8,13 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
- * Appens former. Bara kortens hörnradie skiljer sig mellan apparna (ReseApoteket 28 dp, Dagboken 22 dp);
- * övriga har apparnas gemensamma värden som standard.
+ * Formerna – samma i alla appar (Mats beslut 2026-11-18: bara färger och typsnitt skiljer). [AppTheme]
+ * använder standardvärdena; ReseApoteket och Dagboken anger inga egna.
  */
 @Immutable
 data class AppShapes(
     /** Kortens hörnradie – ger [card] och [cardSegment]. */
-    val cardRadius: Dp,
+    val cardRadius: Dp = 22.dp,
     /** Rader och snackbars. */
     val row: Shape = RoundedCornerShape(18.dp),
     /** Pills, chips och knappar – helt rundade. */
@@ -28,7 +28,11 @@ data class AppShapes(
     /** Liten ikonruta, t.ex. i en sektionsrubrik. */
     val smallTile: Shape = RoundedCornerShape(10.dp),
     /** Ikonrutan i ett tomt tillstånd – rundare än ett kort, för att den är större. */
-    val iconTile: Shape = RoundedCornerShape(40.dp)
+    val iconTile: Shape = RoundedCornerShape(40.dp),
+    /** Den flytande huvudknappen (FAB) och FAB-menyns stängknapp – Material 3:s storlek. */
+    val fab: Shape = RoundedCornerShape(16.dp),
+    /** Väljardialogerna (datum och tid) – Material 3:s storlek. */
+    val dialog: Shape = RoundedCornerShape(28.dp)
 ) {
     /** Kortet. */
     val card: Shape = RoundedCornerShape(cardRadius)

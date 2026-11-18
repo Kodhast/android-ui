@@ -3,9 +3,9 @@
 Gemensamt Compose-bibliotek för Kodhästs Android-appar (ReseApoteket och Dagboken, senare
 eventuellt Fonder): ett tema-API och de delade komponenterna, så att samma element ser ut och
 beter sig likadant i alla appar och bara finns på ett ställe. Varje app behåller sina egna
-färger, former och typsnitt och skickar in dem i temat.
+färger och typsnitt och skickar in dem i temat; formerna är samma i alla appar.
 
-**Version:** 1.21.0 · Material 3 `1.5.0-beta01` (Expressive) · Compose BOM `2026.09.00` ·
+**Version:** 2.0.0 · Material 3 `1.5.0-beta01` (Expressive) · Compose BOM `2026.09.00` ·
 Kotlin `2.4.20` · AGP `9.4.1` · compileSdk 37 · minSdk 30.
 
 ## Moduler
@@ -40,8 +40,8 @@ dependencyResolutionManagement {
 }
 ```
 
-och i versionskatalogen/byggfilen `implementation("se.kodhast.ui:ui-components:1.21.0")` och
-`testImplementation("se.kodhast.ui:ui-testing:1.21.0")`.
+och i versionskatalogen/byggfilen `implementation("se.kodhast.ui:ui-components:2.0.0")` och
+`testImplementation("se.kodhast.ui:ui-testing:2.0.0")`.
 
 - **CI i appen:** `GITHUB_TOKEN` räcker när paketet gett apprepot läsåtkomst
   (paketets inställningar → *Manage Actions access*) och jobbet har `permissions: packages: read`.
@@ -59,8 +59,8 @@ och i versionskatalogen/byggfilen `implementation("se.kodhast.ui:ui-components:1
 fun AppTheme(
     colorScheme: ColorScheme,
     extendedColors: ExtendedColors,
-    shapes: AppShapes,
     typeScale: Typography,                                     // appens typskala med appens typsnitt
+    shapes: AppShapes = AppShapes(),                           // samma i alla appar – ange inga egna
     typography: AppTypography = AppTypography.from(typeScale), // de namngivna stilarna
     motionScheme: MotionScheme = MotionScheme.expressive(),
     depth: AppDepth? = null,                                   // djup och tryckkänsla; null = platt
@@ -68,18 +68,23 @@ fun AppTheme(
 )
 
 AppTheme.extendedColors   // card, rowTint, toolbar, onToolbar, tones, accents, online, track, progressDone
-AppTheme.shapes           // card, cardSegment(top, bottom), row, pill, field, menu, sheet, smallTile, iconTile
+AppTheme.shapes           // card, cardSegment(top, bottom), row, pill, field, menu, sheet, smallTile, iconTile, fab, dialog
+AppTheme.transparent      // ingen fyllnad (t.ex. ovalda segment)
 AppTheme.typography       // screenTitle, bigNumber, headline, sectionTitle, quantity, itemTitle, itemSubtitle, body, pill, caption, button
 AppTheme.tone(tone)       // ToneColors(container, content)
 AppTheme.depth            // AppDepth?: highlight, sheen, shadow, cardEdge, cardShadow, pressedScale, cardSheen, headerShadow
 Spacing.xs … Spacing.xxl  // 4, 8, 12, 16, 24, 32 dp
+IconSize.marker … .standard // 14 (marker), 16 (pill), 18 (small), 20 (button), 22 (row), 24 (standard) dp
+TRACK_HEIGHT, PROGRESS_STROKE // spårets höjd 8 dp, snurrans linje 2,5 dp
 ```
 
 - **Toner:** `Tone` är en nyckel. Biblioteket känner bara `Tone.Primary`; appen lägger till sina
   som tillägg, t.ex. `val Tone.Companion.Green get() = Tone("green")`, och ger dem färger i
   `ExtendedColors.tones`. En ton utan färger får primärtonen.
-- **Former:** bara `cardRadius` måste anges (ReseApoteket 28 dp, Dagboken 22 dp); övriga former
-  har apparnas gemensamma värden som standard.
+- **Former:** samma i alla appar (Mats beslut 2026-11-18: bara färger och typsnitt skiljer) – kort 22 dp,
+  rader 18 dp, fält 14 dp, menyer 16 dp, arkets överkant och väljardialogerna 28 dp, FAB 16 dp. ReseApoteket
+  och Dagboken anger inga egna; `shapes` finns kvar i `AppTheme` bara för Fonders egna radier, tills det är beslutat.
+- **Ikonstorlekar:** `IconSize` som `Spacing` – samma i alla appar; inget eget dp-värde för en ikon.
 - **Accentfärger:** `ExtendedColors.accents` är appens dekorativa färgserie (personfärger,
   valbara färger) – används av `Confetti`.
 - **Ansluten:** `ExtendedColors.online` är pluppen på `AccountAvatar(online = true)`; standard `null` =
@@ -118,7 +123,6 @@ fun ReseApoteketTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Comp
     AppTheme(
         colorScheme = if (darkTheme) AppColors.dark else AppColors.light,
         extendedColors = if (darkTheme) AppColors.darkExtended else AppColors.lightExtended,
-        shapes = AppShapes(cardRadius = 28.dp),
         typeScale = AppTypeScale,
         content = content
     )
@@ -299,7 +303,7 @@ AuthGateHost(
 
 "Logga in med Google", "Loggar in …", "Uppdatera appen", "Hämta senaste versionen" och ikonerna `ic_login`
 och `ic_download` finns i biblioteket; appen kan ta bort sina kopior. Appens eget `AuthGate`-enum ersätts av
-bibliotekets (`NeedsHousehold`/`NeedsUser` heter `NeedsAccount`). `SignInButton` är föråldrad.
+bibliotekets (`NeedsHousehold`/`NeedsUser` heter `NeedsAccount`).
 
 ## Inställningarna
 
@@ -469,14 +473,14 @@ inte använder ramen rätt.
 | `DiscardChangesDialog` | "Släng ändringar?" – "Släng" / "Fortsätt redigera" | Var appens egen |
 | `DropdownPill` | Kompakt rullgardin: klickbar `InfoPill` med valt värde och pil som öppnar `AppMenuPopup`; `tone`, `onClickLabel` (standard "Välj"). Läses som rullgardin, minst 48 dp | Flyttad från Dagbokens `CompactDropdownButton` (#76); Dagboken skickar `tone = Tone.Neutral` |
 | `DurationRow` | Tidsåtgång: `QuantityStepper` i minuter (`step`, standard 5, tak ett dygn) och snabbval (`quickPicks`, standard 15–120 min) i en `LabeledGroup` som visar "1 tim 30 min" (`DateFormat.duration`); `label` (standard "Tidsåtgång"). `DurationRowDefaults` | Flyttad från Dagboken (#57) |
-| `EmojiPicker` | Välj en emoji ur `emojis` med `ChoiceGrid`s ring | Listan krävs – apparnas listor (`PERSON_EMOJIS`, `DEFAULT_EMOJIS`) stannar i appen; ReseApotekets egen markering ersätts av ringen |
+| `EmojiPicker` | Välj en emoji ur `emojis` (först, som `ChoiceGrid`), `selected`, `onSelect`, med `ChoiceGrid`s ring | Listan krävs – apparnas listor (`PERSON_EMOJIS`, `DEFAULT_EMOJIS`) stannar i appen; ReseApotekets egen markering ersätts av ringen |
 | `EmptyState` | Tomt läge med ikon, rubrik, text och knapp; `compact` (Dagboken); `actions: List<EmptyAction>` (en eller flera knappar i full bredd, `label`, `onClick`, `icon`, `variant`); med `AppBrandStyle(emptyStateMark = true)` `BrandMark` i ikonrutan, bara i fullstort läge utan fel | Fonders tomma lägen med flera val |
 | `EntityDetailScreen` | Detaljramen: huvud, sektioner, Redigera och meny; underskärm med `title`, flikläge med `onBack = null`; `onRefresh`/`refreshing` | Union av apparnas; se Ramarna |
 | `EntityEditScreen` | Redigeringsramen med `EditorState`: Spara, "Släng ändringar?", sparfel, arkivera/återställ/radera, `formError`, `header` (centrerat överst, t.ex. en stor avatar), tangentbordet | Union av apparnas; se Ramarna. `header` från ReseApotekets personformulär (#75) |
 | `EntityListScreen` | Listramen: laddar, tomt, fel, grupper i kort, kolumner efter bredd, arkivering, `filter`, `footer`, `onRefresh`/`refreshing` | Union av apparnas; se Ramarna |
-| `ErrorSnackbar` | Visar ett `UiError` en gång; `template` (t.ex. "Synken nekades: %1$s"), `duration` | Tar `UiError` i stället för appens `DataError` |
-| `ExpandableContent` | Det som fälls ut: fjädrar fram (`defaultSpatialSpec`) och fälls snabbt ihop (`fastSpatialSpec`); `visible` | Flyttad från Dagboken (#46) |
-| `ExampleChips` | Exempel att trycka in i ett fält | – |
+| `ErrorSnackbar` | Visar ett `UiError` en gång; `template` (t.ex. "Synken nekades: %1$s"), `key`, `duration` (samma ordning som `MessageSnackbar`) | Tar `UiError` i stället för appens `DataError` |
+| `ExpandableContent` | Det som fälls ut: fjädrar fram (`defaultSpatialSpec`) och fälls snabbt ihop (`fastSpatialSpec`); `visible`, `modifier` | Flyttad från Dagboken (#46) |
+| `ExampleChips` | Exempel att trycka in i ett fält; `label` är `@Composable` som i `ChoiceChips` och `ChoiceGrid` | – |
 | `ExpandButton` | Chevronknappen för något som fälls ut utan titelrad: `AppIconButton` med chevronen som fjädrar ett halvt varv, "Fäll ut"/"Fäll ihop" och läget som `stateDescription` (som `CollapsibleHeader`) | Flyttad från Dagbokens postkort (#76) |
 | `Foldout` | Hopfällbar sektion: hela titelraden växlar (`CollapsibleHeader`), `summary` under titeln i stängt läge, `trailing` (egen kontroll före chevronen, växlar inte), `header` (ersätter titeln), `contentSpacing` | Flyttad från Dagboken (#46) |
 | `FavoriteMark` | Den lilla fyllda stjärnan i `primary` efter titeln på en stjärnmärkt post; läses "Favorit" | Flyttad från Dagboken (#57) |
@@ -507,7 +511,6 @@ inte använder ramen rätt.
 | `SectionFoldout` | `Foldout` med `SectionHeader` i titelraden: `icon`, `count`, `tone`, `countTone`, `trailing` (t.ex. en tonad lägg till-knapp, `AppIconButton(…, variant = IconButtonVariant.Tonal)`), `emptyText` (tomraden som i en listgrupp) | Flyttad från Dagboken (#46); `trailing` är ny (ReseApotekets persondetalj); `emptyText` från ReseApoteket (#75) |
 | `SettingsCard` | Kort på en inställningssida; `error` visas sist i kortet, där åtgärden gjordes | Flyttad från ReseApoteket (#75) |
 | `SettingsPage` | Inställningssidans ram: liten topprad med `title` och `onBack`, innehållet rullar med toppraden, `GroupLabel` + kort med samma marginal och avstånd, luft för flikraden sist | Flyttad från ReseApoteket (#75) |
-| `SignInButton` | **Föråldrad (1.13.0), tas bort i nästa major** – ingen app använder den; utloggad visar appen `SignInScreen`. Googles "G" och "Logga in" (`text`), konturerad i rubrikradens lägre höjd; `loading` | Ny (#42) |
 | `SignInScreen` | Inloggningen i hela skärmen: `appIcon`, `appName`, `welcome`, `note`, knappen "Logga in med Google" (`AppButton` med inloggningsikonen), `busy` ("Loggar in …", spärrad), `error` en gång som meddelande ovanför knappen (`onErrorShown`), `onSignIn` | Flyttad från ReseApoteket och Dagboken (#53); RA:s egna `LaunchedEffect` blir `ErrorSnackbar` |
 | `SignOutRow` | "Logga ut" med utloggningsikonen; frågar "Logga ut?" med `ConfirmDialog` innan `onSignOut`. Likadan i alla appar: bara `appName` i texten skiljer, och bekräftelseknappen är en vanlig knapp i appens färger | Flyttad från ReseApoteket och Dagboken (#54); apparnas egna texter och RA:s röda knapp försvinner (1.15.0, Mats beslut) |
 | `StatPill` | Mätvärde: ikon, värde och etikett i en tonad yta, läses som en enhet; `onClick` (knapp, minst 48 dp), `onClickLabel`, `action` (åtgärden sist, kräver `onClick`). `tone` krävs | Flyttad från Dagboken (#57); tonen är appens (Dagboken `Tone.Neutral`) |
@@ -557,11 +560,34 @@ artefakterna till GitHub Packages, antingen när en tagg `v<version>` pushas ell
 (Actions → Publicera → Run workflow på `main`), som då skapar taggen själv. Molnsessioner kan inte
 pusha taggar och använder därför den manuella vägen.
 
+## Byta från 1.x till 2.0
+
+2.0.0 samlar serien från granskningen 2026-11-18 (#73–#77). Det som bryter, och vad appen gör:
+
+- **Former:** ta bort `shapes = AppShapes(cardRadius = …)` ur appens `AppTheme(…)`; standarden är 22 dp-kort.
+  ReseApoteket går från 28 till 22 dp (Mats beslut). `shapes` står nu efter `typeScale` – en app som skickar
+  temats argument utan namn får byta till namngivna.
+- **Borttaget:** `SignInButton`, ikonen `ic_google`, strängen `sign_in` och den dolda `SignOutRow(onSignOut, modifier,
+  message, destructive)` – ingen app använde dem; använd `SignInScreen` och `SignOutRow(appName, onSignOut)`.
+- **`EmojiPicker(emojis, selected, onSelect)`:** listan först, som `ChoiceGrid` (förut `EmojiPicker(selected, onSelect, emojis)`).
+- **`ErrorSnackbar(…, template, key, duration, onShown)`:** `key` före `duration`, som `MessageSnackbar`. Anrop som
+  skickar `duration` utan namn byter till `duration = …`.
+- **`ExampleChips(label)`** är `@Composable (T) -> String`, som i `ChoiceChips` och `ChoiceGrid`; ett vanligt lambda
+  fungerar som förut.
+- **`ExpandableContent(visible, modifier, content)`:** ny `modifier`; anrop med avslutande lambda påverkas inte.
+- **Ikonstorlekar:** `IconSize` i `ui-theme` (Dagbokens `IconSize` byter till den: `marker`, `pill`, `row` har samma namn
+  och värden). Byt egna dp-värden för ikoner mot den.
+- **`AppTheme.transparent`, `AppShapes.fab`, `AppShapes.dialog` och `PROGRESS_STROKE`** är nya; `ui-forbidden.txt`
+  fäller nu `val ICON = …dp`, `strokeWidth = <tal>`, `colorScheme.x.copy(alpha = 0f)`, `XxxDefaults.shape` och
+  `MaterialTheme.shapes` i biblioteket. Apparna som kopierat mönstren kan ta med de nya raderna.
+- Det som kom i #73–#76 (nya komponenter, parametrar och djup) står i versionshistoriken nedan; det bryter inget.
+
 ## Versionshistorik
 
 | Version | Ändring |
 |---|---|
-| 2.0.0 (under arbete) | Serien från granskningen 2026-11-18 (#73–#77). Publiceras som en version när #77 är klar |
+| 2.0.0 | Serien från granskningen 2026-11-18 (#73–#77), en major så att apparna byter en gång. Brytande ändringar och vad appen gör: se Byta från 1.x till 2.0 |
+| ↳ #77 | API-städning: `SignInButton`, `ic_google`, `sign_in` och dolda `SignOutRow` borttagna; `EmojiPicker(emojis, selected, onSelect)`; `ErrorSnackbar` med `key` före `duration`; `ExampleChips(label)` `@Composable`; `ExpandableContent(modifier)`; ikonstorlekarna `IconSize` i `ui-theme` i stället för privata konstanter i nio filer; `PROGRESS_STROKE`, `AppTheme.transparent`, `AppShapes.fab` och `AppShapes.dialog` i stället för hårdkodade värden och Material 3:s standardformer, och `ui-forbidden.txt` fäller dem. Formerna samma i alla appar: `AppShapes` har standardvärdet 22 dp-kort och `AppTheme(shapes)` är valfri. Testtemat använder standardformerna (förut 28 dp-kort), så skärmdumparna med kort, rader i kort och dialoger är omtagna; `SignInButton_standard` och `AppHeader_utloggat` borttagna |
 | ↳ #75 | ReseApotekets generella delar: `ValueTile` (packlistans förhandsvisning), `UnknownValueNotice` ("kan inte visas i den här versionen"), `PillRow`, `SettingsPage` och `SettingsCard(error)`; nya parametrar `QuantityStepper(showLabel)`, `AppBottomSheet(subtitle)`, `EntityEditScreen(header)` och `SectionFoldout(emptyText)` (med listgruppens tomrad). Standardvärdena ändrar inget; inga befintliga skärmdumpar är omtagna |
 | ↳ #76 | Dagbokens generella delar: nya `AppSlider`, `DateStrip`, `DayTab`, `DayTabWeekday`, `SwipeToDelete`, `ExpandButton`, `StepIndicator`, `StepNavigation`, `DropdownPill`, `SectionCard`, `KeyFigure` och `StatPillGrid`; `ChoiceChips(more, moreLabel, morePickLabel)`; spårets höjd `TRACK_HEIGHT` (8 dp) i `ui-theme`, som `AppProgress` nu läser. Befintliga skärmdumpar oförändrade |
 | ↳ #73 | Rättelser: FAB-menyns Stäng-knapp i huvudknappens färg (`ActionColor.Tertiary` gav förut gråbrunt kryss); dra-för-att-uppdatera även i laddning, tomt och fel i `EntityListScreen` och `EntityDetailScreen`; hopfällt läge per grupp i stället för per rubrik; "Hämta senaste versionen" i `UpdateRequiredScreen` visar ett meddelande i stället för att krascha utan webbläsare; `QuantityStepper`:s 48 dp tryckyta med 44 dp knappar bevakas av ett test (den fanns redan, genom Compose utvidgade tryckyta); klickbara kort läses som knapp, ny parameter `AppCard`/`CardSegment(onClickLabel)`, och lyft och tryckskala bara på klickbara kort (`NoticeBanner` använder kortets klick, så ett klickbart meddelande får med temats djup kortets skugga och tryckskala, som förut klipptes bort); `TabBackStack.entries` byggs inte om vid varje läsning; README:s version och artefaktantal rättade och bevakade av `UiConsistencyTest`, som också kräver ett beteendetest per publik komponent. Nya skärmdumpar `AppFloatingToolbar_fabmeny_tertiary` och `NoticeBanner_djup`; `NoticeBanner_lagen` omtagen (kantutjämning, högst 9/255 i en kanal) |

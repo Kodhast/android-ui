@@ -190,9 +190,9 @@ fun AppHeader(
         val loose = Constraints(maxWidth = width)
         val trailing = trailings.firstOrNull()?.measure(loose)
         val trailingWidth = trailing?.width ?: 0
-        val iconSize = lerp(ICON.roundToPx(), COLLAPSED_ICON.roundToPx(), f)
+        val iconSize = lerp(APP_ICON.roundToPx(), COLLAPSED_APP_ICON.roundToPx(), f)
         val icon = icons.firstOrNull()?.measure(Constraints.fixed(iconSize, iconSize))
-        val beside = if (icon == null) start else start + COLLAPSED_ICON.roundToPx() + gap
+        val beside = if (icon == null) start else start + COLLAPSED_APP_ICON.roundToPx() + gap
         val endClearance = if (trailingWidth > 0) trailingWidth + end + Spacing.s.roundToPx() else start
         val nameX = start + (icon?.width ?: 0) + if (icon == null) 0 else gap
         val name = names.firstOrNull()?.measure(Constraints(maxWidth = (width - nameX - endClearance).coerceAtLeast(0)))
@@ -259,8 +259,8 @@ internal val EXPANDED = 144.dp
 internal val COLLAPSED = 64.dp
 
 /** Appikonen i vila och ihopfälld. */
-private val ICON = 40.dp
-private val COLLAPSED_ICON = 32.dp
+private val APP_ICON = 40.dp
+private val COLLAPSED_APP_ICON = 32.dp
 
 private val DOTS_WIDTH = 18.dp
 

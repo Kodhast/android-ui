@@ -3,10 +3,8 @@ package se.kodhast.ui.testing
 import androidx.compose.material3.Typography
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.unit.dp
 import se.kodhast.ui.common.ErrorMapper
 import se.kodhast.ui.common.UiError
-import se.kodhast.ui.theme.AppShapes
 import se.kodhast.ui.theme.AppTheme
 import se.kodhast.ui.theme.ExtendedColors
 import se.kodhast.ui.theme.Tone
@@ -46,7 +44,6 @@ fun ContractTheme(content: @Composable () -> Unit) {
             tones = mapOf(Tone.Primary to ToneColors(scheme.primaryContainer, scheme.onPrimaryContainer)),
             accents = listOf(scheme.primary, scheme.tertiary)
         ),
-        shapes = AppShapes(cardRadius = 28.dp),
         typeScale = Typography(),
         content = content
     )

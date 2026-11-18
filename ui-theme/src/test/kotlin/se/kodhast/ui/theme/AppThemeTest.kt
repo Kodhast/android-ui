@@ -34,7 +34,7 @@ class AppThemeTest {
         tones = mapOf(Tone.Primary to primary, green to greenColors),
         accents = listOf(Color.Red, Color.Blue)
     )
-    private val shapes = AppShapes(cardRadius = 22.dp)
+    private val shapes = AppShapes()
     private val scale = Typography()
 
     @Test
@@ -44,7 +44,7 @@ class AppThemeTest {
         var unknown: ToneColors? = null
         var materialPrimary: Color? = null
         rule.setContent {
-            AppTheme(lightColorScheme(primary = Color.Magenta), extended, shapes, scale) {
+            AppTheme(lightColorScheme(primary = Color.Magenta), extended, scale) {
                 seen = Triple(AppTheme.extendedColors, AppTheme.shapes, AppTheme.typography)
                 tone = AppTheme.tone(green)
                 unknown = AppTheme.tone(Tone("okänd"))
@@ -53,7 +53,7 @@ class AppThemeTest {
         }
         rule.waitForIdle()
         assertSame(extended, seen.first)
-        assertSame(shapes, seen.second)
+        assertEquals(shapes, seen.second)
         assertEquals(AppTypography.from(scale), seen.third)
         assertEquals(greenColors, tone)
         assertEquals(primary, unknown, "en ton appen inte gett färger får primärtonen")
@@ -64,7 +64,7 @@ class AppThemeTest {
     fun `appen kan ge egna namngivna stilar`() {
         val own = AppTypography.from(scale).copy(button = scale.labelLarge.copy(fontSize = 99.sp))
         var button: Float? = null
-        rule.setContent { AppTheme(lightColorScheme(), extended, shapes, scale, typography = own) { button = AppTheme.typography.button.fontSize.value } }
+        rule.setContent { AppTheme(lightColorScheme(), extended, scale, typography = own) { button = AppTheme.typography.button.fontSize.value } }
         rule.waitForIdle()
         assertEquals(99f, button)
     }

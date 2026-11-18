@@ -24,6 +24,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import se.kodhast.ui.theme.AppTheme
+import se.kodhast.ui.theme.IconSize
 import se.kodhast.ui.theme.Spacing
 import se.kodhast.ui.theme.Tone
 
@@ -60,7 +61,7 @@ fun StatPill(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.m)
     ) {
-        Icon(painterResource(icon), contentDescription = null, tint = colors.content, modifier = Modifier.size(ICON))
+        Icon(painterResource(icon), contentDescription = null, tint = colors.content, modifier = Modifier.size(IconSize.row))
         Column(if (action != null) Modifier.weight(1f) else Modifier) {
             Text(value, style = AppTheme.typography.quantity, color = colors.content, maxLines = 1)
             Text(label, style = AppTheme.typography.itemSubtitle, color = colors.content, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -87,6 +88,3 @@ fun StatPillGrid(items: List<StatPillItem>, tone: Tone, modifier: Modifier = Mod
         }
     }
 }
-
-/** Radens ikonstorlek, som krysset i `MorphingCheck` och flikarna. */
-private val ICON = 22.dp

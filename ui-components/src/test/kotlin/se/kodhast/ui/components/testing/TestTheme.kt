@@ -8,11 +8,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import se.kodhast.ui.theme.AppDepth
-import se.kodhast.ui.theme.AppShapes
 import se.kodhast.ui.theme.AppTheme
 import se.kodhast.ui.theme.ExtendedColors
 import se.kodhast.ui.theme.Tone
@@ -164,8 +162,6 @@ object TestPalette {
     val lightCardSheen = Color(0xFF7A2E18).copy(alpha = 0.05f)
     val darkCardSheen = Color.White.copy(alpha = 0.05f)
 
-    val shapes = AppShapes(cardRadius = 28.dp)
-
     private fun heading(size: Int, line: Int, spacing: Double = 0.0) = TextStyle(fontWeight = FontWeight.ExtraBold, fontSize = size.sp, lineHeight = line.sp, letterSpacing = spacing.em)
 
     private fun sans(size: Int, line: Int, weight: FontWeight) = TextStyle(fontWeight = weight, fontSize = size.sp, lineHeight = line.sp)
@@ -192,7 +188,6 @@ fun TestTheme(darkTheme: Boolean = false, depth: Boolean = false, cardSheen: Boo
     AppTheme(
         colorScheme = if (darkTheme) TestPalette.dark else TestPalette.light,
         extendedColors = if (darkTheme) TestPalette.darkExtended else TestPalette.lightExtended,
-        shapes = TestPalette.shapes,
         typeScale = TestPalette.typeScale,
         depth = if (!depth) {
             null

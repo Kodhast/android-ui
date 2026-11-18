@@ -37,7 +37,7 @@ enum class TopBarSize {
 val LocalTopBarStatus = compositionLocalOf<@Composable RowScope.() -> Unit> { {} }
 
 /**
- * Kontot längst till höger i [AppHeader] – t.ex. appens [AccountAvatar] eller [SignInButton]. Sätts av
+ * Kontot längst till höger i [AppHeader] – t.ex. appens [AccountAvatar]. Sätts av
  * appens navigation; utan den visas ingenting (t.ex. i tester).
  */
 val LocalTopBarAccount = compositionLocalOf<@Composable () -> Unit> { {} }

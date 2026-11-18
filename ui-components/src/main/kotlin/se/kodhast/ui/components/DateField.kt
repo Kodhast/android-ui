@@ -86,7 +86,8 @@ fun DateField(
             },
             dismissButton = { AppButton(stringResource(R.string.cancel), { picking = false }, variant = ButtonVariant.Text) },
             // Med temats djup får väljaren kortens kant, som tidsväljaren.
-            modifier = Modifier.floating(DatePickerDefaults.shape, shadow = false),
+            modifier = Modifier.floating(AppTheme.shapes.dialog, shadow = false),
+            shape = AppTheme.shapes.dialog,
             colors = DatePickerDefaults.colors(containerColor = AppTheme.extendedColors.card)
         ) {
             DatePicker(state)

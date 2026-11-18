@@ -97,9 +97,10 @@ fun SectionFoldout(
 
 /** Det som fälls ut: fjädrar fram och fälls snabbt ihop – [Foldout] och appernas egna utfällbara detaljer (t.ex. ett postkort). */
 @Composable
-fun ExpandableContent(visible: Boolean, content: @Composable () -> Unit) {
+fun ExpandableContent(visible: Boolean, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     AnimatedVisibility(
         visible = visible,
+        modifier = modifier,
         enter = expandVertically(MaterialTheme.motionScheme.defaultSpatialSpec()),
         exit = shrinkVertically(MaterialTheme.motionScheme.fastSpatialSpec())
     ) { content() }

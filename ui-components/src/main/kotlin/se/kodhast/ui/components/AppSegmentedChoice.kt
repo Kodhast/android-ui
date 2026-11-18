@@ -31,7 +31,7 @@ fun AppSegmentedChoice(
     val colors = SegmentedButtonDefaults.colors(
         activeContainerColor = MaterialTheme.colorScheme.primaryContainer,
         activeContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-        inactiveContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0f)
+        inactiveContainerColor = AppTheme.transparent
     )
     val depth = AppTheme.depth
     val row: @Composable (Modifier) -> Unit = { rowModifier ->

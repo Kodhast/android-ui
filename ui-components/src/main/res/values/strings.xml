@@ -57,7 +57,6 @@
     <string name="online">Ansluten</string>
     <string name="offline">Utan anslutning</string>
     <string name="sync_pending">Ändringar väntar på servern</string>
-    <string name="sign_in">Logga in</string>
     <!-- SignInScreen och UpdateRequiredScreen -->
     <string name="sign_in_google">Logga in med Google</string>
     <string name="sign_in_busy">Loggar in …</string>

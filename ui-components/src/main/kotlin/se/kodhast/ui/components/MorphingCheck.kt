@@ -27,6 +27,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.graphics.shapes.Morph
 import se.kodhast.ui.theme.AppTheme
+import se.kodhast.ui.theme.IconSize
 
 /**
  * Det formmorfande krysset – en ring som fjädrar till en fylld "kaka" med bock när [checked].
@@ -71,11 +72,10 @@ fun MorphingCheck(checked: Boolean, modifier: Modifier = Modifier, interactionSo
             painterResource(R.drawable.ic_check),
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onPrimary,
-            modifier = Modifier.size(ICON).alpha(progress.coerceIn(0f, 1f))
+            modifier = Modifier.size(IconSize.row).alpha(progress.coerceIn(0f, 1f))
         )
     }
 }
 
 private val SIZE = 40.dp
-private val ICON = 22.dp
 private val STROKE = 2.5.dp

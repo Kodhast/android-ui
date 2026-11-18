@@ -1,7 +1,6 @@
 package se.kodhast.ui.components
 
 import androidx.annotation.DrawableRes
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -32,6 +31,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import se.kodhast.ui.theme.AppTheme
+import se.kodhast.ui.theme.IconSize
+import se.kodhast.ui.theme.PROGRESS_STROKE
 import se.kodhast.ui.theme.Spacing
 import se.kodhast.ui.theme.Tone
 
@@ -99,11 +100,10 @@ fun AppButton(
     compact: Boolean = false,
     contentDescription: String? = null,
     style: AppButtonStyle = LocalAppButtonStyle.current
-) = ButtonBase(text, onClick, variant, icon, enabled, loading, compact, contentDescription, style, tintIcon = true, modifier = modifier)
+) = ButtonBase(text, onClick, variant, icon, enabled, loading, compact, contentDescription, style, modifier)
 
-/** [AppButton], där [tintIcon] = false ritar ikonen i sina egna färger (Googles "G" i [SignInButton]). */
 @Composable
-internal fun ButtonBase(
+private fun ButtonBase(
     text: String,
     onClick: () -> Unit,
     variant: ButtonVariant,
@@ -113,13 +113,12 @@ internal fun ButtonBase(
     compact: Boolean,
     contentDescription: String?,
     style: AppButtonStyle,
-    tintIcon: Boolean,
     modifier: Modifier = Modifier
 ) {
     val described = contentDescription?.let { modifier.semantics { this.contentDescription = it } } ?: modifier
     val minHeight = if (compact) AppButtonDefaults.CompactHeight else style.minHeight
     val active = enabled && !loading
-    val content: @Composable RowScope.() -> Unit = { ButtonContent(text, icon, loading, tintIcon) }
+    val content: @Composable RowScope.() -> Unit = { ButtonContent(text, icon, loading) }
     // Varianterna är Material 3:s knappar med sina standardvärden – samma som Button, FilledTonalButton,
     // OutlinedButton och TextButton skickar vidare till Button.
     val colors = when (variant) {
@@ -183,22 +182,18 @@ internal fun secondaryButtonColors(style: AppButtonStyle): ButtonColors = style.
 private fun ButtonColors.busy(loading: Boolean) = if (loading) copy(disabledContainerColor = containerColor, disabledContentColor = contentColor) else this
 
 @Composable
-private fun ButtonContent(text: String, @DrawableRes icon: Int?, loading: Boolean, tintIcon: Boolean) {
+private fun ButtonContent(text: String, @DrawableRes icon: Int?, loading: Boolean) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         when {
             loading -> CircularProgressIndicator(
-                modifier = Modifier.size(ICON_SIZE),
+                modifier = Modifier.size(IconSize.button),
                 color = LocalContentColor.current,
-                strokeWidth = 2.5.dp
+                strokeWidth = PROGRESS_STROKE
             )
 
-            icon != null && tintIcon -> Icon(painterResource(icon), contentDescription = null, modifier = Modifier.size(ICON_SIZE))
-
-            icon != null -> Image(painterResource(icon), contentDescription = null, modifier = Modifier.size(ICON_SIZE))
+            icon != null -> Icon(painterResource(icon), contentDescription = null, modifier = Modifier.size(IconSize.button))
         }
         if (loading || icon != null) Spacer(Modifier.width(Spacing.s))
         Text(text, style = AppTheme.typography.button)
     }
 }
-
-private val ICON_SIZE = 20.dp

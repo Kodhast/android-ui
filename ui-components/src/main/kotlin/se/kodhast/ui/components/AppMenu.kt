@@ -27,6 +27,7 @@ import androidx.compose.ui.semantics.toggleableState
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.unit.dp
 import se.kodhast.ui.theme.AppTheme
+import se.kodhast.ui.theme.IconSize
 import se.kodhast.ui.theme.Spacing
 import se.kodhast.ui.theme.Tone
 
@@ -121,12 +122,9 @@ fun AppMenuPopup(items: List<AppMenuItem>, expanded: Boolean, onDismiss: () -> U
                     item.onClick()
                 },
                 modifier = semantics,
-                leadingIcon = if (icon == null && checked == null) null else ({ icon?.let { Icon(painterResource(it), contentDescription = null) } ?: Spacer(Modifier.size(ICON)) }),
+                leadingIcon = if (icon == null && checked == null) null else ({ icon?.let { Icon(painterResource(it), contentDescription = null) } ?: Spacer(Modifier.size(IconSize.standard)) }),
                 colors = MenuDefaults.itemColors(textColor = color, leadingIconColor = color)
             )
         }
     }
 }
-
-/** Menyikonens storlek (Materials standard) – den tomma platsen för en okryssad kryssrad. */
-private val ICON = 24.dp

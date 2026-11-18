@@ -8,3 +8,6 @@ import androidx.compose.ui.unit.dp
  * stegprickarna: samma tjocklek överallt och i alla appar.
  */
 val TRACK_HEIGHT: Dp = 8.dp
+
+/** Linjens tjocklek i snurran som visar att något arbetar (knappens arbetar-läge). */
+val PROGRESS_STROKE: Dp = 2.5.dp
