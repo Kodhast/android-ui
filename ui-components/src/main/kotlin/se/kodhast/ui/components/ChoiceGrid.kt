@@ -1,6 +1,8 @@
 package se.kodhast.ui.components
 
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.border
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -32,7 +34,8 @@ import se.kodhast.ui.theme.Spacing
  * som är valt. [cell] ritar innehållet och får veta om det är valt. Med [selectionRing] äger
  * rutnätet valmarkeringen – en ring i primärfärgen runt den valda cellen, med luft mellan ringen och
  * innehållet (Dagboken); standard ritar [cell] sin egen markering. [ringColor] är ringens färg. [columns]
- * under 1 räknas som 1. Med temats djup och [selectionRing] lyfts det valda med en liten skugga runt ringen.
+ * under 1 räknas som 1. Med temats djup krymper cellen nedtryckt; med [selectionRing] lyfts det valda med en liten
+ * skugga runt ringen, och utan ring får den valda cellen skimmer och ljuskant – båda sjunker in vid tryck.
  */
 @Composable
 fun <T> ChoiceGrid(
@@ -56,22 +59,27 @@ fun <T> ChoiceGrid(
                     row.forEach { item ->
                         val isSelected = item == selected
                         val description = label(item)
+                        val interactionSource = remember { MutableInteractionSource() }
+                        val lift = depth?.let { rememberLift(interactionSource) }
+                        val liftValue = { lift?.value ?: 1f }
                         // Tryckytan är 48 dp; den synliga cirkeln är mindre.
                         Box(
                             Modifier.size(TOUCH_TARGET)
                                 .clip(AppTheme.shapes.pill)
-                                .selectable(selected = isSelected, role = Role.RadioButton, onClick = { onSelect(item) })
+                                .selectable(isSelected, interactionSource, LocalIndication.current, role = Role.RadioButton, onClick = { onSelect(item) })
                                 .semantics { contentDescription = description },
                             contentAlignment = Alignment.Center
                         ) {
                             val pill = AppTheme.shapes.pill
                             val ring = if (selectionRing && isSelected) {
-                                val lifted = if (depth != null) Modifier.outerShadow(pill, depth.shadow) else Modifier
+                                val lifted = if (depth != null) Modifier.outerShadow(pill, depth.shadow, liftValue) else Modifier
                                 lifted.border(RING, ringColor, pill).padding(RING_GAP)
                             } else {
                                 Modifier
                             }
-                            Box(Modifier.size(CELL).then(ring), contentAlignment = Alignment.Center) { cell(item, isSelected) }
+                            // Utan ring ritar cellen sin markering själv; skimret läggs ovanpå den valda.
+                            val lifted = depth?.let { Modifier.depthSurface(it, pill, liftValue, raised = isSelected && !selectionRing, shadow = null) } ?: Modifier
+                            Box(Modifier.size(CELL).then(lifted).then(ring), contentAlignment = Alignment.Center) { cell(item, isSelected) }
                         }
                     }
                     // En kortare sista rad följer rutnätet i stället för att spridas ut.

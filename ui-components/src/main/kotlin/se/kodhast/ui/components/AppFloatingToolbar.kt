@@ -6,13 +6,16 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.scaleIn
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -20,6 +23,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.FloatingToolbarDefaults
 import androidx.compose.material3.HorizontalFloatingToolbar
@@ -39,6 +43,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -134,8 +139,9 @@ val LocalBottomClearance = compositionLocalOf { NoBottomClearance }
 /**
  * Toppnivånavigeringen: en flytande verktygsrad där vald flik visar ikon och namn och övriga bara ikon
  * (med namnet för TalkBack). [action] lägger en gör-något-knapp i [actionColor] (standard `secondary`) till
- * höger om flikarna; utan den (standard) visas bara flikarna. Med temats djup kastar raden en skugga och den valda fliken får
- * skimmer och ljuskant. [style] är radens bakgrund och [actionMenu] hur huvudknappens meny öppnas; de tre
+ * höger om flikarna; utan den (standard) visas bara flikarna. Med temats djup kastar raden en skugga, flikarna krymper
+ * nedtryckta och den valda får skimmer och ljuskant; huvudknappen, FAB-menyns val och dess kryss får en fylld knapps
+ * skugga, skimmer och ljuskant, som sjunker in vid tryck. [style] är radens bakgrund och [actionMenu] hur huvudknappens meny öppnas; de tre
  * kommer som standard ur appens [AppBrandStyle].
  */
 @Composable
@@ -204,13 +210,27 @@ private fun ToolbarActionButton(action: ToolbarAction, menuStyle: ActionMenuStyl
     val hasMenu = action.menu.isNotEmpty()
     val state = expandLabels(menuOpen).state
     val colors = actionColors(color)
+    val onClick = { if (hasMenu) menuOpen = true else action.onClick() }
+    val described = if (hasMenu) Modifier.semantics { stateDescription = state } else Modifier
+    val icon = @Composable { Icon(painterResource(action.icon), contentDescription = action.label) }
+    val depth = AppTheme.depth
     Box(Modifier.onGloballyPositioned { bounds = Rect(it.positionOnScreen(), it.size.toSize()) }) {
-        FloatingToolbarDefaults.StandardFloatingActionButton(
-            onClick = { if (hasMenu) menuOpen = true else action.onClick() },
-            modifier = if (hasMenu) Modifier.semantics { stateDescription = state } else Modifier,
-            containerColor = colors.container,
-            contentColor = colors.content
-        ) { Icon(painterResource(action.icon), contentDescription = action.label) }
+        if (depth == null) {
+            FloatingToolbarDefaults.StandardFloatingActionButton(onClick, described, containerColor = colors.container, contentColor = colors.content, content = icon)
+        } else {
+            // Med djup: samma knapp som Material 3:s (som fyller platsen), men med en fylld knapps djup i stället för dess skugga.
+            val interactionSource = remember { MutableInteractionSource() }
+            val lift = rememberLift(interactionSource)
+            FloatingActionButton(
+                onClick,
+                described.fillMaxSize().depthSurface(depth, FloatingActionButtonDefaults.shape, { lift.value }, raised = true),
+                containerColor = colors.container,
+                contentColor = colors.content,
+                elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp),
+                interactionSource = interactionSource,
+                content = icon
+            )
+        }
         if (hasMenu) {
             when (menuStyle) {
                 ActionMenuStyle.Popup -> AppMenuPopup(action.menu, menuOpen, onDismiss = { menuOpen = false })
@@ -282,11 +302,13 @@ private fun FabMenu(action: ToolbarAction, anchor: Rect, colors: ActionColors, o
                             }
                         }
                     }
+                    val closePress = remember { MutableInteractionSource() }
                     Box(
                         Modifier
+                            .depth(FloatingActionButtonDefaults.shape, closePress)
                             .clip(FloatingActionButtonDefaults.shape)
                             .background(colors.container)
-                            .clickable(onClickLabel = closeLabel, role = Role.Button, onClick = onDismiss)
+                            .clickable(closePress, LocalIndication.current, onClickLabel = closeLabel, role = Role.Button, onClick = onDismiss)
                             .semantics { contentDescription = closeLabel },
                         contentAlignment = Alignment.Center
                     ) { Icon(painterResource(R.drawable.ic_close), contentDescription = null, tint = colors.content) }
@@ -323,14 +345,14 @@ private fun FabMenu(action: ToolbarAction, anchor: Rect, colors: ActionColors, o
 @Composable
 private fun FabMenuItem(item: AppMenuItem, modifier: Modifier = Modifier, onClick: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
-    val depth = AppTheme.depth
+    val press = remember { MutableInteractionSource() }
     Row(
         modifier
-            .then(if (depth != null) Modifier.raisedShadow(AppTheme.shapes.pill, depth.shadow, Lift.Button, { 1f }) else Modifier)
+            .depth(AppTheme.shapes.pill, press)
             .heightIn(min = FAB_ITEM_HEIGHT)
             .clip(AppTheme.shapes.pill)
             .background(scheme.primary)
-            .clickable(role = Role.Button, onClick = onClick)
+            .clickable(press, LocalIndication.current, role = Role.Button, onClick = onClick)
             .padding(horizontal = Spacing.l),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.s)
@@ -352,15 +374,16 @@ private fun ToolbarTab(item: ToolbarItem, palette: ToolbarPalette, selected: Boo
     // Märket syns bara på en ovald flik; antalet läses med flikens namn, inte en gång till.
     val badge = item.badgeCount?.takeIf { it > 0 && !selected }
     val description = badge?.let { stringResource(R.string.toolbar_badge_format, item.label, it) } ?: item.label
-    val depth = AppTheme.depth
+    val press = remember { MutableInteractionSource() }
     Row(
         Modifier
             .heightIn(min = TAB_HEIGHT)
             .widthIn(min = TAB_HEIGHT)
+            // Den valda fliken sitter i raden: skimmer och ljuskant men ingen skugga.
+            .depth(AppTheme.shapes.pill, press, raised = selected, shadow = null)
             .clip(AppTheme.shapes.pill)
             .background(background)
-            .then(if (depth != null && selected) Modifier.sheen(AppTheme.shapes.pill, depth) else Modifier)
-            .selectable(selected = selected, role = Role.Tab, onClick = onClick)
+            .selectable(selected, press, LocalIndication.current, role = Role.Tab, onClick = onClick)
             .semantics { contentDescription = description }
             .animateContentSize(MaterialTheme.motionScheme.defaultSpatialSpec())
             .padding(horizontal = Spacing.m),

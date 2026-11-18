@@ -125,9 +125,7 @@ internal fun ButtonBase(
     val colors = when (variant) {
         ButtonVariant.Primary -> ButtonDefaults.buttonColors()
 
-        ButtonVariant.Secondary -> style.secondaryTone?.let { AppTheme.tone(it) }
-            ?.let { ButtonDefaults.filledTonalButtonColors(containerColor = it.container, contentColor = it.content) }
-            ?: ButtonDefaults.filledTonalButtonColors()
+        ButtonVariant.Secondary -> secondaryButtonColors(style)
 
         ButtonVariant.Outlined -> ButtonDefaults.outlinedButtonColors()
 
@@ -160,18 +158,9 @@ internal fun ButtonBase(
     } else {
         val lift = rememberLift(interactionSource, active)
         val liftValue = { lift.value }
-        val raised = active && variant in RAISED
-        val shape = AppTheme.shapes.pill
+        val strength = if (variant == ButtonVariant.Secondary) SECONDARY_SHADOW else 1f
         val decorated = Modifier
-            .pressScale(depth, liftValue)
-            .then(
-                if (raised) {
-                    val strength = if (variant == ButtonVariant.Secondary) SECONDARY_SHADOW else 1f
-                    Modifier.raisedShadow(shape, depth.shadow, Lift.Button, liftValue, strength).sheen(shape, depth, liftValue)
-                } else {
-                    Modifier
-                }
-            )
+            .depthSurface(depth, AppTheme.shapes.pill, liftValue, raised = active && variant in RAISED, strength = strength)
             .heightIn(min = minHeight)
         val description = contentDescription?.let { Modifier.semantics { this.contentDescription = it } } ?: Modifier
         DepthTouchTarget(modifier) { target -> button(target.then(description).then(decorated)) }
@@ -182,7 +171,13 @@ internal fun ButtonBase(
 private val RAISED = setOf(ButtonVariant.Primary, ButtonVariant.Secondary, ButtonVariant.Destructive)
 
 /** En tonad knapp lyfter hälften så mycket som en fylld – den är ett andrahandsval. */
-private const val SECONDARY_SHADOW = 0.5f
+internal const val SECONDARY_SHADOW = 0.5f
+
+/** Färgerna för [ButtonVariant.Secondary] i knappstilen [style] – också [AddSplitButton]:s. */
+@Composable
+internal fun secondaryButtonColors(style: AppButtonStyle): ButtonColors = style.secondaryTone?.let { AppTheme.tone(it) }
+    ?.let { ButtonDefaults.filledTonalButtonColors(containerColor = it.container, contentColor = it.content) }
+    ?: ButtonDefaults.filledTonalButtonColors()
 
 /** En knapp som arbetar är inaktiv men behåller sina färger – den ser upptagen ut, inte avstängd. */
 private fun ButtonColors.busy(loading: Boolean) = if (loading) copy(disabledContainerColor = containerColor, disabledContentColor = contentColor) else this

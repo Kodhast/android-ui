@@ -3,6 +3,7 @@ package se.kodhast.ui.components
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.interaction.InteractionSource
+import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
@@ -12,6 +13,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.dropShadow
@@ -46,14 +48,16 @@ import se.kodhast.ui.theme.AppTheme
 internal enum class Lift { Button, Selected }
 
 /**
- * Hur upphöjt något är just nu: 1 i vila och 0 nedtryckt, med Expressives snabba fjäder – den kan slå
- * över lite, så att knappen studsar tillbaka. Inaktivt eller arbetande ([active] = false) står kvar i vila.
+ * Hur upphöjt något är just nu: 1 i vila och 0 nedtryckt (eller draget, som skjutreglagets knopp), med
+ * Expressives snabba fjäder – den kan slå över lite, så att knappen studsar tillbaka. Inaktivt eller arbetande
+ * ([active] = false) står kvar i vila.
  */
 @Composable
 internal fun rememberLift(interactionSource: InteractionSource, active: Boolean = true): State<Float> {
     val pressed by interactionSource.collectIsPressedAsState()
+    val dragged by interactionSource.collectIsDraggedAsState()
     return animateFloatAsState(
-        targetValue = if (active && pressed) 0f else 1f,
+        targetValue = if (active && (pressed || dragged)) 0f else 1f,
         animationSpec = MaterialTheme.motionScheme.fastSpatialSpec(),
         label = "lyft"
     )
@@ -85,6 +89,60 @@ internal fun Modifier.raisedShadow(shape: Shape, color: Color, kind: Lift, lift:
             alpha = lift().coerceIn(0f, 1f) * strength
         }
     }
+}
+
+/**
+ * En fylld eller vald yta med djup – en gång för knappar, ikonknappar, chips, FAB:en, FAB-menyns val, flikar,
+ * segment och kalenderns dag: krymper nedtryckt ([press] förstärker, som ikonknapparnas), och [raised] ger
+ * skimmer och ljuskant och skuggan [shadow] (`null` = ingen, för det som sitter i en rad) i [strength] – allt
+ * sjunker in med trycket. Ovalt, konturerat och inaktivt ([raised] = false) bara krymper.
+ */
+internal fun Modifier.depthSurface(
+    depth: AppDepth,
+    shape: Shape,
+    lift: () -> Float,
+    raised: Boolean,
+    shadow: Lift? = Lift.Button,
+    strength: Float = 1f,
+    press: Float = 1f
+): Modifier {
+    val pressed = pressScale(depth, lift, press)
+    if (!raised) return pressed
+    val shaded = shadow?.let { pressed.raisedShadow(shape, depth.shadow, it, lift, strength) } ?: pressed
+    return shaded.sheen(shape, depth, lift)
+}
+
+/**
+ * Temats djup ([depthSurface]) på en yta som trycks via [press]; utan djup oförändrad. [active] = false (inaktivt)
+ * står kvar i vila.
+ */
+@Composable
+internal fun Modifier.depth(
+    shape: Shape,
+    press: InteractionSource,
+    raised: Boolean = true,
+    shadow: Lift? = Lift.Button,
+    active: Boolean = true
+): Modifier {
+    val depth = AppTheme.depth ?: return this
+    val lift = rememberLift(press, active)
+    return depthSurface(depth, shape, { lift.value }, raised, shadow)
+}
+
+/**
+ * Klipper till [shape] och krymper med temats djup medan [source] trycks – för det som bara krymper, som en
+ * klickbar pill. `null` = inget tryck att följa (bara klippt).
+ */
+@Composable
+internal fun Modifier.pressable(shape: Shape, source: InteractionSource?): Modifier {
+    val depth = AppTheme.depth
+    val pressed = if (depth != null && source != null) {
+        val lift = rememberLift(source)
+        pressScale(depth, { lift.value })
+    } else {
+        this
+    }
+    return pressed.clip(shape)
 }
 
 /**
@@ -234,6 +292,20 @@ internal fun Modifier.floatingDepth(shape: Shape, depth: AppDepth, inset: Dp = 0
     }
 }
 
+/**
+ * Bottenarkets kant: kortens hårfina kant ([AppDepth.cardEdge]) längs arkets övre kant och hörn, tonad bort nedåt
+ * över [SHEET_EDGE_FADE] – arket går ut i skärmens kanter, så att sidorna och botten inte ska ha någon linje.
+ */
+internal fun Modifier.sheetEdge(shape: Shape, depth: AppDepth): Modifier = drawWithCache {
+    val width = EDGE.toPx()
+    val outline = shape.createOutline(Size(size.width - width, size.height - width), layoutDirection, this)
+    val brush = Brush.verticalGradient(0f to depth.cardEdge, 1f to depth.cardEdge.copy(alpha = 0f), endY = SHEET_EDGE_FADE.toPx())
+    onDrawWithContent {
+        drawContent()
+        translate(width / 2, width / 2) { drawOutline(outline, brush, style = Stroke(width)) }
+    }
+}
+
 /** Kortens hårfina kant som ram – för ytor med egen kantparameter (menyn). */
 internal fun AppDepth.edgeStroke(): BorderStroke = BorderStroke(EDGE, cardEdge)
 
@@ -315,6 +387,9 @@ private val FLOAT_NEAR_OFFSET: Dp = 2.dp
 private val FLOAT_RADIUS: Dp = 24.dp
 private val FLOAT_SPREAD: Dp = (-8).dp
 private val FLOAT_OFFSET: Dp = 10.dp
+
+/** Bottenarkets kant tonar ut under hörnen. */
+private val SHEET_EDGE_FADE: Dp = 40.dp
 
 /** Fokusringens bredd utanför fältets kant. */
 private val HALO: Dp = 4.dp

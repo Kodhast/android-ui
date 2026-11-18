@@ -4,6 +4,7 @@ package se.kodhast.ui.components
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.interaction.InteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -31,10 +32,12 @@ import se.kodhast.ui.theme.AppTheme
  * Det formmorfande krysset – en ring som fjädrar till en fylld "kaka" med bock när [checked].
  * Bara visning, utan semantik: raden som visar det bär rollen ([CheckRow] är en kryssruta, appens
  * egna rader t.ex. ett loggat tillfälle). Läggs i en [LeadingSlot], så att titlarna linjerar. Med temats
- * djup får den ifyllda kakan ljuskant, skimmer och en liten skugga, som tonar in med fyllningen.
+ * djup får den ifyllda kakan ljuskant, skimmer och en liten skugga, som tonar in med fyllningen. [interactionSource]
+ * är radens tryck: med djup krymper krysset och kakan sjunker in medan raden hålls nedtryckt, som ett chip;
+ * `null` (standard) = inget tryck att följa.
  */
 @Composable
-fun MorphingCheck(checked: Boolean, modifier: Modifier = Modifier) {
+fun MorphingCheck(checked: Boolean, modifier: Modifier = Modifier, interactionSource: InteractionSource? = null) {
     val progress by animateFloatAsState(
         targetValue = if (checked) 1f else 0f,
         animationSpec = MaterialTheme.motionScheme.fastSpatialSpec(),
@@ -44,8 +47,11 @@ fun MorphingCheck(checked: Boolean, modifier: Modifier = Modifier) {
     val color = MaterialTheme.colorScheme.primary
     val depth = AppTheme.depth
     val filled = MaterialShapes.Cookie9Sided.toShape()
-    val lift = { progress }
-    Box(modifier.size(SIZE), contentAlignment = Alignment.Center) {
+    val press = if (depth != null && interactionSource != null) rememberLift(interactionSource) else null
+    val pressValue = { press?.value ?: 1f }
+    val lift = { progress * pressValue() }
+    val sinking = depth?.let { Modifier.pressScale(it, pressValue) } ?: Modifier
+    Box(modifier.size(SIZE).then(sinking), contentAlignment = Alignment.Center) {
         // Kakan ritas innanför ringens halva linjebredd; djupet följer dess form.
         if (depth != null) Box(Modifier.size(SIZE - STROKE).outerShadow(filled, depth.shadow, lift))
         Canvas(Modifier.size(SIZE)) {

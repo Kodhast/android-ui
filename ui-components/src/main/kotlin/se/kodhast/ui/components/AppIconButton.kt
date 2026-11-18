@@ -42,17 +42,9 @@ fun AppIconButton(
     } else {
         val lift = rememberLift(interactionSource, enabled)
         val liftValue = { lift.value }
-        val shape = AppTheme.shapes.pill
         modifier
             .size(TOUCH_TARGET)
-            .pressScale(depth, liftValue, ICON_PRESS)
-            .then(
-                if (variant == IconButtonVariant.Tonal && enabled) {
-                    Modifier.raisedShadow(shape, depth.shadow, Lift.Selected, liftValue).sheen(shape, depth, liftValue)
-                } else {
-                    Modifier
-                }
-            )
+            .depthSurface(depth, AppTheme.shapes.pill, liftValue, raised = variant == IconButtonVariant.Tonal && enabled, shadow = Lift.Selected, press = ICON_PRESS)
     }
     when (variant) {
         IconButtonVariant.Tonal -> FilledTonalIconButton(
