@@ -5,14 +5,14 @@ eventuellt Fonder): ett tema-API och de delade komponenterna, så att samma elem
 beter sig likadant i alla appar och bara finns på ett ställe. Varje app behåller sina egna
 färger och typsnitt och skickar in dem i temat; formerna är samma i alla appar.
 
-**Version:** 3.2.0 · Material 3 `1.5.0-beta01` (Expressive) · Compose BOM `2026.09.00` ·
+**Version:** 3.2.1 · Material 3 `1.5.0-beta01` (Expressive) · Compose BOM `2026.09.00` ·
 Kotlin `2.4.20` · AGP `9.4.1` · compileSdk 37 · minSdk 30.
 
 ## Moduler
 
 | Artefakt | Paket | Innehåll |
 |---|---|---|
-| `se.kodhast.ui:ui-theme` | `se.kodhast.ui.theme` | `AppTheme`, `Spacing`, `AppShapes`, `AppTypography`, `ExtendedColors`, `ProgressDoneColors`, `Tone`, `ToneColors`, `TRACK_HEIGHT` |
+| `se.kodhast.ui:ui-theme` | `se.kodhast.ui.theme` | `AppTheme`, `Spacing`, `AppShapes`, `AppTypography`, `ExtendedColors`, `ProgressDoneColors`, `Tone`, `ToneColors`, `TRACK_HEIGHT`, `PROGRESS_STROKE`, `IconSize` |
 | `se.kodhast.ui:ui-common` | `se.kodhast.ui.common` | ramarnas tillstånd utan UI: `UiError`/`ErrorMapper`, `ListUiState`, `DetailUiState`, `EditorState`, `EditorLoader`, `EditorSheet`, `shownAfter`, `WriteFailures`, `screenSharing`, `DateFormat`, `SyncUiState` |
 | `se.kodhast.ui:ui-components` | `se.kodhast.ui.components` | komponenterna och ramarna nedan (drar in `ui-theme` och `ui-common`) |
 | `se.kodhast.ui:ui-navigation` | `se.kodhast.ui.navigation` | navigationsramen: `TabBackStack`, `AppTransitions`, `AppNavHost`, och komponentgalleriet `ComponentGallery` (drar in `ui-components`, Navigation 3 och kotlinx-serialization) |
@@ -40,8 +40,8 @@ dependencyResolutionManagement {
 }
 ```
 
-och i versionskatalogen/byggfilen `implementation("se.kodhast.ui:ui-components:3.2.0")` och
-`testImplementation("se.kodhast.ui:ui-testing:3.2.0")`.
+och i versionskatalogen/byggfilen `implementation("se.kodhast.ui:ui-components:3.2.1")` och
+`testImplementation("se.kodhast.ui:ui-testing:3.2.1")`.
 
 - **CI i appen:** `GITHUB_TOKEN` räcker när paketet gett apprepot läsåtkomst
   (paketets inställningar → *Manage Actions access*) och jobbet har `permissions: packages: read`.
@@ -434,7 +434,7 @@ inte använder ramen rätt.
 | `AccountRow` | Kontot överst i inställningarna: `AccountAvatar`, `name` och `email` under (utan e-post "Inloggad med Google"; utan namn står e-posten som titel), `photoUrl`; ingen tonad bakgrund | Flyttad från ReseApoteket och Dagboken (#54); Dagbokens tonade rad och extra rad "Inloggad med Google" försvinner (Mats beslut) |
 | `AddSplitButton` | "Lägg till ▾" – huvudåtgärd och pil med fler val; `style` (standard `LocalAppButtonStyle`) ger höjd och tonad färg som den sekundära `AppButton` | Menyn är en lucka: `menu = items.asSplitMenu()` (ReseApoteket) i stället för Dagbokens `menuItems` |
 | `AppBottomSheet` | Ark med rubrik; innehållet rullar alltid. `error` (`UiError`), `dirty` ("Släng ändringar?" vid bakåt, svep och tryck utanför), `canDismiss`, `hide`, `footer` (knappraden står fast i botten), `subtitle` (en rad under rubriken) | Dagbokens parametrar; ReseApotekets rullning gäller också med `footer`; `subtitle` från ReseApoteket (#75) |
-| `AppButton` | Den enda knappen: Primary, Secondary, Outlined, Text, Destructive; `loading`, `compact`, `contentDescription`. Appens knappstil `AppButtonStyle(minHeight, morph, secondaryTone)` sätts en gång med `LocalAppButtonStyle` (eller parametern `style`); `AppButtonDefaults.MinHeight` 56 dp / `CompactHeight` 40 dp | Fonder: `AppButtonStyle(minHeight = 40.dp, morph = true, secondaryTone = Tone.Primary)`; standard bevarar ReseApoteket och Dagboken |
+| `AppButton` | Den enda knappen: Primary, Secondary, Outlined, Text, Destructive; `loading` (snurra, eller Kodhäst-prickarna med `AppBrandStyle.dotLoading`), `compact`, `contentDescription`. Appens knappstil `AppButtonStyle(minHeight, morph, secondaryTone)` sätts en gång med `LocalAppButtonStyle` (eller parametern `style`); `AppButtonDefaults.MinHeight` 56 dp / `CompactHeight` 40 dp | Fonder: `AppButtonStyle(minHeight = 40.dp, morph = true, secondaryTone = Tone.Primary)`; standard bevarar ReseApoteket och Dagboken |
 | `AppCalendar` | Månadskalendern: `month`, `onMonthChange`, `marked` (punkt), `selectedDate` (fylld primärfärg i `shapes.row`), `onDateClick`, `today` (punkt i `secondary` med ring i `progressDone.outline`), `dimFuture` (framtiden nedtonad och ovalbar, pilen till nästa månad stängd). TalkBack läser datum, "idag" och "har poster". `DayMarkerDot` och `dayDescription` är samma markering och uppläsning för en datumremsa | Flyttad från Dagbokens `DagbokenCalendar` och `DayMarker` (#68); ser ut som förut, men med `dimFuture` stängs nu också pilen till månaden efter idag |
 | `AppCard` | Kortet: `tone`, `contentColor` (standard `null`: ärver omgivande `LocalContentColor`; Dagboken `onSurface`), `onClick` (hela kortet en nod). Appens kortstil `AppCardStyle(border, padding, segmentGap, contentSpacing)` med `LocalAppCardStyle` (eller `style`); ett tonat kort har ingen kontur | ReseApotekets `ApotekCard` heter nu `AppCard`. Fonder: kontur 1 dp `outlineVariant`, `padding = Spacing.l`, `contentSpacing = 0.dp`; Filled/Error är Fonders egna toner |
 | `AppDivider` | Avdelare mellan rader i ett kort | – |
@@ -597,6 +597,7 @@ efter, innan någon app bytt. Byt direkt från 1.x till 3.0.0. Det som bryter, o
 
 | Version | Ändring |
 |---|---|
+| 3.2.1 | Rättelser från genomgången 2026-11-19 (#90, del 1), utan avsiktlig utseendeändring: `ShareBar` kraschar inte på en andel eller ett mål som inte är ett tal (0/0 i en tom fördelning) utan visar tomt spår; dra-ned-prickarna syns också när appen sätter `refreshing` först efter att indikatorn gömts (ett köat jobb); `ValueRow` med `muted`/`valueMuted` dämpar också delar av värdet som har egen färg; tabulära siffror med en tom `fontFeatureSettings` ger `tnum` i stället för `, tnum`; `SelectField` öppnar inte menyn igen av sig själv när ett låst fält låses upp. Nya tester för dessa och för `AddSplitButton(style)`; `RetrySignal`s kommentar säger nu vad två snabba tryck faktiskt gör. README: `PROGRESS_STROKE`, `IconSize` och prickarna i `AppButton(loading)` |
 | 3.2.0 | Dra-ned-indikatorn och den laddande knappen följer `AppBrandStyle.dotLoading` (fonder #277): `AppPullToRefresh` visar Kodhäst-prickarna som hoppar i en rund behållare i stället för den vågiga formen, och bara medan man drar eller under en uppdatering man själv startat – en körning appen startat själv syns bara av sidhuvudets prickar; `AppButton(loading)` visar prickarna i knappens textfärg i stället för snurran. **ReseApotekets och Dagbokens dra-ned-indikator och sparaknappar byter utseende** när de går upp, eftersom båda har `dotLoading`. Utan `dotLoading` oförändrat. Nya skärmdumpar `AppPullToRefresh_prickar` och `AppButton_laddar_prickar`; befintliga oförändrade |
 | 3.1.0 | Fonders generella delar (#85): L1 (komponenter, prickarna i `AppTopBar`) och L2 (`ui-common`-hjälpare) nedan. Rena tillägg, inget brytande – byt från 3.0.0 utan kodändring. ReseApotekets och Dagbokens underskärmar får prickarna före rubriken när de byter |
 | ↳ L2 | `ui-common`: tillståndshjälparna `itemsOrEmpty`, `errorOrNull`, `valueOrNull`, `catchAsListError`, `catchAsDetailError` (med appens `ErrorMapper` som parameter), `RetrySignal` och `restartOn` – flyttade från Fonder. Rena tillägg, inga skärmdumpar ändrade |

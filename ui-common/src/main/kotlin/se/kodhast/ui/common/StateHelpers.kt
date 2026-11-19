@@ -40,7 +40,8 @@ fun <S> Flow<S>.catchAsDetailError(errors: ErrorMapper, onError: (DetailUiState.
  * mönster som `asListUiState(errors, retry)`.
  */
 class RetrySignal {
-    // En buffrad plats: ett tryck medan skärmen visas går aldrig förlorat, och två snabba tryck blir en omläsning.
+    // En buffrad plats: ett tryck medan skärmen visas går aldrig förlorat. Två snabba tryck kan ge två
+    // omläsningar, men [restartOn] avbryter den första, så bara den sista syns.
     private val requests = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 
     /** Läs om källan. */

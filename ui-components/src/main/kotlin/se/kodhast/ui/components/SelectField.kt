@@ -35,6 +35,8 @@ fun <T> SelectField(
     enabled: Boolean = true
 ) {
     var expanded by remember { mutableStateOf(false) }
+    // Ett låst fält stänger menyn, så att den inte öppnas igen av sig själv när fältet låses upp.
+    if (!enabled && expanded) expanded = false
     val choose = { option: T? ->
         expanded = false
         onSelect(option)

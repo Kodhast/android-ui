@@ -56,7 +56,7 @@ fun ShareBar(
     val shown = targetValue?.let { stringResource(R.string.share_target_format, value, it) } ?: value
     val description = targetValue?.let { stringResource(R.string.share_target_description_format, label, value, it) }
         ?: stringResource(R.string.field_in_context_format, label, value)
-    val share = fraction.coerceIn(0f, 1f)
+    val share = fraction.asShare()
     Column(
         modifier.fillMaxWidth().padding(vertical = Spacing.xs).clearAndSetSemantics {
             contentDescription = description
@@ -85,7 +85,7 @@ fun ShareBar(
                 drawContent()
                 val width = TARGET_WIDTH.toPx()
                 // Fyllnaden börjar vid startkanten; i höger-till-vänster speglas strecket som den.
-                val start = (size.width - width) * goal.coerceIn(0f, 1f)
+                val start = (size.width - width) * goal.asShare()
                 val x = if (layoutDirection == LayoutDirection.Rtl) size.width - width - start else start
                 val overhang = TARGET_OVERHANG.toPx()
                 drawRect(markColor, Offset(x, -overhang), Size(width, size.height + 2 * overhang))
@@ -94,6 +94,9 @@ fun ShareBar(
         Track(share, track, fill, outline = null, Modifier.fillMaxWidth().then(mark))
     }
 }
+
+/** Andelen inom 0–1; en andel som inte är ett tal (0/0 i en tom fördelning) blir 0. */
+private fun Float.asShare(): Float = if (isNaN()) 0f else coerceIn(0f, 1f)
 
 /** Målstrecket: så brett, och så långt utanför spåret upptill och nedtill. */
 private val TARGET_WIDTH = 2.dp

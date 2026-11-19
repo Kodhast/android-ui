@@ -71,7 +71,7 @@ fun ValueRow(
             supportingLabel?.let { Text(it, style = typography.itemSubtitle, color = dimmed) }
         }
         Column(horizontalAlignment = Alignment.End) {
-            Text(value, style = valueStyle.tabular(), color = shownValueColor, textAlign = TextAlign.End)
+            Text(if (muted || valueMuted) value.inColor(dimmed) else value, style = valueStyle.tabular(), color = shownValueColor, textAlign = TextAlign.End)
             supportingValue?.let { Text(it, style = typography.itemSubtitle.tabular(), color = dimmed, textAlign = TextAlign.End) }
         }
     }
@@ -92,7 +92,10 @@ fun ValueRow(
     valueStyle: TextStyle = AppTheme.typography.body
 ) = ValueRow(label, AnnotatedString(value), modifier, supportingLabel, supportingValue, valueColor, valueTone, muted, valueMuted, valueStyle)
 
+/** Värdet med delarnas egna färger bytta mot [color], så att en dämpad rad är dämpad hela vägen. Övrig stil står kvar. */
+private fun AnnotatedString.inColor(color: Color): AnnotatedString = AnnotatedString(text, spanStyles.map { AnnotatedString.Range(it.item.copy(color = color), it.start, it.end) }, paragraphStyles)
+
 /** Tabulära siffror (lika breda), så att tal i rader under varandra står i linje. Typsnittet är temats. */
-internal fun TextStyle.tabular(): TextStyle = copy(fontFeatureSettings = listOfNotNull(fontFeatureSettings, TABULAR).joinToString(", "))
+internal fun TextStyle.tabular(): TextStyle = copy(fontFeatureSettings = listOfNotNull(fontFeatureSettings?.takeIf { it.isNotBlank() }, TABULAR).joinToString(", "))
 
 private const val TABULAR = "tnum"
