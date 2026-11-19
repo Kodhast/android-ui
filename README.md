@@ -127,6 +127,14 @@ fun ReseApoteketTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Comp
     )
 ```
 
+### tokens.json – talen för webben
+
+`tokens.json` i roten är temats mått i dp (= CSS-px) för webbbiblioteket Kodhast/web-ui: `Spacing`, `IconSize`, hörnen i `AppShapes`
+(`"full"` = helt rundad, en lista = `[övre vä, övre hö, nedre hö, nedre vä]`), spårets höjd, `AppDepth.pressedScale` och sidhuvudets
+mått. `TokensJsonTest` (i `ui-components`, som når sidhuvudets interna mått) fäller bygget när filen inte stämmer med koden. Skriv om
+den med `UPDATE_TOKENS=1 ./gradlew :ui-components:testDebugUnitTest --tests '*TokensJsonTest'` och checka in den. Ändrar PR:en bara
+filen och testet höjs inte versionen.
+
 ## ui-common
 
 Ren tillståndslogik för listor, detaljer och formulär – ingen Firestore, Hilt eller appkod.

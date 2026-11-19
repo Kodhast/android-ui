@@ -266,8 +266,8 @@ internal val EXPANDED = 144.dp
 internal val COLLAPSED = 64.dp
 
 /** Appikonen i vila och ihopfälld. */
-private val APP_ICON = 40.dp
-private val COLLAPSED_APP_ICON = 32.dp
+internal val APP_ICON = 40.dp
+internal val COLLAPSED_APP_ICON = 32.dp
 
 private val DOTS_WIDTH = 18.dp
 
