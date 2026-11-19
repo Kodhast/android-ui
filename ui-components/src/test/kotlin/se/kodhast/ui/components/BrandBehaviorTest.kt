@@ -152,6 +152,45 @@ class BrandBehaviorTest {
     }
 
     @Test
+    fun `dra-ned-prickarna syns när appen sätter refreshing först efter att indikatorn gömts`() {
+        var refreshing by mutableStateOf(false)
+        show(AppBrandStyle(dotLoading = true)) {
+            // Appen köar arbetet och sätter refreshing först när det körs, inte i onRefresh.
+            AppPullToRefresh(refreshing = refreshing, onRefresh = {}) {
+                Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) { Text("Innehåll") }
+            }
+        }
+        rule.onNodeWithTag(ENTITY_REFRESH_TAG).performTouchInput { swipeDown() }
+        rule.waitForIdle()
+        refreshing = true
+        rule.waitForIdle()
+        rule.onNodeWithContentDescription("Laddar").assertExists()
+        refreshing = false
+        rule.waitForIdle()
+        rule.onNodeWithContentDescription("Laddar").assertDoesNotExist()
+        // Nästa körning appen startar själv syns inte.
+        refreshing = true
+        rule.waitForIdle()
+        rule.onNodeWithContentDescription("Laddar").assertDoesNotExist()
+    }
+
+    @Test
+    fun `en dragning som aldrig ledde till en uppdatering ger inte prickar åt en senare körning`() {
+        var refreshing by mutableStateOf(false)
+        show(AppBrandStyle(dotLoading = true)) {
+            AppPullToRefresh(refreshing = refreshing, onRefresh = {}) {
+                Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) { Text("Innehåll") }
+            }
+        }
+        rule.onNodeWithTag(ENTITY_REFRESH_TAG).performTouchInput { swipeDown() }
+        rule.waitForIdle()
+        rule.mainClock.advanceTimeBy(6_000)
+        refreshing = true
+        rule.waitForIdle()
+        rule.onNodeWithContentDescription("Laddar").assertDoesNotExist()
+    }
+
+    @Test
     fun `märket tar storleken från modifier`() {
         show { BrandMark(Modifier.size(LARGE).testTag("mark")) }
         rule.onNodeWithTag("mark").assertWidthIsEqualTo(LARGE).assertHeightIsEqualTo(LARGE)

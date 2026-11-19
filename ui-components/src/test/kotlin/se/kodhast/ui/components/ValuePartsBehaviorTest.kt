@@ -39,7 +39,11 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -90,10 +94,44 @@ class ValuePartsBehaviorTest {
     }
 
     /** Färgen som texten ritas med, ur textens layout. */
-    private fun textColor(text: String): Color {
+    private fun textColor(text: String): Color = textLayout(text).layoutInput.style.color
+
+    private fun textLayout(text: String): TextLayoutResult {
         val layouts = mutableListOf<TextLayoutResult>()
         rule.onNodeWithText(text, useUnmergedTree = true).fetchSemanticsNode().config[SemanticsActions.GetTextLayoutResult].action?.invoke(layouts)
-        return layouts.single().layoutInput.style.color
+        return layouts.single()
+    }
+
+    @Test
+    fun `dämpad rad dämpar också delar av värdet som har egen färg`() {
+        var dimmed = Color.Unspecified
+        show {
+            dimmed = MaterialTheme.colorScheme.onSurfaceVariant
+            val gain = MaterialTheme.colorScheme.error
+            Column {
+                ValueRow(
+                    "Resultat",
+                    buildAnnotatedString {
+                        append("+8,6 % · ")
+                        withStyle(SpanStyle(color = gain)) { append("+3 286 kr") }
+                    },
+                    muted = true
+                )
+                ValueRow("Värde", buildAnnotatedString { withStyle(SpanStyle(color = gain)) { append("ca 12 000 kr") } }, valueMuted = true)
+            }
+        }
+        listOf("+8,6 % · +3 286 kr", "ca 12 000 kr").forEach { text ->
+            val layout = textLayout(text)
+            assertEquals(dimmed, layout.layoutInput.style.color)
+            assertTrue(layout.layoutInput.text.spanStyles.all { it.item.color == dimmed }, "delarna dämpade i $text")
+        }
+    }
+
+    @Test
+    fun `tabulära siffror med en tom fontFeatureSettings`() {
+        assertEquals("tnum", TextStyle(fontFeatureSettings = "").tabular().fontFeatureSettings)
+        assertEquals("tnum", TextStyle().tabular().fontFeatureSettings)
+        assertEquals("smcp, tnum", TextStyle(fontFeatureSettings = "smcp").tabular().fontFeatureSettings)
     }
 
     @Test
@@ -123,6 +161,19 @@ class ValuePartsBehaviorTest {
         rule.onNodeWithTag(SHARE_TARGET_TAG, useUnmergedTree = true).assertExists()
     }
 
+    @Test
+    fun `andelsraden tål en andel som inte är ett tal`() {
+        show {
+            Column {
+                ShareBar("Övrigt", Float.NaN, "0,0 %")
+                ShareBar("Okänd region", 0.2f, "20,0 %", target = Float.NaN, targetValue = "–")
+            }
+        }
+        rule.onNodeWithContentDescription("Övrigt, 0,0 %")
+            .assert(SemanticsMatcher.expectValue(SemanticsProperties.ProgressBarRangeInfo, ProgressBarRangeInfo(0f, 0f..1f)))
+        rule.onNodeWithTag(SHARE_TARGET_TAG, useUnmergedTree = true).assertExists()
+    }
+
     // SelectField
 
     @Test
@@ -147,6 +198,20 @@ class ValuePartsBehaviorTest {
     fun `låst fält visar valet men öppnar ingen meny`() {
         show { SelectField("Byt till", FUNDS, "Sverige Småbolag", { it }, {}, enabled = false) }
         rule.onNodeWithContentDescription("Byt till, Sverige Småbolag").assertIsNotEnabled().performClick()
+        rule.onNodeWithText("Räntefond Kort").assertDoesNotExist()
+    }
+
+    @Test
+    fun `en meny som var öppen när fältet låstes öppnas inte igen av sig själv`() {
+        var enabled by mutableStateOf(true)
+        show { SelectField("Fond", FUNDS, null, { it }, {}, enabled = enabled) }
+        rule.onNodeWithContentDescription("Fond, Välj").performClick()
+        rule.onNodeWithText("Räntefond Kort").assertExists()
+        enabled = false
+        rule.waitForIdle()
+        rule.onNodeWithText("Räntefond Kort").assertDoesNotExist()
+        enabled = true
+        rule.waitForIdle()
         rule.onNodeWithText("Räntefond Kort").assertDoesNotExist()
     }
 

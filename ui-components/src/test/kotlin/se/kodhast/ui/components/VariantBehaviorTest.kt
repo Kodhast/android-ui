@@ -105,6 +105,24 @@ class VariantBehaviorTest {
     }
 
     @Test
+    fun `knappen med meny får höjd och ton ur style`() {
+        show {
+            Column {
+                AddSplitButton("Standard", {}, menu = listOf(AppMenuItem("Från listan", {})).asSplitMenu())
+                AddSplitButton(
+                    "Appens",
+                    {},
+                    menu = listOf(AppMenuItem("Från listan", {})).asSplitMenu(),
+                    style = AppButtonStyle(minHeight = AppButtonDefaults.CompactHeight, secondaryTone = Tone.Green)
+                )
+            }
+        }
+        assertTrue(height("Standard") >= AppButtonDefaults.MinHeight, "standard: minst knappens höjd")
+        assertEquals(AppButtonDefaults.CompactHeight, height("Appens"))
+        assertSameColor(TestPalette.lightExtended.tone(Tone.Green).container, rule.onNodeWithText("Appens").pixelAt(rule.density, 12.dp, AppButtonDefaults.CompactHeight / 2))
+    }
+
+    @Test
     fun `den tonade knappen har Material 3-färgen som standard och appens ton när den anges`() {
         show {
             Column {

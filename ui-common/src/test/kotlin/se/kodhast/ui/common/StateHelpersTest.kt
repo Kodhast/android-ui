@@ -5,6 +5,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -104,7 +105,25 @@ class StateHelpersTest {
     }
 
     @Test
-    fun `två tryck före omläsningen blir en omläsning och inget tryck går förlorat`() = runTest(UnconfinedTestDispatcher()) {
+    fun `två snabba tryck - bara den sista omläsningen syns`() = runTest {
+        var attempts = 0
+        val retry = RetrySignal()
+        flow {
+            val attempt = ++attempts
+            delay(100)
+            emit(attempt)
+        }.restartOn(retry).test {
+            assertEquals(1, awaitItem())
+            retry.retry()
+            retry.retry()
+            assertEquals(3, awaitItem())
+            expectNoEvents()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `inget tryck går förlorat`() = runTest(UnconfinedTestDispatcher()) {
         var attempts = 0
         val retry = RetrySignal()
         flow {

@@ -22,8 +22,9 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -37,6 +38,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 import se.kodhast.ui.components.R
 import se.kodhast.ui.theme.AppTheme
 
@@ -83,7 +85,7 @@ const val ENTITY_REFRESH_TAG = "entity-refresh"
  * använder den med sina `refreshing`/`onRefresh`; en skärm utan ram (Fonders Översikt, Innehav, Beslut) lägger
  * den själv runt sitt rullbara innehåll. Indikatorn är Expressive-laddningsindikatorn; med
  * `AppBrandStyle.dotLoading` Kodhästs prickar som hoppar i en rund behållare överst ([PullDots]), och då visas
- * den bara medan man drar och under en uppdatering man själv startat – en körning appen startat själv syns
+ * den bara medan man drar och under en uppdatering man själv startat (som får starta upp till 5 s efter dragningen) – en körning appen startat själv syns
  * bara av sidhuvudets prickar. Gesten kräver rullbart innehåll ([RefreshableState] för ett läge som inte
  * rullar själv). Ytan har taggen [ENTITY_REFRESH_TAG].
  */
@@ -95,11 +97,28 @@ fun AppPullToRefresh(refreshing: Boolean, onRefresh: (() -> Unit)?, modifier: Mo
     }
     val state = rememberPullToRefreshState()
     val dots = LocalAppBrandStyle.current.dotLoading
+    // Prickarna visas för en uppdatering man själv dragit fram, också när appen sätter `refreshing` först en
+    // stund efter att indikatorn gömts (ett köat jobb). Minnet släpps när den uppdateringen är klar, eller om
+    // ingen uppdatering startat inom PULL_WAIT – annars fick nästa körning appen startar själv prickarna.
     var pulled by remember { mutableStateOf(false) }
+    var pulls by remember { mutableIntStateOf(0) }
+    var wasRefreshing by remember { mutableStateOf(refreshing) }
+    if (wasRefreshing != refreshing) {
+        if (!refreshing) pulled = false
+        wasRefreshing = refreshing
+    }
+    if (dots && pulled && !refreshing) {
+        // En ny dragning börjar väntan om.
+        LaunchedEffect(pulls) {
+            delay(PULL_WAIT)
+            pulled = false
+        }
+    }
     PullToRefreshBox(
         isRefreshing = refreshing,
         onRefresh = {
             pulled = true
+            pulls++
             onRefresh()
         },
         modifier = modifier.testTag(ENTITY_REFRESH_TAG),
@@ -108,7 +127,6 @@ fun AppPullToRefresh(refreshing: Boolean, onRefresh: (() -> Unit)?, modifier: Mo
             if (!dots) {
                 PullToRefreshDefaults.LoadingIndicator(state = state, isRefreshing = refreshing, modifier = Modifier.align(Alignment.TopCenter))
             } else {
-                SideEffect { if (!refreshing && state.distanceFraction == 0f) pulled = false }
                 if (if (refreshing) pulled else state.distanceFraction > 0f) {
                     PullDots({ state.distanceFraction }, Modifier.align(Alignment.TopCenter))
                 }
@@ -117,6 +135,9 @@ fun AppPullToRefresh(refreshing: Boolean, onRefresh: (() -> Unit)?, modifier: Mo
         content = content
     )
 }
+
+/** Så länge en dragning väntar på att appens uppdatering ska starta. */
+private const val PULL_WAIT = 5_000L
 
 /** Dra-ned-indikatorn med prickar: en rund behållare som följer dragningen ned från kanten och stannar där under uppdateringen. */
 @Composable
