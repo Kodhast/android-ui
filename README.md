@@ -137,6 +137,9 @@ Testas med JUnit och Turbine.
   identitet: samma fel två gånger i rad visas två gånger.
 - **Listor:** `ListUiState` (Loading, Empty, Content, Error), `asListUiState(errors[, retry])`,
   `ListLoader`, `ListEvent.Retry`; detaljer: `DetailUiState`, `asDetailUiState`, `DetailLoader`.
+- **Tillståndet som ett fält:** för en skärm där listan eller det lästa bara är en del av tillståndet: `itemsOrEmpty()`,
+  `errorOrNull()` (lista och detalj), `valueOrNull()`, `Flow.catchAsListError(errors, onError)` och `catchAsDetailError(errors, onError)`
+  (ett fel i källan blir tillståndet, översatt av appens `ErrorMapper`) samt `RetrySignal` + `Flow.restartOn(retry)` för "Försök igen".
 - **Formulär:** `EditorState` (validering, ändrat-läge, `saveUnchanged`, läsfel, spara/kör) och
   `EditorLoader` (läsning, "Försök igen", `project`, `prepare`, `afterLoad`).
 - **Formulär i ett ark:** `EditorSheet(scope, errors)` med `open`, `update`, `save` och `close`, och arket som visas
@@ -586,6 +589,8 @@ efter, innan någon app bytt. Byt direkt från 1.x till 3.0.0. Det som bryter, o
 
 | Version | Ändring |
 |---|---|
+| 3.1.0 (under arbete) | Fonders generella delar (#85) |
+| ↳ L2 | `ui-common`: tillståndshjälparna `itemsOrEmpty`, `errorOrNull`, `valueOrNull`, `catchAsListError`, `catchAsDetailError` (med appens `ErrorMapper` som parameter), `RetrySignal` och `restartOn` – flyttade från Fonder. Rena tillägg, inga skärmdumpar ändrade |
 | 3.0.0 | Formerna är ingen appinställning (Mats 2026-11-18, också för Fonder): `AppTheme` tar inte längre `shapes`, och alla appar får `AppShapes()` med 22 dp-kort. Publicerad direkt efter 2.0.0, innan någon app bytt – apparna byter från 1.x direkt till 3.0.0. Inga skärmdumpar ändrade |
 | 2.0.0 | Serien från granskningen 2026-11-18 (#73–#77), en major så att apparna byter en gång. Brytande ändringar och vad appen gör: se Byta från 1.x till 3.0 |
 | ↳ #77 | API-städning: `SignInButton`, `ic_google`, `sign_in` och dolda `SignOutRow` borttagna; `EmojiPicker(emojis, selected, onSelect)`; `ErrorSnackbar` med `key` före `duration`; `ExampleChips(label)` `@Composable`; `ExpandableContent(modifier)`; ikonstorlekarna `IconSize` i `ui-theme` i stället för privata konstanter i nio filer; `PROGRESS_STROKE`, `AppTheme.transparent`, `AppShapes.fab` och `AppShapes.dialog` i stället för hårdkodade värden och Material 3:s standardformer, och `ui-forbidden.txt` fäller dem. Formerna samma i alla appar: `AppShapes` har standardvärdet 22 dp-kort och `AppTheme(shapes)` är valfri (borttagen i 3.0.0). Testtemat använder standardformerna (förut 28 dp-kort), så skärmdumparna med kort, rader i kort och dialoger är omtagna; `SignInButton_standard` och `AppHeader_utloggat` borttagna |
