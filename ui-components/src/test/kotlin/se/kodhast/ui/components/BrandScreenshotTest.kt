@@ -79,6 +79,34 @@ class BrandScreenshotTest {
     }
 
     @Test
+    fun `AppPullToRefresh - prickar`() {
+        rule.mainClock.autoAdvance = false
+        rule.captureLightAndDark("AppPullToRefresh_prickar", settle = {
+            mainClock.advanceTimeBy(MID_JUMP)
+            waitForIdle()
+        }) {
+            Brand(AppBrandStyle(dotLoading = true)) {
+                Box(Modifier.background(MaterialTheme.colorScheme.background).size(160.dp, 120.dp).padding(top = Spacing.m)) {
+                    PullDots({ 1f }, Modifier.align(Alignment.TopCenter))
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `AppButton - laddar med prickar`() {
+        rule.mainClock.autoAdvance = false
+        rule.captureLightAndDark("AppButton_laddar_prickar", settle = {
+            mainClock.advanceTimeBy(MID_JUMP)
+            waitForIdle()
+        }) {
+            Brand(AppBrandStyle(dotLoading = true)) {
+                SampleSheet { AppButton("Sparar …", {}, loading = true) }
+            }
+        }
+    }
+
+    @Test
     fun `SectionHeader - arbetar med prickar`() {
         rule.mainClock.autoAdvance = false
         rule.captureLightAndDark("SectionHeader_arbetar_prickar", settle = {

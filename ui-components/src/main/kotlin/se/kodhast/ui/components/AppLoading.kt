@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.progressSemantics
 import androidx.compose.foundation.rememberScrollState
@@ -16,19 +17,28 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import se.kodhast.ui.components.R
+import se.kodhast.ui.theme.AppTheme
 
 /**
  * Laddning: Expressive laddningsindikator mitt på ytan – eller Kodhästs två prickar som hoppar, i
@@ -71,9 +81,11 @@ const val ENTITY_REFRESH_TAG = "entity-refresh"
 /**
  * Dra för att uppdatera runt [content] när [onRefresh] finns – annars bara en `Box` med innehållet. Ramarna
  * använder den med sina `refreshing`/`onRefresh`; en skärm utan ram (Fonders Översikt, Innehav, Beslut) lägger
- * den själv runt sitt rullbara innehåll. Indikatorn är Expressive-laddningsindikatorn (även med
- * `AppBrandStyle.dotLoading`), i en behållare överst, och syns så länge [refreshing] är sant. Gesten kräver
- * rullbart innehåll ([RefreshableState] för ett läge som inte rullar själv). Ytan har taggen [ENTITY_REFRESH_TAG].
+ * den själv runt sitt rullbara innehåll. Indikatorn är Expressive-laddningsindikatorn; med
+ * `AppBrandStyle.dotLoading` Kodhästs prickar som hoppar i en rund behållare överst ([PullDots]), och då visas
+ * den bara medan man drar och under en uppdatering man själv startat – en körning appen startat själv syns
+ * bara av sidhuvudets prickar. Gesten kräver rullbart innehåll ([RefreshableState] för ett läge som inte
+ * rullar själv). Ytan har taggen [ENTITY_REFRESH_TAG].
  */
 @Composable
 fun AppPullToRefresh(refreshing: Boolean, onRefresh: (() -> Unit)?, modifier: Modifier = Modifier, content: @Composable BoxScope.() -> Unit) {
@@ -82,15 +94,55 @@ fun AppPullToRefresh(refreshing: Boolean, onRefresh: (() -> Unit)?, modifier: Mo
         return
     }
     val state = rememberPullToRefreshState()
+    val dots = LocalAppBrandStyle.current.dotLoading
+    var pulled by remember { mutableStateOf(false) }
     PullToRefreshBox(
         isRefreshing = refreshing,
-        onRefresh = onRefresh,
+        onRefresh = {
+            pulled = true
+            onRefresh()
+        },
         modifier = modifier.testTag(ENTITY_REFRESH_TAG),
         state = state,
-        indicator = { PullToRefreshDefaults.LoadingIndicator(state = state, isRefreshing = refreshing, modifier = Modifier.align(Alignment.TopCenter)) },
+        indicator = {
+            if (!dots) {
+                PullToRefreshDefaults.LoadingIndicator(state = state, isRefreshing = refreshing, modifier = Modifier.align(Alignment.TopCenter))
+            } else {
+                SideEffect { if (!refreshing && state.distanceFraction == 0f) pulled = false }
+                if (if (refreshing) pulled else state.distanceFraction > 0f) {
+                    PullDots({ state.distanceFraction }, Modifier.align(Alignment.TopCenter))
+                }
+            }
+        },
         content = content
     )
 }
+
+/** Dra-ned-indikatorn med prickar: en rund behållare som följer dragningen ned från kanten och stannar där under uppdateringen. */
+@Composable
+internal fun PullDots(fraction: () -> Float, modifier: Modifier = Modifier) {
+    val description = stringResource(R.string.loading)
+    val density = LocalDensity.current
+    val rest = with(density) { (PullToRefreshDefaults.PositionalThreshold - PULL_SIZE).roundToPx() }
+    val size = with(density) { PULL_SIZE.roundToPx() }
+    Surface(
+        modifier = modifier.offset { IntOffset(0, (fraction().coerceIn(0f, 1f) * (rest + size) - size).toInt()) }.size(PULL_SIZE),
+        shape = AppTheme.shapes.pill,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        shadowElevation = PULL_ELEVATION
+    ) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            BrandDots(
+                MaterialTheme.colorScheme.primary,
+                Modifier.semantics { contentDescription = description }.progressSemantics().size(DOTS_WIDTH / 2, DOTS_HEIGHT / 2),
+                bouncing = true
+            )
+        }
+    }
+}
+
+private val PULL_SIZE = 48.dp
+private val PULL_ELEVATION = 2.dp
 
 /**
  * Ett läge som inte rullar själv (laddning, tomt, fel) i [AppPullToRefresh]: med [onRefresh] är ytan rullbar,

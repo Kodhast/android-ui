@@ -5,7 +5,7 @@ eventuellt Fonder): ett tema-API och de delade komponenterna, så att samma elem
 beter sig likadant i alla appar och bara finns på ett ställe. Varje app behåller sina egna
 färger och typsnitt och skickar in dem i temat; formerna är samma i alla appar.
 
-**Version:** 3.1.0 · Material 3 `1.5.0-beta01` (Expressive) · Compose BOM `2026.09.00` ·
+**Version:** 3.2.0 · Material 3 `1.5.0-beta01` (Expressive) · Compose BOM `2026.09.00` ·
 Kotlin `2.4.20` · AGP `9.4.1` · compileSdk 37 · minSdk 30.
 
 ## Moduler
@@ -40,8 +40,8 @@ dependencyResolutionManagement {
 }
 ```
 
-och i versionskatalogen/byggfilen `implementation("se.kodhast.ui:ui-components:3.1.0")` och
-`testImplementation("se.kodhast.ui:ui-testing:3.1.0")`.
+och i versionskatalogen/byggfilen `implementation("se.kodhast.ui:ui-components:3.2.0")` och
+`testImplementation("se.kodhast.ui:ui-testing:3.2.0")`.
 
 - **CI i appen:** `GITHUB_TOKEN` räcker när paketet gett apprepot läsåtkomst
   (paketets inställningar → *Manage Actions access*) och jobbet har `permissions: packages: read`.
@@ -196,7 +196,7 @@ EntityDetailScreen(state: DetailUiState<T>, header: ((T) -> DetailHeader)?, onBa
 | Hopfällt läge utifrån | `ListGroup.fold: GroupFold(expanded, onToggle)` – appen håller läget (t.ex. under appsessionen); `collapsible = true` utan `fold` som förut (listan håller läget, börjar hopfälld) | packlistan | som förut |
 | Grupper som alltid visas | `groups: List<ListGroup>` – först, i ordning, också utan rader (`ListGroup.emptyText`); en tom lista visar grupperna med `empty` som kort överst (standard inga = som förut) | packlistan | – |
 | ⋮-meny | `menu: List<AppMenuItem>`; "Visa arkiverade" läggs sist i samma meny, med egen text och ikon via `ListArchive.showLabel`/`hideLabel`/`toggleIcon` | Räkna om, Dölj packade, Visa dolda (N)/Göm dolda | – |
-| Dra för att uppdatera | `onRefresh` (standard `null` = ingen gest) och `refreshing` i listan och detaljen; Expressive-indikatorn överst, ytan har taggen `ENTITY_REFRESH_TAG`; samma yta finns fristående som `AppPullToRefresh` | – | – (Fonder: Fondsök, Portfölj, Fonddetalj; Översikt, Innehav och Beslut med `AppPullToRefresh`) |
+| Dra för att uppdatera | `onRefresh` (standard `null` = ingen gest) och `refreshing` i listan och detaljen; Expressive-indikatorn överst (med `dotLoading` Kodhäst-prickarna som hoppar i en rund behållare, bara medan man drar och under en uppdatering man själv startat), ytan har taggen `ENTITY_REFRESH_TAG`; samma yta finns fristående som `AppPullToRefresh` | – | – (Fonder: Fondsök, Portfölj, Fonddetalj; Översikt, Innehav och Beslut med `AppPullToRefresh`) |
 
 - **Arkivering:** `ArchiveActions(scope, errors, setArchived, undoFormat, errorMessage, showing)` är logiken i
   listans ViewModel (svep, Ångra, "Visa arkiverade", `offerUndo` för annat än arkivering);
@@ -597,6 +597,7 @@ efter, innan någon app bytt. Byt direkt från 1.x till 3.0.0. Det som bryter, o
 
 | Version | Ändring |
 |---|---|
+| 3.2.0 | Dra-ned-indikatorn och den laddande knappen följer `AppBrandStyle.dotLoading` (fonder #277): `AppPullToRefresh` visar Kodhäst-prickarna som hoppar i en rund behållare i stället för den vågiga formen, och bara medan man drar eller under en uppdatering man själv startat – en körning appen startat själv syns bara av sidhuvudets prickar; `AppButton(loading)` visar prickarna i knappens textfärg i stället för snurran. **ReseApotekets och Dagbokens dra-ned-indikator och sparaknappar byter utseende** när de går upp, eftersom båda har `dotLoading`. Utan `dotLoading` oförändrat. Nya skärmdumpar `AppPullToRefresh_prickar` och `AppButton_laddar_prickar`; befintliga oförändrade |
 | 3.1.0 | Fonders generella delar (#85): L1 (komponenter, prickarna i `AppTopBar`) och L2 (`ui-common`-hjälpare) nedan. Rena tillägg, inget brytande – byt från 3.0.0 utan kodändring. ReseApotekets och Dagbokens underskärmar får prickarna före rubriken när de byter |
 | ↳ L2 | `ui-common`: tillståndshjälparna `itemsOrEmpty`, `errorOrNull`, `valueOrNull`, `catchAsListError`, `catchAsDetailError` (med appens `ErrorMapper` som parameter), `RetrySignal` och `restartOn` – flyttade från Fonder. Rena tillägg, inga skärmdumpar ändrade |
 | ↳ #85 L1 | Nya `ValueRow`, `ShareBar`, `SelectField`, `LoadingDialog` och `Modifier.copyOnLongPress` (från Fonder); `PickerField(enabled, stateDescription)`. En laddningsindikator (Mats 2026-11-19): med `AppBrandStyle.headerDots` står prickarna också före rubriken i `AppTopBar` och hoppar medan `LocalTopBarSyncing` är sant (ny parameter `syncing`) – **ReseApotekets och Dagbokens underskärmar och formulär får prickarna** när de byter till 3.1.0, eftersom båda har `headerDots`. Nya skärmdumpar `ValueRow_lagen`, `ShareBar_andelar`, `SelectField_lagen`, `SelectField_meny`, `LoadingDialog_standard`, `AppTopBar_prickar`, `AppTopBar_prickar_hamtar`; befintliga oförändrade (testtemat har inte `headerDots`) |

@@ -1,9 +1,17 @@
 package se.kodhast.ui.components
 
 import android.provider.Settings
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.platform.testTag
@@ -13,6 +21,7 @@ import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertHeightIsEqualTo
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertWidthIsEqualTo
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.junit4.v2.createComposeRule
@@ -21,6 +30,9 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeDown
 import androidx.compose.ui.unit.dp
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -99,6 +111,44 @@ class BrandBehaviorTest {
         show(AppBrandStyle(dotLoading = true)) { AppLoading() }
         rule.onNodeWithContentDescription("Laddar")
             .assert(SemanticsMatcher.expectValue(SemanticsProperties.ProgressBarRangeInfo, ProgressBarRangeInfo.Indeterminate))
+    }
+
+    @Test
+    fun `knappen som laddar visar prickar med dotLoading och är inaktiv`() {
+        var clicks = 0
+        show(AppBrandStyle(dotLoading = true)) { AppButton("Sparar …", onClick = { clicks++ }, loading = true) }
+        rule.onNode(
+            SemanticsMatcher.expectValue(SemanticsProperties.ProgressBarRangeInfo, ProgressBarRangeInfo.Indeterminate),
+            useUnmergedTree = true
+        ).assertExists()
+        rule.onNodeWithText("Sparar …").assertIsNotEnabled().performClick()
+        assertEquals(0, clicks)
+    }
+
+    @Test
+    fun `dra-ned-prickarna syns inte för en uppdatering appen startat själv`() {
+        show(AppBrandStyle(dotLoading = true)) {
+            AppPullToRefresh(refreshing = true, onRefresh = {}) { Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) { Text("Innehåll") } }
+        }
+        rule.waitForIdle()
+        rule.onNodeWithContentDescription("Laddar").assertDoesNotExist()
+    }
+
+    @Test
+    fun `dra-ned-prickarna syns under en uppdatering man startat med dragning`() {
+        var refreshing by mutableStateOf(false)
+        show(AppBrandStyle(dotLoading = true)) {
+            AppPullToRefresh(refreshing = refreshing, onRefresh = { refreshing = true }) {
+                Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) { Text("Innehåll") }
+            }
+        }
+        rule.onNodeWithContentDescription("Laddar").assertDoesNotExist()
+        rule.onNodeWithTag(ENTITY_REFRESH_TAG).performTouchInput { swipeDown() }
+        rule.waitForIdle()
+        rule.onNodeWithContentDescription("Laddar").assertExists()
+        refreshing = false
+        rule.waitForIdle()
+        rule.onNodeWithContentDescription("Laddar").assertDoesNotExist()
     }
 
     @Test
