@@ -89,9 +89,9 @@ fun AppProgress(
     }
 }
 
-/** Spåret och fyllnaden; fjädern får slå över lite (Expressive), men fyllnaden stannar inom spåret. */
+/** Spåret och fyllnaden; fjädern får slå över lite (Expressive), men fyllnaden stannar inom spåret. Delas med [ShareBar]. */
 @Composable
-private fun Track(fraction: Float, track: Color, fill: Color, outline: Color?, modifier: Modifier = Modifier) {
+internal fun Track(fraction: Float, track: Color, fill: Color, outline: Color?, modifier: Modifier = Modifier) {
     val shape = AppTheme.shapes.pill
     Box(modifier.height(TRACK_HEIGHT).clip(shape).background(track)) {
         val border = if (outline != null) Modifier.border(OUTLINE_WIDTH, outline, shape) else Modifier

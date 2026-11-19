@@ -245,8 +245,9 @@ CompositionLocalProvider(
    `AppHeader(title, scrollBehavior)` med `TopAppBarDefaults.exitUntilCollapsedScrollBehavior()` och
    `Modifier.nestedScroll(scrollBehavior.nestedScrollConnection)` på skärmen. Underskärmar behåller
    `AppTopBar(size = TopBarSize.Small)`.
-5. **Synken:** med `headerDots` visas den av prickarna (TalkBack: "Ändringar väntar på servern"); en app
-   som behåller en egen indikator sätter den som `LocalTopBarStatus` som förut.
+5. **Synken:** med `headerDots` visas den av prickarna (TalkBack: "Ändringar väntar på servern") – i sidhuvudet
+   och, från 3.1.0, före rubriken i underskärmarnas `AppTopBar`. Det är appens enda indikator för
+   bakgrundsarbete; en app som behåller en egen indikator sätter den som `LocalTopBarStatus` som förut.
 6. **Tester:** appens kontraktstester körs med appens tema – sätts identiteten där, prövas ramarna med
    sidhuvudet. Skärmdumparna tas om i appens PR.
 
@@ -451,7 +452,7 @@ inte använder ramen rätt.
 | `AppSlider` | Skjutreglaget: `label`, heltalsvärdet (`value`, `valueRange`, `step`), `valueText` och valfri `badge` (t.ex. en nivå-`InfoPill`) ovanför spåret; `trackBrush` (standard `primary`, en skala skickar sin gradient) och `thumbColor` (ringen). Går skalan under noll utgår fyllnaden från nollan, markerad med ett streck. Minst 48 dp högt; TalkBack läser `label` och `stateDescription` (standard `valueText`) | Flyttad från Dagbokens `ValueSlider` (#76): energiskalan, nivåpillen och färgerna är parametrar som Dagboken skickar. Med djup sänkt spår och lyft knopp (#74) |
 | `AppSnackbarHost` | Den enda platsen där meddelanden visas | – |
 | `AppTextField` | Det enda textfältet; `maxLength` (`AppTextFieldDefaults.SHORT_MAX_LENGTH` 200 / `LONG_MAX_LENGTH` 2000), `maxLines`, `suffix`, `valueIsPlaceholder` | Dagboken anger `maxLength = 5000` för långa fält |
-| `AppTopBar` | Skärmrubriken, stor eller liten; tillbakapilen `TopBarBackStyle(variant, tone)` via `LocalTopBarBackStyle` (eller parametern `backStyle`), som också ramarna följer | Synkindikatorn är appens: den sätts som `LocalTopBarStatus` (eller parametern `status`). `titleModifier` läggs på rubriken (också via `EntityDetailScreen`). Standardpilen är den tonade plattan; Fonder: `TopBarBackStyle(variant = IconButtonVariant.Plain)` |
+| `AppTopBar` | Skärmrubriken, stor eller liten; tillbakapilen `TopBarBackStyle(variant, tone)` via `LocalTopBarBackStyle` (eller parametern `backStyle`), som också ramarna följer. Med `AppBrandStyle.headerDots` står Kodhästs prickar före rubriken som i `AppHeader` och hoppar medan `syncing` (standard `LocalTopBarSyncing`) är sant | Synkindikatorn är appens: den sätts som `LocalTopBarStatus` (eller parametern `status`). `titleModifier` läggs på rubriken (också via `EntityDetailScreen`). Standardpilen är den tonade plattan; Fonder: `TopBarBackStyle(variant = IconButtonVariant.Plain)` |
 | `AuthGateHost` | Appens rot: `gate` (`AuthGate`) visar `AppLoading`, `signIn` (utloggad och `NeedsAccount`), `updateRequired` eller `content`; sätter appens bakgrund en gång | Flyttad från apparnas `AppRootContent` (#53) |
 | `BrandMark` | Kodhästs märke: hästen (`horseColor`, standard `onSurfaceVariant`) och de två prickarna (`dotsColor`, standard `primary`), dekor utan semantik; storlek med `modifier`, standard `BrandMarkDefaults.Size` 16 dp (profilens minsta) | Ny (android-ui #28) |
 | `CardSegment` | Ett segment i ett sammanfogat kort (`top`, `bottom`), `contentColor`, `onClick`, `style`; med kontur delar bitarna skiljelinje | Ersätter Fonders `AppCardGroupPosition` |
@@ -496,6 +497,7 @@ inte använder ramen rätt.
 | `LabeledGroup` | Etikett, hjälptext och innehåll; `helperAbove` (Dagboken) | – |
 | `LeadingSlot` | 48 dp-ruta för det ledande elementet, så att titlarna linjerar; `TOUCH_TARGET` (48 dp) är den minsta tryckytan för apparnas egna klickbara ytor | – |
 | `rememberReducedMotion()`, `Modifier.blockInput(block)` | Om systemets animationer är avstängda; låser beröring medan `block` är sant | – |
+| `LoadingDialog` | Blockerande väntan som inte går att stänga: laddningsindikatorn (som `AppLoading`, prickarna med `dotLoading`) bredvid `title` och `message`, i kortens färg och form; TalkBack läser texten när den visas. Bara för något användaren startat och måste invänta – bakgrundsarbete visas med sidhuvudets prickar | Flyttad från Fonder (#85), där den stod med indikatorn ovanför texten |
 | `LoadErrorState` | Läsfel med "Försök igen" (bara om `retryable`) | Tar `UiError` |
 | `MakerMark` | Kodhästs signatur: `BrandMark` och "En kodhäst-app" (`text`, sträng `maker_mark`) i `caption` och `onSurfaceVariant`, en nod som läses som texten | Ny (android-ui #28) |
 | `MessageSnackbar` | Visar en text en gång i `AppSnackbarHost` | – |
@@ -505,14 +507,16 @@ inte använder ramen rätt.
 | `NoticeBanner` | Meddelande överst på en skärm: tonat `AppCard` (`tone`, standard `Tone.Primary`) med `icon`, `text`, `detail` och en pil; hela kortet är knappen (`onClick`, läses med `onClickLabel`, standard "Öppna"); `onClick = null` = bara ett meddelande; `action` = en egen knapp under texten (kräver `onClick`) | Flyttad från Dagboken (#54), som skickar sin `Tone.Warning`; ReseApotekets "Notiser är avstängda" |
 | `PausableRow` | Rad som kan pausas: typ som pill, nedtonad "Pausat"; `pillTone` krävs | Tonen är appens (ReseApoteket `Tone.Blue`, Dagboken `Tone.Neutral`) |
 | `PillRow` | Några `InfoPill` tätt i en rad som inte bryts eller rullar, t.ex. etiketterna sist i en listrad | Flyttad från ReseApoteket (#75, packlistans etiketter) |
-| `PickerField` | Fält som öppnar en väljare; `emptyLabel`, `contentLabel` | – |
+| `PickerField` | Fält som öppnar en väljare; `emptyLabel`, `contentLabel`, `enabled` (`false` låser med värdet synligt), `stateDescription` (läget för TalkBack) | – |
 | `QuantityStepper` | − värde +; `step`, `valueText`, `buttonSize` (standard `LocalQuantityStepperButtonSize`: `QuantityStepperDefaults.ButtonSize` 44 dp, `TouchTargetButtonSize` 48 dp), `showLabel` (etiketten som text till höger, läses bara en gång) | Dagboken sätter `TouchTargetButtonSize` en gång i sitt tema; `showLabel` är ReseApotekets `LabeledStepper` (#75) |
 | `ReminderTimeRow` | En påminnelse: namn och klockslag, tryck öppnar `TimePickerPopup`; med `onEnabledChange` en `SwitchRow` med reglaget som egen kontroll, annars en `ItemRow`. Avslagen (`enabled = false`) eller `inactive` tonar texten, inte reglaget | Flyttad från Dagboken (#57) |
+| `SelectField` | Fält med rullgardin: `PickerField` med pil som öppnar en `AppMenuPopup` med `options` (`optionLabel`); `placeholder` utan val, `clearOptionLabel` (ett val överst som ger `null`), `supportingText`, `error`, `enabled = false` låser med valet synligt; TalkBack läser läget "Hopfälld"/"Utfälld" | Flyttad från Fonder (#85), där den var Material 3:s `ExposedDropdownMenuBox` med `OutlinedTextField` |
 | `SectionCard` | Kort med rubrikrad: `AppCard` med `SectionHeader` (`title`, `icon`, `count`, `countTone`) och innehållet under; `tone` tonar kortet och rubriken, `contentColor` som i `AppCard` | Nytt (#76) för Dagbokens tre kort med rubrikrad |
 | `SectionHeader` | Sektionsrubrik med antal; `countTone`; laddningsindikator med `working`; med `AppBrandStyle(sectionDots = true)` två prickar i `primary` före titeln när ikonrutan saknas; titeln högst två rader brutna mellan ord, ett ord som inte ryms kortas med "…" och visar hela titeln i en bubbla vid långt tryck (som `ItemRow`) | – |
 | `SectionFoldout` | `Foldout` med `SectionHeader` i titelraden: `icon`, `count`, `tone`, `countTone`, `trailing` (t.ex. en tonad lägg till-knapp, `AppIconButton(…, variant = IconButtonVariant.Tonal)`), `emptyText` (tomraden som i en listgrupp) | Flyttad från Dagboken (#46); `trailing` är ny (ReseApotekets persondetalj); `emptyText` från ReseApoteket (#75) |
 | `SettingsCard` | Kort på en inställningssida; `error` visas sist i kortet, där åtgärden gjordes | Flyttad från ReseApoteket (#75) |
 | `SettingsPage` | Inställningssidans ram: liten topprad med `title` och `onBack`, innehållet rullar med toppraden, `GroupLabel` + kort med samma marginal och avstånd, luft för flikraden sist | Flyttad från ReseApoteket (#75) |
+| `ShareBar` | En andel av en helhet: `label` och `value` (appens formatering) ovanför `AppProgress`-spåret fyllt till `fraction`; `target` ritar ett målstreck i `targetColor` (standard `secondary`) och med `targetValue` blir texten "52,0 % · mål 45,0 %"; `color` (standard `primary`, en restpost t.ex. `outline`). Läses som en enhet med andelen som framsteg | Fonders `ExposureBar` (#85): spåret har bibliotekets höjd (8 dp, förut 10) och färg (`ExtendedColors.track`) |
 | `SignInScreen` | Inloggningen i hela skärmen: `appIcon`, `appName`, `welcome`, `note`, knappen "Logga in med Google" (`AppButton` med inloggningsikonen), `busy` ("Loggar in …", spärrad), `error` en gång som meddelande ovanför knappen (`onErrorShown`), `onSignIn` | Flyttad från ReseApoteket och Dagboken (#53); RA:s egna `LaunchedEffect` blir `ErrorSnackbar` |
 | `SignOutRow` | "Logga ut" med utloggningsikonen; frågar "Logga ut?" med `ConfirmDialog` innan `onSignOut`. Likadan i alla appar: bara `appName` i texten skiljer, och bekräftelseknappen är en vanlig knapp i appens färger | Flyttad från ReseApoteket och Dagboken (#54); apparnas egna texter och RA:s röda knapp försvinner (1.15.0, Mats beslut) |
 | `StatPill` | Mätvärde: ikon, värde och etikett i en tonad yta, läses som en enhet; `onClick` (knapp, minst 48 dp), `onClickLabel`, `action` (åtgärden sist, kräver `onClick`). `tone` krävs | Flyttad från Dagboken (#57); tonen är appens (Dagboken `Tone.Neutral`) |
@@ -530,12 +534,16 @@ inte använder ramen rätt.
 | `UnknownValueNotice` | I stället för ett värde som appversionen inte känner till (t.ex. en typ som en nyare version sparat); `text`, standard "Det här kan inte visas i den här versionen. Uppdatera appen för att ändra." | Flyttad från ReseApoteket (#75) |
 | `UpdateRequiredScreen` | "Uppdatera appen": `message`, `note`, knappen "Hämta senaste versionen" som öppnar `releasesUrl` | Flyttad från ReseApoteket och Dagboken (#53) |
 | `UndoSnackbar` | "Arkiverad – Ångra" för `UndoRequest`; `format`, `onRequestDismissed` | – |
+| `ValueRow` | Etikett till vänster, värde till höger med tabulära siffror: `value` (`String` eller `AnnotatedString` med egna färger), `supportingLabel`/`supportingValue` (dämpade rader under), `valueColor` eller `valueTone`, `muted` (hela raden dämpad), `valueMuted` (bara värdet, t.ex. "Hämtar …"), `valueStyle` (standard `typography.body`). Läses som en enhet; en lång etikett klipps efter två rader så att värdet syns | Fonders `PeriodRow` utan domänen (#85): kr/%-formateringen och vinst/förlust-färgen stannar i Fonder |
 | `ValueTile` | Ett beräknat värde i en tonad ruta: `label`, `value` i stor stil, `supporting` (förklaringen), `tone` (standard `Tone.Primary`); läses som en enhet och upp igen när värdet ändras | ReseApotekets `PackingPreview` (#75), som skickar `Tone.Blue` |
 
 **Modifierare:** `Modifier.longPress(label, onLongPress, haptic = false, semantics = LongPressSemantics.LongClick)` –
 långtryck ovanpå en yta vars klick ägs av något annat (`AppFilterChip`, Dagbokens känslor): avbryts av
 rörelse, tar resten av gesten efter långtrycket, `haptic` ger en puls, TalkBack får långtrycksåtgärden
 (`LongClick`) eller en anpassad åtgärd (`CustomAction`); `onLongPress = null` gör ingenting.
+`Modifier.copyOnLongPress(text, label, clipLabel = label)` – långtryck kopierar `text` till urklipp med haptisk
+puls (Android visar själv bekräftelsen), TalkBack-åtgärden heter `label` ("Kopiera fondnamn"); samma gest som
+`longPress`, så att en klickbar rad eller ett kort inte också öppnas. Fonders `copyableFundName` (#85).
 
 Strängarna (svenska) och ikonerna ligger i `ui-components/src/main/res`. En app som har en
 resurs med samma namn (t.ex. `ic_add` eller `more_options`) ersätter bibliotekets – så behåller
@@ -589,8 +597,9 @@ efter, innan någon app bytt. Byt direkt från 1.x till 3.0.0. Det som bryter, o
 
 | Version | Ändring |
 |---|---|
-| 3.1.0 (under arbete) | Fonders generella delar (#85) |
+| 3.1.0 (under arbete) | Fonders generella delar (#85). Versionen höjs och publiceras i L3 |
 | ↳ L2 | `ui-common`: tillståndshjälparna `itemsOrEmpty`, `errorOrNull`, `valueOrNull`, `catchAsListError`, `catchAsDetailError` (med appens `ErrorMapper` som parameter), `RetrySignal` och `restartOn` – flyttade från Fonder. Rena tillägg, inga skärmdumpar ändrade |
+| ↳ #85 L1 | Nya `ValueRow`, `ShareBar`, `SelectField`, `LoadingDialog` och `Modifier.copyOnLongPress` (från Fonder); `PickerField(enabled, stateDescription)`. En laddningsindikator (Mats 2026-11-19): med `AppBrandStyle.headerDots` står prickarna också före rubriken i `AppTopBar` och hoppar medan `LocalTopBarSyncing` är sant (ny parameter `syncing`) – **ReseApotekets och Dagbokens underskärmar och formulär får prickarna** när de byter till 3.1.0, eftersom båda har `headerDots`. Nya skärmdumpar `ValueRow_lagen`, `ShareBar_andelar`, `SelectField_lagen`, `SelectField_meny`, `LoadingDialog_standard`, `AppTopBar_prickar`, `AppTopBar_prickar_hamtar`; befintliga oförändrade (testtemat har inte `headerDots`) |
 | 3.0.0 | Formerna är ingen appinställning (Mats 2026-11-18, också för Fonder): `AppTheme` tar inte längre `shapes`, och alla appar får `AppShapes()` med 22 dp-kort. Publicerad direkt efter 2.0.0, innan någon app bytt – apparna byter från 1.x direkt till 3.0.0. Inga skärmdumpar ändrade |
 | 2.0.0 | Serien från granskningen 2026-11-18 (#73–#77), en major så att apparna byter en gång. Brytande ändringar och vad appen gör: se Byta från 1.x till 3.0 |
 | ↳ #77 | API-städning: `SignInButton`, `ic_google`, `sign_in` och dolda `SignOutRow` borttagna; `EmojiPicker(emojis, selected, onSelect)`; `ErrorSnackbar` med `key` före `duration`; `ExampleChips(label)` `@Composable`; `ExpandableContent(modifier)`; ikonstorlekarna `IconSize` i `ui-theme` i stället för privata konstanter i nio filer; `PROGRESS_STROKE`, `AppTheme.transparent`, `AppShapes.fab` och `AppShapes.dialog` i stället för hårdkodade värden och Material 3:s standardformer, och `ui-forbidden.txt` fäller dem. Formerna samma i alla appar: `AppShapes` har standardvärdet 22 dp-kort och `AppTheme(shapes)` är valfri (borttagen i 3.0.0). Testtemat använder standardformerna (förut 28 dp-kort), så skärmdumparna med kort, rader i kort och dialoger är omtagna; `SignInButton_standard` och `AppHeader_utloggat` borttagna |

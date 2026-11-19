@@ -220,21 +220,7 @@ private fun HeaderTitle(title: String, state: TopAppBarState, syncing: Boolean, 
     val typography = AppTheme.typography
     val style = lerp(typography.screenTitle, typography.sectionTitle, state.collapsedFraction)
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
-        if (LocalAppBrandStyle.current.headerDots) {
-            val pending = stringResource(R.string.sync_pending)
-            BrandDots(
-                MaterialTheme.colorScheme.primary,
-                Modifier
-                    .size(DOTS_WIDTH, DOTS_HEIGHT)
-                    .testTag(HEADER_DOTS_TAG)
-                    .clearAndSetSemantics {
-                        // Alltid en live-region, så att TalkBack säger texten när den dyker upp.
-                        liveRegion = LiveRegionMode.Polite
-                        if (syncing) contentDescription = pending
-                    },
-                bouncing = syncing
-            )
-        }
+        if (LocalAppBrandStyle.current.headerDots) HeaderDots(syncing)
         Text(
             title,
             style = style,
@@ -244,6 +230,27 @@ private fun HeaderTitle(title: String, state: TopAppBarState, syncing: Boolean, 
             modifier = Modifier.semantics { heading() }.then(titleModifier)
         )
     }
+}
+
+/**
+ * Kodhästs två prickar före rubriken i [AppHeader] och [AppTopBar] (med `AppBrandStyle.headerDots`): de hoppar
+ * medan [syncing] är sant, och TalkBack säger då "Ändringar väntar på servern" (en live-region).
+ */
+@Composable
+internal fun HeaderDots(syncing: Boolean) {
+    val pending = stringResource(R.string.sync_pending)
+    BrandDots(
+        MaterialTheme.colorScheme.primary,
+        Modifier
+            .size(DOTS_WIDTH, DOTS_HEIGHT)
+            .testTag(HEADER_DOTS_TAG)
+            .clearAndSetSemantics {
+                // Alltid en live-region, så att TalkBack säger texten när den dyker upp.
+                liveRegion = LiveRegionMode.Polite
+                if (syncing) contentDescription = pending
+            },
+        bouncing = syncing
+    )
 }
 
 /** Ihopfälld, och innehåll ligger under – då har raden kortfärg och skugga. */
