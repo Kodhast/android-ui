@@ -5,7 +5,7 @@ eventuellt Fonder): ett tema-API och de delade komponenterna, så att samma elem
 beter sig likadant i alla appar och bara finns på ett ställe. Varje app behåller sina egna
 färger och typsnitt och skickar in dem i temat; formerna är samma i alla appar.
 
-**Version:** 3.0.0 · Material 3 `1.5.0-beta01` (Expressive) · Compose BOM `2026.09.00` ·
+**Version:** 3.1.0 · Material 3 `1.5.0-beta01` (Expressive) · Compose BOM `2026.09.00` ·
 Kotlin `2.4.20` · AGP `9.4.1` · compileSdk 37 · minSdk 30.
 
 ## Moduler
@@ -40,8 +40,8 @@ dependencyResolutionManagement {
 }
 ```
 
-och i versionskatalogen/byggfilen `implementation("se.kodhast.ui:ui-components:3.0.0")` och
-`testImplementation("se.kodhast.ui:ui-testing:3.0.0")`.
+och i versionskatalogen/byggfilen `implementation("se.kodhast.ui:ui-components:3.1.0")` och
+`testImplementation("se.kodhast.ui:ui-testing:3.1.0")`.
 
 - **CI i appen:** `GITHUB_TOKEN` räcker när paketet gett apprepot läsåtkomst
   (paketets inställningar → *Manage Actions access*) och jobbet har `permissions: packages: read`.
@@ -597,7 +597,7 @@ efter, innan någon app bytt. Byt direkt från 1.x till 3.0.0. Det som bryter, o
 
 | Version | Ändring |
 |---|---|
-| 3.1.0 (under arbete) | Fonders generella delar (#85). Versionen höjs och publiceras i L3 |
+| 3.1.0 | Fonders generella delar (#85): L1 (komponenter, prickarna i `AppTopBar`) och L2 (`ui-common`-hjälpare) nedan. Rena tillägg, inget brytande – byt från 3.0.0 utan kodändring. ReseApotekets och Dagbokens underskärmar får prickarna före rubriken när de byter |
 | ↳ L2 | `ui-common`: tillståndshjälparna `itemsOrEmpty`, `errorOrNull`, `valueOrNull`, `catchAsListError`, `catchAsDetailError` (med appens `ErrorMapper` som parameter), `RetrySignal` och `restartOn` – flyttade från Fonder. Rena tillägg, inga skärmdumpar ändrade |
 | ↳ #85 L1 | Nya `ValueRow`, `ShareBar`, `SelectField`, `LoadingDialog` och `Modifier.copyOnLongPress` (från Fonder); `PickerField(enabled, stateDescription)`. En laddningsindikator (Mats 2026-11-19): med `AppBrandStyle.headerDots` står prickarna också före rubriken i `AppTopBar` och hoppar medan `LocalTopBarSyncing` är sant (ny parameter `syncing`) – **ReseApotekets och Dagbokens underskärmar och formulär får prickarna** när de byter till 3.1.0, eftersom båda har `headerDots`. Nya skärmdumpar `ValueRow_lagen`, `ShareBar_andelar`, `SelectField_lagen`, `SelectField_meny`, `LoadingDialog_standard`, `AppTopBar_prickar`, `AppTopBar_prickar_hamtar`; befintliga oförändrade (testtemat har inte `headerDots`) |
 | 3.0.0 | Formerna är ingen appinställning (Mats 2026-11-18, också för Fonder): `AppTheme` tar inte längre `shapes`, och alla appar får `AppShapes()` med 22 dp-kort. Publicerad direkt efter 2.0.0, innan någon app bytt – apparna byter från 1.x direkt till 3.0.0. Inga skärmdumpar ändrade |
