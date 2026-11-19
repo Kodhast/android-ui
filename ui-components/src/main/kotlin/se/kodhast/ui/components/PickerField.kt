@@ -15,7 +15,8 @@ import androidx.compose.ui.semantics.semantics
  * Gemensam yta för datum- och tidsfält ([TimeField], appens `DateField`): ett skrivskyddat fält som
  * visar [shown] och öppnar en väljare ([onPick]) vid tryck. TalkBack läser det som en knapp med
  * etikett, värde och fel. Utan värde visas [emptyLabel] nedtonat (t.ex. "Periodens slut"), och
- * TalkBack läser den. [contentLabel] ersätter [label] för TalkBack.
+ * TalkBack läser den. [contentLabel] ersätter [label] för TalkBack. [enabled] = `false` låser fältet med
+ * värdet synligt, tonat som ett avstängt fält; standard `true`.
  */
 @Composable
 fun PickerField(
@@ -28,7 +29,8 @@ fun PickerField(
     error: String? = null,
     helper: String? = null,
     emptyLabel: String? = null,
-    contentLabel: String? = null
+    contentLabel: String? = null,
+    enabled: Boolean = true
 ) {
     val description = listOf(contentLabel ?: label, shown.ifEmpty { emptyLabel ?: pickLabel }, error.orEmpty()).filter { it.isNotEmpty() }.joinToString(", ")
     Box(modifier) {
@@ -41,13 +43,14 @@ fun PickerField(
             error = error,
             helper = helper,
             readOnly = true,
+            enabled = enabled,
             trailingIcon = icon,
             valueIsPlaceholder = shown.isEmpty() && emptyLabel != null
         )
         Box(
             Modifier
                 .matchParentSize()
-                .clickable(role = Role.Button, onClickLabel = pickLabel, onClick = onPick)
+                .clickable(enabled = enabled, role = Role.Button, onClickLabel = pickLabel, onClick = onPick)
                 .semantics { contentDescription = description }
         )
     }

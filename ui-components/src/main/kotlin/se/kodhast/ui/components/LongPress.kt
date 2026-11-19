@@ -74,7 +74,7 @@ private data class LongPressElement(val haptic: Boolean, val onLongPress: () -> 
     }
 }
 
-private class LongPressNode(var haptic: Boolean, var onLongPress: () -> Unit) :
+internal class LongPressNode(var haptic: Boolean, var onLongPress: () -> Unit) :
     DelegatingNode(),
     CompositionLocalConsumerModifierNode {
     init {

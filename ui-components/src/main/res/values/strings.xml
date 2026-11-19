@@ -102,4 +102,7 @@
     <string name="saved">Sparat</string>
     <string name="choose">Välj</string>
     <string name="choice_more">Fler</string>
+    <!-- ShareBar: andelen och målet, t.ex. "52,0 % · mål 45,0 %" och "Nivå 4: 52,0 %, mål 45,0 %" -->
+    <string name="share_target_format">%1$s · mål %2$s</string>
+    <string name="share_target_description_format">%1$s: %2$s, mål %3$s</string>
 </resources>

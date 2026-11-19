@@ -16,6 +16,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -31,6 +32,7 @@ import androidx.navigation3.runtime.NavKey
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
@@ -113,6 +115,7 @@ import se.kodhast.ui.components.ListArchive
 import se.kodhast.ui.components.ListGroup
 import se.kodhast.ui.components.ListSubgroup
 import se.kodhast.ui.components.LoadErrorState
+import se.kodhast.ui.components.LoadingDialog
 import se.kodhast.ui.components.MakerMark
 import se.kodhast.ui.components.MessageSnackbar
 import se.kodhast.ui.components.MorphingCheck
@@ -127,8 +130,10 @@ import se.kodhast.ui.components.R as ComponentsR
 import se.kodhast.ui.components.ReminderTimeRow
 import se.kodhast.ui.components.SectionFoldout
 import se.kodhast.ui.components.SectionHeader
+import se.kodhast.ui.components.SelectField
 import se.kodhast.ui.components.SettingsCard
 import se.kodhast.ui.components.SettingsPage
+import se.kodhast.ui.components.ShareBar
 import se.kodhast.ui.components.SignInScreen
 import se.kodhast.ui.components.SignOutRow
 import se.kodhast.ui.components.StatPill
@@ -148,8 +153,10 @@ import se.kodhast.ui.components.UndoRequest
 import se.kodhast.ui.components.UndoSnackbar
 import se.kodhast.ui.components.UnknownValueNotice
 import se.kodhast.ui.components.UpdateRequiredScreen
+import se.kodhast.ui.components.ValueRow
 import se.kodhast.ui.components.ValueTile
 import se.kodhast.ui.components.asSplitMenu
+import se.kodhast.ui.components.copyOnLongPress
 import se.kodhast.ui.navigation.AppNavHost
 import se.kodhast.ui.navigation.R
 import se.kodhast.ui.navigation.TabBackStack
@@ -378,6 +385,21 @@ private fun Fields() {
     GroupLabel("ValueTile · UnknownValueNotice")
     ValueTile("För en 7-dagarsresa", "18 tabletter · 2 kartor", supporting = "2 × 1 tablett/dag × (7 + 2) dagar")
     UnknownValueNotice()
+    GroupLabel("ValueRow · ShareBar · SelectField")
+    AppCard {
+        ValueRow("Totalresultat", "+8,6 % · +32 860 kr", valueTone = Tone.Primary)
+        ValueRow("Schablonskatt i år", "ca −3 000 kr", supportingLabel = "0,888 % på kapitalunderlaget", valueMuted = true)
+        ValueRow("Årsavkastning", "Visas efter ett år", valueMuted = true)
+        ShareBar("Nivå 4", 0.52f, "52,0 %", target = 0.45f, targetValue = "45,0 %")
+        ShareBar("Övrigt", 0.08f, "8,0 %", color = MaterialTheme.colorScheme.outline)
+    }
+    var fund by remember { mutableStateOf<String?>(null) }
+    SelectField("Fond", FUNDS, fund, { it }, { fund = it }, placeholder = "Alla fonder", clearOptionLabel = "Alla fonder")
+    Text(
+        "Global Indexfond A – håll inne för att kopiera",
+        style = AppTheme.typography.body,
+        modifier = Modifier.copyOnLongPress("Global Indexfond A", "Kopiera fondnamn")
+    )
     var cell by remember { mutableIntStateOf(1) }
     GroupLabel("ChoiceGrid")
     ChoiceGrid(FORMS.indices.toList(), cell, { cell = it }, { FORMS[it] }, selectionRing = true) { item, _ ->
@@ -503,6 +525,7 @@ private fun Overlays() {
     var discardDialog by remember { mutableStateOf(false) }
     var timePicker by remember { mutableStateOf(false) }
     var sheet by remember { mutableStateOf(false) }
+    var waiting by remember { mutableStateOf(false) }
     var celebrate by remember { mutableStateOf(false) }
     var archived by remember { mutableStateOf<UndoRequest?>(null) }
     var message by remember { mutableStateOf<String?>(null) }
@@ -516,6 +539,7 @@ private fun Overlays() {
         AppButton("Släng ändringar", { discardDialog = true }, variant = ButtonVariant.Secondary)
         AppButton("Klocka", { timePicker = true }, variant = ButtonVariant.Secondary)
         AppButton("Sheet", { sheet = true }, variant = ButtonVariant.Secondary)
+        AppButton("Väntan", { waiting = true }, variant = ButtonVariant.Secondary)
     }
     ChipRow {
         AppButton("Snackbar", { scope.launch { snackbar.showSnackbar("Ingen anslutning just nu.") } }, variant = ButtonVariant.Text)
@@ -526,6 +550,14 @@ private fun Overlays() {
     UndoSnackbar(archived, snackbar, onUndo = { archived = null }, onDismissed = { archived = null })
     MessageSnackbar(message, snackbar) { message = null }
     ErrorSnackbar(error, snackbar) { error = null }
+    if (waiting) {
+        // Väntedialogen går inte att stänga; i galleriet försvinner den av sig själv.
+        LaunchedEffect(Unit) {
+            delay(WAIT_MILLIS)
+            waiting = false
+        }
+        LoadingDialog("Läser avräkningsnotan", "Det tar några sekunder.")
+    }
     if (dialog) {
         ConfirmDialog("Arkivera Solkräm?", "Den syns inte i listan, men finns kvar under Visa arkiverade.", "Arkivera", { dialog = false }, { dialog = false })
     }
@@ -745,6 +777,8 @@ private val ADD_MENU = listOf(
 )
 
 private val FORMS = listOf("Tablett", "Kapsel", "Flytande", "Inhalator")
+private val FUNDS = listOf("Global Indexfond A", "Sverige Småbolag", "Räntefond Kort")
+private const val WAIT_MILLIS = 2_000L
 private val SAMPLE_DATE = LocalDate(2026, 10, 2)
 private val ROW_HEIGHT = 56.dp
 private val LOADING_HEIGHT = 96.dp
