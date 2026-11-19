@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.progressSemantics
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -39,6 +38,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import se.kodhast.ui.components.R
+import se.kodhast.ui.theme.AppTheme
 
 /**
  * Laddning: Expressive laddningsindikator mitt på ytan – eller Kodhästs två prickar som hoppar, i
@@ -127,7 +127,7 @@ internal fun PullDots(fraction: () -> Float, modifier: Modifier = Modifier) {
     val size = with(density) { PULL_SIZE.roundToPx() }
     Surface(
         modifier = modifier.offset { IntOffset(0, (fraction().coerceIn(0f, 1f) * (rest + size) - size).toInt()) }.size(PULL_SIZE),
-        shape = CircleShape,
+        shape = AppTheme.shapes.pill,
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
         shadowElevation = PULL_ELEVATION
     ) {
