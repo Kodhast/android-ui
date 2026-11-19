@@ -221,10 +221,9 @@ private fun ToolbarActionButton(action: ToolbarAction, menuStyle: ActionMenuStyl
         } else {
             // Med djup: samma knapp som Material 3:s (som fyller platsen), men med en fylld knapps djup i stället för dess skugga.
             val interactionSource = remember { MutableInteractionSource() }
-            val lift = rememberLift(interactionSource)
             FloatingActionButton(
                 onClick,
-                described.fillMaxSize().depthSurface(depth, AppTheme.shapes.fab, { lift.value }, raised = true),
+                described.fillMaxSize().depth(AppTheme.shapes.fab, interactionSource),
                 shape = AppTheme.shapes.fab,
                 containerColor = colors.container,
                 contentColor = colors.content,

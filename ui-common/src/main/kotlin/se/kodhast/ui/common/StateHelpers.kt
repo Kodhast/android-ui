@@ -2,12 +2,9 @@ package se.kodhast.ui.common
 
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.onStart
 
 // För en skärm där listan eller det lästa bara är ett fält i skärmens tillstånd (filter, summeringar,
 // körstatus …) i stället för hela tillståndet. Laddning, tomt och fel beter sig ändå som i ramarna.
@@ -42,19 +39,18 @@ fun <S> Flow<S>.catchAsDetailError(errors: ErrorMapper, onError: (DetailUiState.
 class RetrySignal {
     // En buffrad plats: ett tryck medan skärmen visas går aldrig förlorat. Två snabba tryck kan ge två
     // omläsningar, men [restartOn] avbryter den första, så bara den sista syns.
-    private val requests = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    private val pending = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 
     /** Läs om källan. */
     fun retry() {
-        requests.tryEmit(Unit)
+        pending.tryEmit(Unit)
     }
 
-    internal val signals: Flow<Unit> get() = requests.onStart { emit(Unit) }
+    internal val requests: Flow<Unit> get() = pending
 }
 
 /**
  * Samlar flödet en gång direkt och på nytt efter varje [RetrySignal.retry]. Står **efter** felfångsten,
  * så att ett läsfel blir tillståndet och nästa försök läser om källan i stället för att flödet är slut.
  */
-@OptIn(ExperimentalCoroutinesApi::class)
-fun <S> Flow<S>.restartOn(retry: RetrySignal): Flow<S> = retry.signals.flatMapLatest { this }
+fun <S> Flow<S>.restartOn(retry: RetrySignal): Flow<S> = retry.requests.restarting { this }

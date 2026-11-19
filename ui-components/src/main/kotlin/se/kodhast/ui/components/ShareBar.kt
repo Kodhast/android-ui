@@ -75,7 +75,7 @@ fun ShareBar(
             )
             Text(shown, style = AppTheme.typography.body.tabular(), color = colors.onSurface)
         }
-        val track = AppTheme.extendedColors.track ?: colors.primaryContainer
+        val track = trackColor()
         val fill = color ?: colors.primary
         // Målstrecket ritas ovanpå spåret och sticker ut utanför det, utan att ta plats: med och utan mål står
         // raderna lika tätt.

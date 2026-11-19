@@ -1,5 +1,7 @@
 package se.kodhast.ui.components
 
+import androidx.compose.foundation.interaction.DragInteraction
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
@@ -52,6 +54,21 @@ class DepthBehaviorTest {
     val rule = createComposeRule()
 
     private fun show(depth: Boolean = true, content: @Composable () -> Unit) = rule.setContent { TestTheme(depth = depth, content = content) }
+
+    @Test
+    fun `en dragning sänker bara det som följer dragningar - skjutreglagets knopp`() {
+        val source = MutableInteractionSource()
+        var followed = 1f
+        var ignored = 1f
+        show {
+            followed = rememberLift(source, followDrag = true).value
+            ignored = rememberLift(source).value
+        }
+        rule.runOnIdle { source.tryEmit(DragInteraction.Start()) }
+        rule.waitForIdle()
+        assertEquals(0f, followed, 0.01f)
+        assertEquals(1f, ignored)
+    }
 
     /** Bredden på [tag] medan den hålls nedtryckt, delad med bredden i vila. */
     // Bredden nedtryckt delat med bredden i vila – mätt på det klickbara elementet, inte på tryckytan runt det.

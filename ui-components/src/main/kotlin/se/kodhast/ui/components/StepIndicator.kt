@@ -36,7 +36,7 @@ import se.kodhast.ui.theme.TRACK_HEIGHT
  */
 @Composable
 fun StepIndicator(count: Int, current: Int, modifier: Modifier = Modifier) {
-    val track = AppTheme.extendedColors.track ?: MaterialTheme.colorScheme.primaryContainer
+    val track = trackColor()
     Row(modifier.fillMaxWidth().clearAndSetSemantics {}, horizontalArrangement = Arrangement.spacedBy(Spacing.xs, Alignment.CenterHorizontally)) {
         repeat(count) { index ->
             val active = index == current

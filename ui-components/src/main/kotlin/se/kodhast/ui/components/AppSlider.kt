@@ -85,8 +85,7 @@ fun AppSlider(
         // Värdet ägs av anroparen; reglaget visar alltid det.
         SideEffect { slider.value = value.toFloat() }
         val interactionSource = remember { MutableInteractionSource() }
-        val depth = AppTheme.depth
-        val lift = depth?.let { rememberLift(interactionSource, enabled) }
+        val sunken = AppTheme.depth?.let { Modifier.sunken(AppTheme.shapes.pill, it.shadow, over = true) } ?: Modifier
         Slider(
             state = slider,
             onValueChange = { onValueChange(snapToStep(it, valueRange, step)) },
@@ -96,8 +95,8 @@ fun AppSlider(
             },
             enabled = enabled,
             interactionSource = interactionSource,
-            thumb = { SliderThumb(thumbColor, depth?.let { d -> Modifier.depthSurface(d, AppTheme.shapes.pill, { lift?.value ?: 1f }, raised = enabled) }) },
-            track = { SliderTrack(brush, fraction, anchor, depth?.let { d -> Modifier.sunken(AppTheme.shapes.pill, d.shadow, over = true) }) }
+            thumb = { SliderThumb(thumbColor, Modifier.depth(AppTheme.shapes.pill, interactionSource, raised = enabled, active = enabled, followDrag = true)) },
+            track = { SliderTrack(brush, fraction, anchor, sunken) }
         )
     }
 }
@@ -106,13 +105,13 @@ fun AppSlider(
 internal fun snapToStep(position: Float, valueRange: IntRange, step: Int): Int = (valueRange.first + ((position - valueRange.first) / step).roundToInt() * step).coerceIn(valueRange)
 
 @Composable
-private fun SliderThumb(color: Color, depth: Modifier?) {
+private fun SliderThumb(color: Color, depth: Modifier = Modifier) {
     val round = AppTheme.shapes.pill
     Box(Modifier.size(TOUCH_TARGET), contentAlignment = Alignment.Center) {
         Box(
             Modifier
                 .size(THUMB)
-                .then(depth ?: Modifier)
+                .then(depth)
                 .background(AppTheme.extendedColors.card, round)
                 .border(THUMB_BORDER, color, round)
         )
@@ -120,9 +119,9 @@ private fun SliderThumb(color: Color, depth: Modifier?) {
 }
 
 @Composable
-private fun SliderTrack(brush: Brush, fraction: Float, anchor: Float, depth: Modifier?) {
+private fun SliderTrack(brush: Brush, fraction: Float, anchor: Float, depth: Modifier = Modifier) {
     val zeroMark = MaterialTheme.colorScheme.onSurfaceVariant
-    Canvas(Modifier.fillMaxWidth().height(TRACK_HEIGHT).then(depth ?: Modifier)) {
+    Canvas(Modifier.fillMaxWidth().height(TRACK_HEIGHT).then(depth)) {
         val y = size.height / 2
         val stroke = size.height
         drawLine(brush, Offset(0f, y), Offset(size.width, y), stroke, StrokeCap.Round, alpha = TRACK_ALPHA)
