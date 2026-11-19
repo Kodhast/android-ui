@@ -36,16 +36,9 @@ fun AppIconButton(
     val content: @Composable () -> Unit = { Icon(painterResource(icon), contentDescription) }
     val colors = tone?.let { AppTheme.tone(it) }
     val interactionSource = remember { MutableInteractionSource() }
-    val depth = AppTheme.depth
-    val sized = if (depth == null) {
-        modifier.size(TOUCH_TARGET)
-    } else {
-        val lift = rememberLift(interactionSource, enabled)
-        val liftValue = { lift.value }
-        modifier
-            .size(TOUCH_TARGET)
-            .depthSurface(depth, AppTheme.shapes.pill, liftValue, raised = variant == IconButtonVariant.Tonal && enabled, shadow = Lift.Selected, press = ICON_PRESS)
-    }
+    val sized = modifier
+        .size(TOUCH_TARGET)
+        .depth(AppTheme.shapes.pill, interactionSource, raised = variant == IconButtonVariant.Tonal && enabled, shadow = Lift.Selected, active = enabled, pressAmount = ICON_PRESS)
     when (variant) {
         IconButtonVariant.Tonal -> FilledTonalIconButton(
             onClick,

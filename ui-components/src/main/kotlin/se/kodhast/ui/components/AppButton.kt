@@ -156,11 +156,9 @@ private fun ButtonBase(
     if (depth == null) {
         button(described.heightIn(min = minHeight))
     } else {
-        val lift = rememberLift(interactionSource, active)
-        val liftValue = { lift.value }
         val strength = if (variant == ButtonVariant.Secondary) SECONDARY_SHADOW else 1f
         val decorated = Modifier
-            .depthSurface(depth, AppTheme.shapes.pill, liftValue, raised = active && variant in RAISED, strength = strength)
+            .depth(AppTheme.shapes.pill, interactionSource, raised = active && variant in RAISED, active = active, strength = strength)
             .heightIn(min = minHeight)
         val description = contentDescription?.let { Modifier.semantics { this.contentDescription = it } } ?: Modifier
         DepthTouchTarget(modifier) { target -> button(target.then(description).then(decorated)) }

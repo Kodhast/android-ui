@@ -117,13 +117,7 @@ fun AppFilterChip(
     } else {
         // Tryckytan (48 dp) läggs runt chipet här i stället för inuti FilterChip, så att den streckade kanten och
         // djupet ritas runt själva chipet och inte runt tryckytan.
-        val depthModifier = if (depth == null) {
-            Modifier
-        } else {
-            val lift = rememberLift(interactionSource, enabled)
-            val liftValue = { lift.value }
-            Modifier.depthSurface(depth, shape, liftValue, raised = selected && enabled && pending == null, shadow = Lift.Selected)
-        }
+        val depthModifier = Modifier.depth(shape, interactionSource, raised = selected && enabled && pending == null, shadow = Lift.Selected, active = enabled)
         val pendingModifier = pending?.let { Modifier.semantics { stateDescription = it.description }.dashedOutline(shape, dashColor) } ?: Modifier
         DepthTouchTarget(modifier) { target -> chip(target.then(depthModifier).then(chipModifier).then(pendingModifier)) }
     }

@@ -53,9 +53,10 @@ internal enum class Lift { Button, Selected }
  * ([active] = false) står kvar i vila.
  */
 @Composable
-internal fun rememberLift(interactionSource: InteractionSource, active: Boolean = true): State<Float> {
+internal fun rememberLift(interactionSource: InteractionSource, active: Boolean = true, followDrag: Boolean = false): State<Float> {
     val pressed by interactionSource.collectIsPressedAsState()
-    val dragged by interactionSource.collectIsDraggedAsState()
+    // Bara skjutreglaget följer dragningar; annars ingen extra insamling per yta (varje kort och knapp i en lista).
+    val dragged = if (followDrag) interactionSource.collectIsDraggedAsState().value else false
     return animateFloatAsState(
         targetValue = if (active && (pressed || dragged)) 0f else 1f,
         animationSpec = MaterialTheme.motionScheme.fastSpatialSpec(),
@@ -114,7 +115,7 @@ internal fun Modifier.depthSurface(
 
 /**
  * Temats djup ([depthSurface]) på en yta som trycks via [press]; utan djup oförändrad. [active] = false (inaktivt)
- * står kvar i vila.
+ * står kvar i vila (fjädrar tillbaka dit om det var nedtryckt). [followDrag]: draget räknas som nedtryckt (skjutreglagets knopp).
  */
 @Composable
 internal fun Modifier.depth(
@@ -122,11 +123,14 @@ internal fun Modifier.depth(
     press: InteractionSource,
     raised: Boolean = true,
     shadow: Lift? = Lift.Button,
-    active: Boolean = true
+    active: Boolean = true,
+    strength: Float = 1f,
+    pressAmount: Float = 1f,
+    followDrag: Boolean = false
 ): Modifier {
     val depth = AppTheme.depth ?: return this
-    val lift = rememberLift(press, active)
-    return depthSurface(depth, shape, { lift.value }, raised, shadow)
+    val lift = rememberLift(press, active, followDrag)
+    return depthSurface(depth, shape, { lift.value }, raised, shadow, strength, pressAmount)
 }
 
 /**
@@ -134,16 +138,7 @@ internal fun Modifier.depth(
  * klickbar pill. `null` = inget tryck att följa (bara klippt).
  */
 @Composable
-internal fun Modifier.pressable(shape: Shape, source: InteractionSource?): Modifier {
-    val depth = AppTheme.depth
-    val pressed = if (depth != null && source != null) {
-        val lift = rememberLift(source)
-        pressScale(depth, { lift.value })
-    } else {
-        this
-    }
-    return pressed.clip(shape)
-}
+internal fun Modifier.pressable(shape: Shape, source: InteractionSource?): Modifier = (source?.let { depth(shape, it, raised = false) } ?: this).clip(shape)
 
 /**
  * Ljuskanten (1 dp innanför överkanten, längs formen) och skimret som tonar ut ovanför texten – ovanpå ytan.

@@ -54,8 +54,8 @@ fun <T> SelectField(
             helper = supportingText,
             emptyLabel = placeholder,
             enabled = enabled,
-            stateDescription = stringResource(if (expanded && enabled) R.string.expanded else R.string.collapsed)
+            stateDescription = stringResource(if (expanded) R.string.expanded else R.string.collapsed)
         )
-        AppMenuPopup(items, expanded && enabled, onDismiss = { expanded = false })
+        AppMenuPopup(items, expanded, onDismiss = { expanded = false })
     }
 }

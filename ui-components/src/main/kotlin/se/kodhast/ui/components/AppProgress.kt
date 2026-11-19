@@ -71,7 +71,7 @@ fun AppProgress(
         contentDescription = if (complete && doneDescription != null) doneDescription(total) else text
         progressBarRangeInfo = ProgressBarRangeInfo(fraction, 0f..1f)
     }
-    val track = extended.track ?: colors.primaryContainer
+    val track = trackColor()
     if (compact) {
         Row(
             modifier.then(semantics),
@@ -88,6 +88,10 @@ fun AppProgress(
         Track(animated, track, fill, outline, Modifier.fillMaxWidth())
     }
 }
+
+/** Spårets färg: temats `ExtendedColors.track`, annars `primaryContainer` – för framsteg, andelar och steg. */
+@Composable
+internal fun trackColor(): Color = AppTheme.extendedColors.track ?: MaterialTheme.colorScheme.primaryContainer
 
 /** Spåret och fyllnaden; fjädern får slå över lite (Expressive), men fyllnaden stannar inom spåret. Delas med [ShareBar]. */
 @Composable

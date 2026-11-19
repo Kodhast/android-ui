@@ -23,6 +23,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -127,7 +128,10 @@ fun AppPullToRefresh(refreshing: Boolean, onRefresh: (() -> Unit)?, modifier: Mo
             if (!dots) {
                 PullToRefreshDefaults.LoadingIndicator(state = state, isRefreshing = refreshing, modifier = Modifier.align(Alignment.TopCenter))
             } else {
-                if (if (refreshing) pulled else state.distanceFraction > 0f) {
+                // Bara övergången till "dras" ritar om indikatorn, inte varje bildruta av dragningen.
+                val dragging by remember(state) { derivedStateOf { state.distanceFraction > 0f } }
+                val showDots = if (refreshing) pulled else dragging
+                if (showDots) {
                     PullDots({ state.distanceFraction }, Modifier.align(Alignment.TopCenter))
                 }
             }
@@ -153,11 +157,7 @@ internal fun PullDots(fraction: () -> Float, modifier: Modifier = Modifier) {
         shadowElevation = PULL_ELEVATION
     ) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            BrandDots(
-                MaterialTheme.colorScheme.primary,
-                Modifier.semantics { contentDescription = description }.progressSemantics().size(DOTS_WIDTH / 2, DOTS_HEIGHT / 2),
-                bouncing = true
-            )
+            InlineLoading(description, MaterialTheme.colorScheme.primary, Modifier.size(DOTS_WIDTH / 2, DOTS_HEIGHT / 2))
         }
     }
 }

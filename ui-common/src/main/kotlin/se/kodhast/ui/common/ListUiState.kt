@@ -6,7 +6,6 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flatMapLatest
@@ -50,18 +49,18 @@ sealed interface ListEvent {
  * Delas av alla listskärmars ViewModels, så att laddning, tomt och fel beter sig likadant.
  */
 class ListLoader<T>(source: Flow<List<T>>, scope: CoroutineScope, errors: ErrorMapper) {
-    private val retries = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    private val retry = RetrySignal()
 
     /**
      * Utan prenumerant i [STOP_TIMEOUT_MILLIS] stoppas flödet och tillståndet går tillbaka till
      * laddning: listan från förra gången (kanske en annan användares efter kontobyte) visas aldrig
      * ens en bildruta när skärmen kommer tillbaka.
      */
-    val state: StateFlow<ListUiState<T>> = source.asListUiState(errors, retries).stateWhileSubscribed(scope, ListUiState.Loading)
+    val state: StateFlow<ListUiState<T>> = source.asListUiState(errors, retry.requests).stateWhileSubscribed(scope, ListUiState.Loading)
 
     fun onEvent(event: ListEvent) {
         when (event) {
-            ListEvent.Retry -> retries.tryEmit(Unit)
+            ListEvent.Retry -> retry.retry()
         }
     }
 }
@@ -88,19 +87,17 @@ fun <T : Any> Flow<T?>.asDetailUiState(errors: ErrorMapper, retry: Flow<Unit>): 
 
 /** Detaljtillståndet för en ViewModel, med "Försök igen" – som [ListLoader] för listor. */
 class DetailLoader<T : Any>(source: Flow<T?>, scope: CoroutineScope, errors: ErrorMapper) {
-    private val retries = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    private val retry = RetrySignal()
 
     /** Som [ListLoader.state]: utan prenumerant går tillståndet tillbaka till laddning. */
-    val state: StateFlow<DetailUiState<T>> = source.asDetailUiState(errors, retries).stateWhileSubscribed(scope, DetailUiState.Loading)
+    val state: StateFlow<DetailUiState<T>> = source.asDetailUiState(errors, retry.requests).stateWhileSubscribed(scope, DetailUiState.Loading)
 
-    fun retry() {
-        retries.tryEmit(Unit)
-    }
+    fun retry() = retry.retry()
 }
 
-/** Kör [block] direkt och börjar om det varje gång flödet emitterar ("Försök igen"). */
+/** Kör [block] direkt och börjar om det varje gång flödet emitterar ("Försök igen"). Den enda omstarten, också för [restartOn]. */
 @OptIn(ExperimentalCoroutinesApi::class)
-private fun <R> Flow<Unit>.restarting(block: () -> Flow<R>): Flow<R> = onStart { emit(Unit) }.flatMapLatest { block() }
+internal fun <R> Flow<Unit>.restarting(block: () -> Flow<R>): Flow<R> = onStart { emit(Unit) }.flatMapLatest { block() }
 
 /** Delat medan någon prenumererar; efter [STOP_TIMEOUT_MILLIS] utan börjar det om från [initial]. */
 private fun <S> Flow<S>.stateWhileSubscribed(scope: CoroutineScope, initial: S): StateFlow<S> = stateIn(scope, screenSharing(), initial)
