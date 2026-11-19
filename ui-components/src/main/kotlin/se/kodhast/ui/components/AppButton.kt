@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.progressSemantics
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
@@ -185,6 +186,9 @@ private fun ButtonColors.busy(loading: Boolean) = if (loading) copy(disabledCont
 private fun ButtonContent(text: String, @DrawableRes icon: Int?, loading: Boolean) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         when {
+            loading && LocalAppBrandStyle.current.dotLoading ->
+                BrandDots(LocalContentColor.current, Modifier.size(DOTS_BUTTON_WIDTH, IconSize.button).progressSemantics(), bouncing = true)
+
             loading -> CircularProgressIndicator(
                 modifier = Modifier.size(IconSize.button),
                 color = LocalContentColor.current,
@@ -197,3 +201,6 @@ private fun ButtonContent(text: String, @DrawableRes icon: Int?, loading: Boolea
         Text(text, style = AppTheme.typography.button)
     }
 }
+
+/** Prickarna i en laddande knapp: tre prickbredder, i ikonens höjd. */
+private val DOTS_BUTTON_WIDTH = 30.dp
