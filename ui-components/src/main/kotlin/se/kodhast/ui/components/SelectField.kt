@@ -17,6 +17,7 @@ import androidx.compose.ui.res.stringResource
  * - [clearOptionLabel]: ett extra val överst som sätter valet till `null` (t.ex. "Alla fondbolag"); `null` =
  *   inget sådant val, ett värde måste väljas.
  * - [supportingText]: förklaring under fältet, läst tillsammans med det. [error] visas i stället, i felfärg.
+ * - TalkBack läser fältet som en knapp med läget "Hopfälld" eller "Utfälld".
  * - [enabled] = `false` låser fältet med valet synligt (ett förifyllt formulär); menyn öppnas inte.
  */
 @Composable
@@ -50,7 +51,8 @@ fun <T> SelectField(
             error = error,
             helper = supportingText,
             emptyLabel = placeholder,
-            enabled = enabled
+            enabled = enabled,
+            stateDescription = stringResource(if (expanded && enabled) R.string.expanded else R.string.collapsed)
         )
         AppMenuPopup(items, expanded && enabled, onDismiss = { expanded = false })
     }

@@ -129,8 +129,11 @@ class ValuePartsBehaviorTest {
     fun `rullgardinen visar valen och ett val stänger den`() {
         var selected by mutableStateOf<String?>("Global Indexfond A")
         show { SelectField("Fond", FUNDS, selected, { it }, { selected = it }, clearOptionLabel = "Alla fonder") }
-        rule.onNodeWithContentDescription("Fond, Global Indexfond A").performClick()
+        rule.onNodeWithContentDescription("Fond, Global Indexfond A")
+            .assert(SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, "Hopfälld"))
+            .performClick()
         rule.onNodeWithText("Alla fonder").assertExists()
+        rule.onNodeWithContentDescription("Fond, Global Indexfond A").assert(SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, "Utfälld"))
         rule.onNodeWithText("Räntefond Kort").performClick()
         assertEquals("Räntefond Kort", selected)
         rule.onNodeWithText("Alla fonder").assertDoesNotExist()

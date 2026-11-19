@@ -34,6 +34,9 @@ import se.kodhast.ui.theme.Tone
  * - [valueMuted]: bara värdet dämpat – ett ungefärligt belopp, eller en text i stället för ett värde ("Visas
  *   efter ett år", "Hämtar …"). Båda går före färgerna.
  *
+ * - [valueStyle]: värdets stil (standard `typography.body`); tabulära siffror läggs alltid på. Stödraden under
+ *   värdet har samma tabulära siffror i `itemSubtitle`.
+ *
  * En lång etikett bryts på högst två rader och klipps sedan, så att värdet alltid får plats.
  */
 @Composable
@@ -46,7 +49,8 @@ fun ValueRow(
     valueColor: Color? = null,
     valueTone: Tone? = null,
     muted: Boolean = false,
-    valueMuted: Boolean = false
+    valueMuted: Boolean = false,
+    valueStyle: TextStyle = AppTheme.typography.body
 ) {
     val colors = MaterialTheme.colorScheme
     val typography = AppTheme.typography
@@ -67,7 +71,7 @@ fun ValueRow(
             supportingLabel?.let { Text(it, style = typography.itemSubtitle, color = dimmed) }
         }
         Column(horizontalAlignment = Alignment.End) {
-            Text(value, style = typography.body.tabular(), color = shownValueColor, textAlign = TextAlign.End)
+            Text(value, style = valueStyle.tabular(), color = shownValueColor, textAlign = TextAlign.End)
             supportingValue?.let { Text(it, style = typography.itemSubtitle.tabular(), color = dimmed, textAlign = TextAlign.End) }
         }
     }
@@ -84,8 +88,9 @@ fun ValueRow(
     valueColor: Color? = null,
     valueTone: Tone? = null,
     muted: Boolean = false,
-    valueMuted: Boolean = false
-) = ValueRow(label, AnnotatedString(value), modifier, supportingLabel, supportingValue, valueColor, valueTone, muted, valueMuted)
+    valueMuted: Boolean = false,
+    valueStyle: TextStyle = AppTheme.typography.body
+) = ValueRow(label, AnnotatedString(value), modifier, supportingLabel, supportingValue, valueColor, valueTone, muted, valueMuted, valueStyle)
 
 /** Tabulära siffror (lika breda), så att tal i rader under varandra står i linje. Typsnittet är temats. */
 internal fun TextStyle.tabular(): TextStyle = copy(fontFeatureSettings = listOfNotNull(fontFeatureSettings, TABULAR).joinToString(", "))

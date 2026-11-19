@@ -20,6 +20,7 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.progressBarRangeInfo
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import se.kodhast.ui.theme.AppTheme
 import se.kodhast.ui.theme.Spacing
@@ -31,7 +32,8 @@ import se.kodhast.ui.theme.Spacing
  *
  * - [target]: en målandel (0–1), ritad som ett lodrätt streck i [targetColor] som sticker ut ovanför och under
  *   spåret, så att målet syns också när spåret är tomt eller fullt. Med [targetValue] blir texten
- *   "52,0 % · mål 45,0 %" och TalkBack läser "Nivå 4: 52,0 %, mål 45,0 %".
+ *   "52,0 % · mål 45,0 %" och TalkBack läser "Nivå 4: 52,0 %, mål 45,0 %". Utan [targetValue] syns strecket men målet
+ *   varken skrivs eller läses – skicka båda.
  * - [color]: fyllnaden; `null` = `primary`. En restpost ("Övrigt", "Okänd region") skickar en dämpad färg
  *   (t.ex. `outline`) så att den skiljer sig från de riktiga kategorierna.
  * - [targetColor]: målstrecket; `null` = `secondary`.
@@ -82,8 +84,11 @@ fun ShareBar(
             Modifier.testTag(SHARE_TARGET_TAG).drawWithContent {
                 drawContent()
                 val width = TARGET_WIDTH.toPx()
+                // Fyllnaden börjar vid startkanten; i höger-till-vänster speglas strecket som den.
+                val start = (size.width - width) * goal.coerceIn(0f, 1f)
+                val x = if (layoutDirection == LayoutDirection.Rtl) size.width - width - start else start
                 val overhang = TARGET_OVERHANG.toPx()
-                drawRect(markColor, Offset((size.width - width) * goal.coerceIn(0f, 1f), -overhang), Size(width, size.height + 2 * overhang))
+                drawRect(markColor, Offset(x, -overhang), Size(width, size.height + 2 * overhang))
             }
         } ?: Modifier
         Track(share, track, fill, outline = null, Modifier.fillMaxWidth().then(mark))

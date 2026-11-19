@@ -10,13 +10,15 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 
 /**
  * Gemensam yta för datum- och tidsfält ([TimeField], appens `DateField`): ett skrivskyddat fält som
  * visar [shown] och öppnar en väljare ([onPick]) vid tryck. TalkBack läser det som en knapp med
  * etikett, värde och fel. Utan värde visas [emptyLabel] nedtonat (t.ex. "Periodens slut"), och
  * TalkBack läser den. [contentLabel] ersätter [label] för TalkBack. [enabled] = `false` låser fältet med
- * värdet synligt, tonat som ett avstängt fält; standard `true`.
+ * värdet synligt, tonat som ett avstängt fält; standard `true`. [stateDescription] läses som fältets läge
+ * (t.ex. "Hopfälld"/"Utfälld" för en rullgardin); standard `null` = inget läge.
  */
 @Composable
 fun PickerField(
@@ -30,7 +32,8 @@ fun PickerField(
     helper: String? = null,
     emptyLabel: String? = null,
     contentLabel: String? = null,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    stateDescription: String? = null
 ) {
     val description = listOf(contentLabel ?: label, shown.ifEmpty { emptyLabel ?: pickLabel }, error.orEmpty()).filter { it.isNotEmpty() }.joinToString(", ")
     Box(modifier) {
@@ -51,7 +54,10 @@ fun PickerField(
             Modifier
                 .matchParentSize()
                 .clickable(enabled = enabled, role = Role.Button, onClickLabel = pickLabel, onClick = onPick)
-                .semantics { contentDescription = description }
+                .semantics {
+                    contentDescription = description
+                    stateDescription?.let { this.stateDescription = it }
+                }
         )
     }
 }
