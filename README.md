@@ -5,7 +5,7 @@ eventuellt Fonder): ett tema-API och de delade komponenterna, så att samma elem
 beter sig likadant i alla appar och bara finns på ett ställe. Varje app behåller sina egna
 färger och typsnitt och skickar in dem i temat; formerna är samma i alla appar.
 
-**Version:** 3.3.0 · Material 3 `1.5.0-beta01` (Expressive) · Compose BOM `2026.09.00` ·
+**Version:** 3.4.0 · Material 3 `1.5.0-beta01` (Expressive) · Compose BOM `2026.09.00` ·
 Kotlin `2.4.20` · AGP `9.4.1` · compileSdk 37 · minSdk 30.
 
 ## Moduler
@@ -40,8 +40,8 @@ dependencyResolutionManagement {
 }
 ```
 
-och i versionskatalogen/byggfilen `implementation("se.kodhast.ui:ui-components:3.3.0")` och
-`testImplementation("se.kodhast.ui:ui-testing:3.3.0")`.
+och i versionskatalogen/byggfilen `implementation("se.kodhast.ui:ui-components:3.4.0")` och
+`testImplementation("se.kodhast.ui:ui-testing:3.4.0")`.
 
 - **CI i appen:** `GITHUB_TOKEN` räcker när paketet gett apprepot läsåtkomst
   (paketets inställningar → *Manage Actions access*) och jobbet har `permissions: packages: read`.
@@ -605,6 +605,7 @@ efter, innan någon app bytt. Byt direkt från 1.x till 3.0.0. Det som bryter, o
 
 | Version | Ändring |
 |---|---|
+| 3.4.0 | Segmentvalet med mer djup (#97): med temats djup ligger `AppSegmentedChoice` i ett sänkt spår (stegarens, `rowTint` och samma inre skugga) och det valda segmentet lyfts upp som en egen pill med knapparnas skugga, skimmer och ljuskant; ovalda står i `onSurfaceVariant` utan kontur. Samma API, samma höjd (40 dp, 48 dp tryckyta), valt segment fortfarande med bock. Utan djup oförändrat (Material 3:s konturerade segment). Omtagna: `Valda_djup` |
 | 3.3.0 | Versionen i sidhuvudet (#95): `AppIdentity(icon, name, version = null)` – versionen (t.ex. `BuildConfig.VERSION_NAME`) står litet och dämpat efter appnamnet i `AppHeader` (etikettstilen, `onSurfaceVariant`), tonar bort med namnet när raden krymper, utelämnas helt när den inte ryms och läses inte av TalkBack; `APP_HEADER_VERSION_TAG`. Utan `version` är allt som förut och inga befintliga skärmdumpar är omtagna; nya: `AppHeader_vila_version`, `AppHeader_halvvags_version` |
 | 3.2.2 | Förenkling från genomgången 2026-11-19 (#90, del 2), utan ändrat API eller utseende: omförsöket finns på ett ställe (`ListLoader`, `DetailLoader` och `restartOn` använder `RetrySignal` och samma omstart); knappar, ikonknappar, chips, FAB:en, reglaget och `pressable` kopplar djupet via `Modifier.depth` i stället för för hand (kort, stegräknare, delad knapp, växel, bock och `ChoiceGrid` delar lyftet mellan flera ytor och gör det fortfarande själva); bara skjutreglaget samlar dragningar, inte varje kort och knapp; spårets färg på ett ställe; dra-ned-prickarna använder samma laddningsindikator som resten och ritas inte om varje bildruta av dragningen |
 | 3.2.1 | Rättelser från genomgången 2026-11-19 (#90, del 1), utan avsiktlig utseendeändring: `ShareBar` kraschar inte på en andel eller ett mål som inte är ett tal (0/0 i en tom fördelning) utan visar tomt spår; dra-ned-prickarna syns också när appen sätter `refreshing` först efter att indikatorn gömts (ett köat jobb); `ValueRow` med `muted`/`valueMuted` dämpar också delar av värdet som har egen färg; tabulära siffror med en tom `fontFeatureSettings` ger `tnum` i stället för `, tnum`; `SelectField` öppnar inte menyn igen av sig själv när ett låst fält låses upp. Nya tester för dessa och för `AddSplitButton(style)`; `RetrySignal`s kommentar säger nu vad två snabba tryck faktiskt gör. README: `PROGRESS_STROKE`, `IconSize` och prickarna i `AppButton(loading)` |
