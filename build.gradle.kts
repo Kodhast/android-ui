@@ -52,7 +52,9 @@ subprojects {
 
     plugins.withId("com.android.library") {
         extensions.configure<LibraryExtension> {
-            compileSdk = 37
+            compileSdk {
+                version = release(37) { minorApiLevel = 1 }
+            }
             defaultConfig { minSdk = 30 }
             compileOptions {
                 sourceCompatibility = javaVersion
