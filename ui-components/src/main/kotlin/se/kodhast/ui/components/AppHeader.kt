@@ -36,6 +36,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.layout.FirstBaseline
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
@@ -58,9 +59,13 @@ import se.kodhast.ui.theme.Spacing
 /**
  * Appens ikon och namn överst i [AppHeader]. [icon] är en vektor eller bitmapp (inte en adaptiv
  * startikon). Sätts en gång i appens tema med [LocalAppIdentity].
+ *
+ * [version] (standard `null` = ingen) är appens versionsnummer, t.ex. `BuildConfig.VERSION_NAME`: det står
+ * litet och dämpat efter namnet, tonar bort med det när raden krymper och utelämnas helt om det inte ryms
+ * bredvid namnet. Det läses inte av TalkBack (som namnet); i Om står det kvar.
  */
 @Immutable
-data class AppIdentity(@param:DrawableRes val icon: Int, val name: String)
+data class AppIdentity(@param:DrawableRes val icon: Int, val name: String, val version: String? = null)
 
 /**
  * Appens identitet för [AppHeader]; standard `null`. Ramarna (`EntityListScreen`, `EntityDetailScreen`)
@@ -139,14 +144,7 @@ fun AppHeader(
     }
     val name: @Composable () -> Unit = {
         identity?.let {
-            Text(
-                it.name,
-                style = AppTheme.typography.itemTitle,
-                color = colors.onSurface,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.graphicsLayer { alpha = fadeOut(state.collapsedFraction, NAME_FADE) }.clearAndSetSemantics { }
-            )
+            NameWithVersion(it.name, it.version, Modifier.graphicsLayer { alpha = fadeOut(state.collapsedFraction, NAME_FADE) }.clearAndSetSemantics { })
         }
     }
     val trailing: @Composable () -> Unit = {
@@ -210,6 +208,37 @@ fun AppHeader(
             trailing?.place(width - trailingWidth - end, (row - trailing.height) / 2)
             title.place(lerp(start, beside, sideways), titleY)
             subtitle?.place(start, titleY + title.height)
+        }
+    }
+}
+
+/**
+ * Appnamnet med [version] efter sig, på namnets baslinje i etikettstilen (`caption`) och dämpad färg.
+ * Ryms inte versionen bredvid ett helt namn ritas den inte alls; namnet kapas aldrig för den.
+ */
+@Composable
+private fun NameWithVersion(name: String, version: String?, modifier: Modifier = Modifier) {
+    val colors = MaterialTheme.colorScheme
+    Layout(
+        content = {
+            Text(name, style = AppTheme.typography.itemTitle, color = colors.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            if (version != null) {
+                Text(version, style = AppTheme.typography.caption, color = colors.onSurfaceVariant, maxLines = 1, modifier = Modifier.testTag(APP_HEADER_VERSION_TAG))
+            }
+        },
+        modifier = modifier
+    ) { measurables, constraints ->
+        val nameText = measurables[0].measure(Constraints(maxWidth = constraints.maxWidth))
+        val versionText = measurables.getOrNull(1)?.measure(Constraints())
+        val gap = Spacing.xs.roundToPx()
+        val fits = versionText != null && nameText.width + gap + versionText.width <= constraints.maxWidth
+        val width = if (fits) nameText.width + gap + versionText!!.width else nameText.width
+        layout(width, nameText.height) {
+            nameText.placeRelative(0, 0)
+            if (fits) {
+                val y = nameText[FirstBaseline] - versionText!![FirstBaseline]
+                versionText.placeRelative(nameText.width + gap, y)
+            }
         }
     }
 }
@@ -286,6 +315,9 @@ private const val RAISED_AT = 0.99f
 
 /** Sidhuvudets yta, för tester. */
 const val APP_HEADER_TAG = "app-header"
+
+/** Versionsnumret efter appnamnet i [AppHeader] (finns bara i det omslagna trädet; namnet och versionen läses inte av TalkBack). */
+const val APP_HEADER_VERSION_TAG = "app-header-version"
 
 /** Prickarna före rubriken (`AppBrandStyle.headerDots`), för tester. */
 internal const val HEADER_DOTS_TAG = "header-dots"

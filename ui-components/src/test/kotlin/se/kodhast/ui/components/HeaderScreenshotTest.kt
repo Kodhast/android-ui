@@ -47,6 +47,16 @@ class HeaderScreenshotTest {
     }
 
     @Test
+    fun `AppHeader - vila med version`() = captureLightAndDark("AppHeader_vila_version", depth = true) {
+        Dots { WithContent { SampleHeader(collapsed = 0f, version = "4.19.1") } }
+    }
+
+    @Test
+    fun `AppHeader - halvvägs med version`() = captureLightAndDark("AppHeader_halvvags_version", depth = true) {
+        Dots { WithContent { SampleHeader(collapsed = 0.3f, version = "4.19.1") } }
+    }
+
+    @Test
     fun `AppHeader - halvvägs`() = captureLightAndDark("AppHeader_halvvags", depth = true) {
         Dots { WithContent { SampleHeader(collapsed = 0.5f) } }
     }
