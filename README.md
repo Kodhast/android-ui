@@ -5,7 +5,7 @@ eventuellt Fonder): ett tema-API och de delade komponenterna, så att samma elem
 beter sig likadant i alla appar och bara finns på ett ställe. Varje app behåller sina egna
 färger och typsnitt och skickar in dem i temat; formerna är samma i alla appar.
 
-**Version:** 3.2.2 · Material 3 `1.5.0-beta01` (Expressive) · Compose BOM `2026.09.00` ·
+**Version:** 3.3.0 · Material 3 `1.5.0-beta01` (Expressive) · Compose BOM `2026.09.00` ·
 Kotlin `2.4.20` · AGP `9.4.1` · compileSdk 37 · minSdk 30.
 
 ## Moduler
@@ -40,8 +40,8 @@ dependencyResolutionManagement {
 }
 ```
 
-och i versionskatalogen/byggfilen `implementation("se.kodhast.ui:ui-components:3.2.2")` och
-`testImplementation("se.kodhast.ui:ui-testing:3.2.2")`.
+och i versionskatalogen/byggfilen `implementation("se.kodhast.ui:ui-components:3.3.0")` och
+`testImplementation("se.kodhast.ui:ui-testing:3.3.0")`.
 
 - **CI i appen:** `GITHUB_TOKEN` räcker när paketet gett apprepot läsåtkomst
   (paketets inställningar → *Manage Actions access*) och jobbet har `permissions: packages: read`.
@@ -219,7 +219,7 @@ EntityDetailScreen(state: DetailUiState<T>, header: ((T) -> DetailHeader)?, onBa
 Kodhäst-app. Det är byggt för **varje** app, också kommande: inget i det är Dagbokens. Ikonen, namnet,
 färgerna, typsnitten och kontot kommer från appen; en app som inte sätter något ser ut som förut.
 
-- **Vila (högst upp), 144 dp:** appikonen (40 dp) och appnamnet överst, kontot längst till höger; under dem
+- **Vila (högst upp), 144 dp:** appikonen (40 dp) och appnamnet överst (med `AppIdentity.version` står versionen litet efter namnet och tonar bort med det; ryms den inte lämnas den bort), kontot längst till höger; under dem
   fliknamnet stort (`screenTitle`) och undertiteln. Sidans färg, ingen skugga.
 - **Rullat, 64 dp:** ikonen (32 dp), fliknamnet (`sectionTitle`) bredvid den och kontot. Kortens färg och en
   skugga (`AppDepth.headerShadow`, standard `cardShadow`; utan djup en hårfin linje i `outlineVariant`)
@@ -448,7 +448,7 @@ inte använder ramen rätt.
 | `AppDivider` | Avdelare mellan rader i ett kort | – |
 | `AppFilterChip` | Filterchip; `icon`, `onLongClick`, `value` (värde efter etiketten), `emphasized` (det aktiva bland flera valda), `pending` (`ChipPending`: väntande läge, tonat med streckad kant, ikon och tilläggstext) | `chipColors()` är publik för egna chips |
 | `AppFloatingToolbar` | Toppnivånavigeringen: flytande flikar; `action` (`ToolbarAction`, huvudknapp i `secondary` till höger – Dagboken; med `menu: List<AppMenuItem>` fäller knappen ut en meny och läses "Hopfälld"/"Utfälld" – Fonders plusknapp), `style: ToolbarStyle`, `actionMenu: ActionMenuStyle` och `actionColor: ActionColor` (huvudknappens färg, `Secondary` eller `Tertiary`; standard ur `AppBrandStyle`; se Sidfoten), `ToolbarItem.badgeCount` (märke med antal i `secondary` på en ovald flik, läses "Beslut, 3 nya" – Fonder). `LocalBottomClearance`, `FloatingToolbarClearance`, `NoBottomClearance` | – |
-| `AppHeader` | Kodhäst-sidhuvudet på en flik (se Sidhuvudet): `title`, `scrollBehavior`, `subtitle`, `syncing` (`LocalTopBarSyncing`), `identity` (`LocalAppIdentity`), `status`, `account` (`LocalTopBarAccount`), `actions`, `titleModifier`; taggen `APP_HEADER_TAG` | Ny (#42); ramarnas flikläge med `LocalAppIdentity` |
+| `AppHeader` | Kodhäst-sidhuvudet på en flik (se Sidhuvudet): `title`, `scrollBehavior`, `subtitle`, `syncing` (`LocalTopBarSyncing`), `identity` (`LocalAppIdentity`, med valfri `version`), `status`, `account` (`LocalTopBarAccount`), `actions`, `titleModifier`; taggen `APP_HEADER_TAG` | Ny (#42); ramarnas flikläge med `LocalAppIdentity` |
 | `AppIconButton` | Ikonknapp, minst 48 dp, alltid `contentDescription`; `tone` (platta och ikon för Tonal, ikonen för Plain; standard Material-färgerna) | – |
 | `AppLoading` | Expressive laddningsindikator mitt på ytan; med `AppBrandStyle(dotLoading = true)` Kodhästs två prickar som hoppar | – |
 | `AppProgress` | Framstegsraden "x av y": appens text (`label`, `doneLabel`) ovanför ett rundat spår (`ExtendedColors.track`, standard `primaryContainer`) som fylls fjädrande i `primary`; när allt är klart fyllnaden i `ExtendedColors.progressDone` (`ProgressDoneColors(fill, outline)`, standard `primary` utan kontur) och `doneLabel`. `celebrate = false` håller raden i primärfärgen (en tidigare dag), `compact` ger ett kort spår och "9 / 14" för en listrad. TalkBack läser texten och framsteget (`progressBarRangeInfo`); `doneDescription` = egen talad text vid klart (standard `doneLabel`) | Ersätter Dagbokens `ProgressBar` och ReseApotekets `SuitcaseProgress` (#55, form A): Dagboken ser ut och låter som förut med sin `track`, solgula `progressDone` med kontur och `doneDescription`; i ReseApoteket försvinner vågen, det stora talet, resväskerutan och det gröna klart-kortet |
@@ -605,6 +605,7 @@ efter, innan någon app bytt. Byt direkt från 1.x till 3.0.0. Det som bryter, o
 
 | Version | Ändring |
 |---|---|
+| 3.3.0 | Versionen i sidhuvudet (#95): `AppIdentity(icon, name, version = null)` – versionen (t.ex. `BuildConfig.VERSION_NAME`) står litet och dämpat efter appnamnet i `AppHeader` (etikettstilen, `onSurfaceVariant`), tonar bort med namnet när raden krymper, utelämnas helt när den inte ryms och läses inte av TalkBack; `APP_HEADER_VERSION_TAG`. Utan `version` är allt som förut och inga befintliga skärmdumpar är omtagna; nya: `AppHeader_vila_version`, `AppHeader_halvvags_version` |
 | 3.2.2 | Förenkling från genomgången 2026-11-19 (#90, del 2), utan ändrat API eller utseende: omförsöket finns på ett ställe (`ListLoader`, `DetailLoader` och `restartOn` använder `RetrySignal` och samma omstart); knappar, ikonknappar, chips, FAB:en, reglaget och `pressable` kopplar djupet via `Modifier.depth` i stället för för hand (kort, stegräknare, delad knapp, växel, bock och `ChoiceGrid` delar lyftet mellan flera ytor och gör det fortfarande själva); bara skjutreglaget samlar dragningar, inte varje kort och knapp; spårets färg på ett ställe; dra-ned-prickarna använder samma laddningsindikator som resten och ritas inte om varje bildruta av dragningen |
 | 3.2.1 | Rättelser från genomgången 2026-11-19 (#90, del 1), utan avsiktlig utseendeändring: `ShareBar` kraschar inte på en andel eller ett mål som inte är ett tal (0/0 i en tom fördelning) utan visar tomt spår; dra-ned-prickarna syns också när appen sätter `refreshing` först efter att indikatorn gömts (ett köat jobb); `ValueRow` med `muted`/`valueMuted` dämpar också delar av värdet som har egen färg; tabulära siffror med en tom `fontFeatureSettings` ger `tnum` i stället för `, tnum`; `SelectField` öppnar inte menyn igen av sig själv när ett låst fält låses upp. Nya tester för dessa och för `AddSplitButton(style)`; `RetrySignal`s kommentar säger nu vad två snabba tryck faktiskt gör. README: `PROGRESS_STROKE`, `IconSize` och prickarna i `AppButton(loading)` |
 | 3.2.0 | Dra-ned-indikatorn och den laddande knappen följer `AppBrandStyle.dotLoading` (fonder #277): `AppPullToRefresh` visar Kodhäst-prickarna som hoppar i en rund behållare i stället för den vågiga formen, och bara medan man drar eller under en uppdatering man själv startat – en körning appen startat själv syns bara av sidhuvudets prickar; `AppButton(loading)` visar prickarna i knappens textfärg i stället för snurran. **ReseApotekets och Dagbokens dra-ned-indikator och sparaknappar byter utseende** när de går upp, eftersom båda har `dotLoading`. Utan `dotLoading` oförändrat. Nya skärmdumpar `AppPullToRefresh_prickar` och `AppButton_laddar_prickar`; befintliga oförändrade |

@@ -2,12 +2,15 @@
 
 package se.kodhast.ui.components
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -17,6 +20,8 @@ import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertHeightIsEqualTo
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
@@ -33,6 +38,7 @@ import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeUp
 import androidx.compose.ui.unit.dp
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlinx.collections.immutable.persistentListOf
@@ -215,6 +221,35 @@ class HeaderBehaviorTest {
         assertEquals(0, rule.onAllNodesWithText("AB", useUnmergedTree = true).fetchSemanticsNodes().size)
     }
 
+    private fun versionNode() = rule.onNodeWithTag(APP_HEADER_VERSION_TAG, useUnmergedTree = true)
+
+    @Test
+    fun `versionen står efter appnamnet i vila`() {
+        show { SampleHeader(collapsed = 0f, version = "4.19.1") }
+        versionNode().assertIsDisplayed()
+        versionNode().assertTextEquals("4.19.1")
+    }
+
+    @Test
+    fun `utan version ritas ingen version`() {
+        show { SampleHeader(collapsed = 0f) }
+        versionNode().assertDoesNotExist()
+    }
+
+    @Test
+    fun `versionen utelämnas helt när den inte ryms bredvid namnet`() {
+        show {
+            Box(Modifier.width(150.dp)) { SampleHeader(collapsed = 0f, version = "4.19.1", appName = "Ett mycket långt appnamn") }
+        }
+        assertFalse(versionNode().fetchSemanticsNode().layoutInfo.isPlaced, "versionen ritas inte när den inte ryms")
+    }
+
+    @Test
+    fun `versionen läses inte av TalkBack`() {
+        show { SampleHeader(collapsed = 0f, version = "4.19.1") }
+        assertEquals(0, rule.onAllNodesWithText("4.19.1").fetchSemanticsNodes().size, "versionen finns inte i det sammanslagna trädet")
+    }
+
     @Test
     fun `listramen utan identitet ritar dagens topprad`() {
         show { EntityListScreen("Dagbok", ListUiState.Content(persistentListOf("Promenad")), EMPTY, add = null, key = { it }) { ItemRow(it) } }
@@ -294,6 +329,8 @@ internal fun SampleHeader(
     title: String = "Idag",
     subtitle: String? = "God kväll, Anna",
     syncing: Boolean = false,
+    version: String? = null,
+    appName: String = "Dagboken",
     account: @Composable () -> Unit = { AccountAvatar("Anna Berg", onClick = {}, online = true) }
 ) {
     val limit = with(LocalDensity.current) { (COLLAPSED - EXPANDED).toPx() }
@@ -303,7 +340,7 @@ internal fun SampleHeader(
         TopAppBarDefaults.exitUntilCollapsedScrollBehavior(state),
         subtitle = subtitle,
         syncing = syncing,
-        identity = AppIdentity(R.drawable.ic_box, "Dagboken"),
+        identity = AppIdentity(R.drawable.ic_box, appName, version),
         account = account
     )
 }
