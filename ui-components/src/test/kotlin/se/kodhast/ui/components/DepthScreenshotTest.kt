@@ -15,7 +15,12 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -248,6 +253,23 @@ class DepthScreenshotTest {
     }
 
     @Test
+    fun `segmentvalet mitt i glidet`() {
+        // Klockan står still: valet byts från Ljust till Auto, och bilden tas en fast tid in i glidet.
+        rule.mainClock.autoAdvance = false
+        rule.captureLightAndDark("AppSegmentedChoice_glid", depth = true, settle = {
+            mainClock.advanceTimeBy(GLIDE_MILLIS)
+            waitForIdle()
+        }) {
+            // Om på nytt för varje tema, så att båda bilderna är lika långt in i glidet.
+            key(MaterialTheme.colorScheme.background) {
+                var selected by remember { mutableIntStateOf(0) }
+                LaunchedEffect(Unit) { selected = 2 }
+                SampleSheet { AppSegmentedChoice(listOf("Ljust", "Mörkt", "Auto"), selected, { selected = it }) }
+            }
+        }
+    }
+
+    @Test
     fun `kontroller med djup`() = captureLightAndDark("Kontroller_djup", depth = true) {
         SampleSheet {
             AppCard {
@@ -336,6 +358,9 @@ class DepthScreenshotTest {
         const val SHOWN_MILLIS = 600L
         const val FOCUS_MILLIS = 250L
         const val BLINK_MILLIS = 1_000L
+
+        /** Segmentvalets glid en bit in (fjädern tar ca 0,4 s). */
+        const val GLIDE_MILLIS = 120L
         val TABS = listOf(ToolbarItem("Resor", R.drawable.ic_box), ToolbarItem("Idag", R.drawable.ic_clock), ToolbarItem("Lägg till", R.drawable.ic_add))
     }
 }

@@ -5,12 +5,14 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
@@ -22,6 +24,7 @@ import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.assertTouchHeightIsEqualTo
+import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasText
@@ -33,6 +36,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -148,6 +152,43 @@ class DepthBehaviorTest {
         show { AppSegmentedChoice(listOf("Ljust", "Mörkt", "System"), segment, { segment = it }) }
         rule.onNodeWithText("Mörkt").performClick()
         assertEquals(1, segment)
+    }
+
+    @Test
+    fun `segmentvalets valda pill glider till det nya valet`() {
+        var segment by mutableIntStateOf(0)
+        show { AppSegmentedChoice(listOf("Ljust", "Mörkt", "System"), segment, { segment = it }) }
+        val pill = rule.onNodeWithTag(SEGMENT_INDICATOR_TAG, useUnmergedTree = true)
+        fun left() = pill.getUnclippedBoundsInRoot().left
+        val start = left()
+        val target = rule.onNodeWithText("System").getUnclippedBoundsInRoot().left
+
+        rule.mainClock.autoAdvance = false
+        rule.onNodeWithText("System").performClick()
+        rule.mainClock.advanceTimeBy(GLIDE_PEEK_MILLIS)
+        val midway = left()
+        assertTrue(midway > start && midway < target, "pillen ska vara på väg: $start < $midway < $target")
+
+        rule.mainClock.autoAdvance = true
+        rule.waitForIdle()
+        // Segmentets nod är det klickbara segmentet; pillen ligger under det, lika bred.
+        assertTrue((left() - target).value in -1f..1f, "pillen ska stå på det nya valet: ${left()} ≈ $target")
+        assertEquals(2, segment)
+    }
+
+    @Test
+    fun `segmentvalets pill står under det valda segmentet även höger till vänster`() {
+        var segment by mutableIntStateOf(0)
+        show {
+            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+                AppSegmentedChoice(listOf("Ljust", "Mörkt", "System"), segment, { segment = it })
+            }
+        }
+        rule.onNodeWithText("System").performClick()
+        rule.waitForIdle()
+        val pill = rule.onNodeWithTag(SEGMENT_INDICATOR_TAG, useUnmergedTree = true).getUnclippedBoundsInRoot()
+        val chosen = rule.onNodeWithText("System").getUnclippedBoundsInRoot()
+        assertTrue((pill.left - chosen.left).value in -1f..1f && (pill.right - chosen.right).value in -1f..1f, "pillen $pill ska ligga under $chosen")
     }
 
     @Test
@@ -310,6 +351,9 @@ class DepthBehaviorTest {
 
     private companion object {
         const val SETTLE_MILLIS = 1_000L
+
+        /** Mitt i segmentvalets glid (fjädern tar ca 0,4 s). */
+        const val GLIDE_PEEK_MILLIS = 100L
         val TABS = listOf(ToolbarItem("Resor", R.drawable.ic_box), ToolbarItem("Idag", R.drawable.ic_clock))
     }
 }
