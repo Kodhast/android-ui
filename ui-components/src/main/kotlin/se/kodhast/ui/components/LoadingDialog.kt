@@ -40,7 +40,7 @@ fun LoadingDialog(title: String, message: String, modifier: Modifier = Modifier)
         Row(
             modifier
                 .testTag(LOADING_DIALOG_TAG)
-                .floating(shape, shadow = false)
+                .floatingWindow(shape)
                 .background(AppTheme.extendedColors.card, shape)
                 .padding(Spacing.xl)
                 .semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Polite },

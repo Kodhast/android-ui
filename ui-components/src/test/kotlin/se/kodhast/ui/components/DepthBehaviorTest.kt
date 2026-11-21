@@ -23,6 +23,7 @@ import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertHeightIsAtLeast
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.assertTouchHeightIsEqualTo
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
@@ -376,6 +377,32 @@ class DepthBehaviorTest {
         assertEquals(8, value)
         rule.onNodeWithText("Solkräm").performClick()
         assertTrue(checked)
+    }
+
+    @Test
+    fun `menyn med djup är en egen popup där poster går att välja och menyn stängs`() {
+        var picked = 0
+        var dismissals = 0
+        var open by mutableStateOf(true)
+        show {
+            AppMenuPopup(listOf(AppMenuItem("Redigera", { picked++ }), AppMenuItem("Radera", {}, destructive = true)), expanded = open, onDismiss = { dismissals++ })
+        }
+        rule.onNodeWithText("Radera").assertIsDisplayed()
+        rule.onNodeWithText("Redigera").performClick()
+        assertEquals(1, picked)
+        assertEquals(1, dismissals)
+        open = false
+        rule.mainClock.advanceTimeBy(SETTLE_MILLIS)
+        rule.onNodeWithText("Redigera").assertDoesNotExist()
+    }
+
+    @Test
+    fun `dialogen med djup visar texten och bekräftar`() {
+        var confirmed = 0
+        show { ConfirmDialog("Radera Alvedon?", "Det går inte att ångra.", "Radera", { confirmed++ }, onDismiss = {}) }
+        rule.onNodeWithText("Det går inte att ångra.").assertIsDisplayed()
+        rule.onNodeWithText("Radera").performClick()
+        assertEquals(1, confirmed)
     }
 
     private companion object {

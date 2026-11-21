@@ -5,6 +5,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.interaction.InteractionSource
 import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -301,12 +302,19 @@ internal fun Modifier.sheetEdge(shape: Shape, depth: AppDepth): Modifier = drawW
     }
 }
 
-/** Kortens hårfina kant som ram – för ytor med egen kantparameter (menyn). */
-internal fun AppDepth.edgeStroke(): BorderStroke = BorderStroke(EDGE, cardEdge)
-
 /** Ett element som flyter med temats djup ([floatingDepth]), annars oförändrat. */
 @Composable
 internal fun Modifier.floating(shape: Shape, inset: Dp = 0.dp, shadow: Boolean = true): Modifier = AppTheme.depth?.let { floatingDepth(shape, it, inset, shadow) } ?: this
+
+/**
+ * Ett fönster (meny, dialog, väljare) som flyter med temats djup: som [floating], men ytan får [WINDOW_ROOM] luft runt sig
+ * innanför fönstret så att skuggan ritas hel i stället för att klippas av fönstrets kant. Utan djup oförändrat, utan luft.
+ */
+@Composable
+internal fun Modifier.floatingWindow(shape: Shape): Modifier = AppTheme.depth?.let { floatingDepth(shape, it, inset = WINDOW_ROOM).padding(WINDOW_ROOM) } ?: this
+
+/** Luften runt ett flytande fönsters yta: skuggans räckvidd (24 dp radie − 8 dp spridning + 10 dp förskjutning) med marginal. */
+internal val WINDOW_ROOM: Dp = 28.dp
 
 /**
  * Fältets fokusring: en mjuk ring ([HALO] bred) i [color] utanför fältets kant. [visible] tonar den (0–1).
