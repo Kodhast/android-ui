@@ -56,6 +56,10 @@
     <string name="account_open">Konto och inställningar</string>
     <string name="online">Ansluten</string>
     <string name="offline">Utan anslutning</string>
+    <!-- AccountMenu: menyn under avataren (egna namn, så att apparnas strängar inte ersätter dem) -->
+    <string name="account_menu_settings">Inställningar</string>
+    <string name="account_menu_gallery">Komponentgalleri</string>
+    <string name="account_menu_about_format">Om %s</string>
     <string name="sync_pending">Ändringar väntar på servern</string>
     <!-- SignInScreen och UpdateRequiredScreen -->
     <string name="sign_in_google">Logga in med Google</string>

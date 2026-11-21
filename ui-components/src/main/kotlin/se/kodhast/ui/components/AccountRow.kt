@@ -35,16 +35,20 @@ fun AccountRow(name: String?, email: String?, photoUrl: String?, modifier: Modif
 fun SignOutRow(appName: String, onSignOut: () -> Unit, modifier: Modifier = Modifier) {
     var confirm by rememberSaveable { mutableStateOf(false) }
     ItemRow(stringResource(R.string.sign_out), modifier, icon = R.drawable.ic_logout, onClick = { confirm = true })
-    if (confirm) {
-        ConfirmDialog(
-            title = stringResource(R.string.sign_out_title),
-            message = stringResource(R.string.sign_out_message_format, appName),
-            confirmLabel = stringResource(R.string.sign_out),
-            onConfirm = {
-                confirm = false
-                onSignOut()
-            },
-            onDismiss = { confirm = false }
-        )
-    }
+    if (confirm) SignOutConfirm(appName, onSignOut, onDismiss = { confirm = false })
+}
+
+/** Frågan "Logga ut?" – delas av [SignOutRow] och [AccountMenu]. Bekräftat: först [onDismiss], sedan [onSignOut]. */
+@Composable
+internal fun SignOutConfirm(appName: String, onSignOut: () -> Unit, onDismiss: () -> Unit) {
+    ConfirmDialog(
+        title = stringResource(R.string.sign_out_title),
+        message = stringResource(R.string.sign_out_message_format, appName),
+        confirmLabel = stringResource(R.string.sign_out),
+        onConfirm = {
+            onDismiss()
+            onSignOut()
+        },
+        onDismiss = onDismiss
+    )
 }
