@@ -15,7 +15,7 @@ import androidx.compose.ui.semantics.stateDescription
 /**
  * Gemensam yta för datum- och tidsfält ([TimeField], appens `DateField`): ett skrivskyddat fält som
  * visar [shown] och öppnar en väljare ([onPick]) vid tryck. TalkBack läser det som en knapp med
- * etikett, värde och fel. Utan värde visas [emptyLabel] nedtonat (t.ex. "Periodens slut"), och
+ * etikett, värde och fel, eller [helper] (stödraden) när inget fel finns. Utan värde visas [emptyLabel] nedtonat (t.ex. "Periodens slut"), och
  * TalkBack läser den. [contentLabel] ersätter [label] för TalkBack. [enabled] = `false` låser fältet med
  * värdet synligt, tonat som ett avstängt fält; standard `true`. [stateDescription] läses som fältets läge
  * (t.ex. "Hopfälld"/"Utfälld" för en rullgardin); standard `null` = inget läge.
@@ -35,7 +35,7 @@ fun PickerField(
     enabled: Boolean = true,
     stateDescription: String? = null
 ) {
-    val description = listOf(contentLabel ?: label, shown.ifEmpty { emptyLabel ?: pickLabel }, error.orEmpty()).filter { it.isNotEmpty() }.joinToString(", ")
+    val description = listOf(contentLabel ?: label, shown.ifEmpty { emptyLabel ?: pickLabel }, (error ?: helper).orEmpty()).filter { it.isNotEmpty() }.joinToString(", ")
     Box(modifier) {
         // Fältet visar bara värdet; ytan ovanpå är det enda som tar emot tryck och fokus.
         AppTextField(
