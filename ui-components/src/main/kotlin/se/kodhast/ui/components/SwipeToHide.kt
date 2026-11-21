@@ -85,11 +85,13 @@ fun SwipeToHide(
 }
 
 /**
- * Radera med svep åt vänster – för ett kort som har Radera också i sin meny: svepet *begär* radering ([onRequest]),
+ * Radera med svep åt vänster – för ett kort eller en rad som har Radera också synligt (sist i menyn, eller sist i det
+ * utfällda med `Foldout(delete)`, som sköter svepet själv): svepet *begär* radering ([onRequest]),
  * kortet fjädrar genast tillbaka och ligger kvar tills anroparens bekräftelse (`DeleteConfirmDialog`) svarat. Permanent
  * radering sker alltså aldrig direkt av svepet. Svep åt höger gör ingenting. Bakgrunden är [SwipeBackground] med
  * "Radera" i felfärgen och formen [shape] (standard kortets); den läses inte, eftersom åtgärden för TalkBack är menyns
- * Radera – anroparen ska alltid ha den. [content] måste vara ogenomskinligt (ett kort).
+ * Radera – anroparen ska alltid ha den. [content] måste vara ogenomskinligt (ett kort, eller en rad på kortets yta med
+ * [shape] = `AppTheme.shapes.row`).
  */
 @Composable
 fun SwipeToDelete(onRequest: () -> Unit, modifier: Modifier = Modifier, shape: Shape = AppTheme.shapes.card, content: @Composable () -> Unit) {
@@ -129,7 +131,8 @@ private fun SwipeRow(
     val scope = rememberCoroutineScope()
     SwipeToDismissBox(
         state = state,
-        backgroundContent = { background() },
+        // Bara medan raden dras: i vila ger bakgrundens kant annars en hårfin ring runt raden.
+        backgroundContent = { if (state.dismissDirection == SwipeToDismissBoxValue.EndToStart) background() },
         modifier = modifier,
         enableDismissFromStartToEnd = false,
         // Samma gren med och utan svep, så att radens tillstånd överlever när den arkiveras.

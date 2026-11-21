@@ -36,6 +36,27 @@ class FoldoutScreenshotTest {
         }
     }
 
+    /** En rad som går att radera (#118): radens knapp och Radera sist i det utfällda. */
+    @Test
+    fun `Foldout - med Radera`() = captureLightAndDark("Foldout_radera") {
+        SampleSheet {
+            SampleCard {
+                Foldout("Globalfond Index A", expanded = false, onToggle = {}, summary = "Köp · −5 000,00 kr", delete = DeleteAction("Radera?", "–") {}) { Text("–") }
+                Foldout(
+                    "Sverige Småbolag",
+                    expanded = true,
+                    onToggle = {},
+                    summary = "Sälj",
+                    actions = { AppButton("Bevaka alternativ", {}, variant = ButtonVariant.Secondary, compact = true) },
+                    delete = DeleteAction("Radera?", "–") {}
+                ) {
+                    Text("84,1203 andelar à 147,42 kr")
+                    Text("Realiserat resultat +2 140,00 kr")
+                }
+            }
+        }
+    }
+
     @Test
     fun `SectionFoldout - lägen med lägg till-knapp`() = captureLightAndDark("SectionFoldout_lagen") {
         SampleSheet {

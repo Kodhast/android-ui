@@ -5,7 +5,7 @@ eventuellt Fonder): ett tema-API och de delade komponenterna, så att samma elem
 beter sig likadant i alla appar och bara finns på ett ställe. Varje app behåller sina egna
 färger och typsnitt och skickar in dem i temat; formerna är samma i alla appar.
 
-**Version:** 3.8.0 · Material 3 `1.5.0` (Expressive) · Compose BOM `2026.11.01` ·
+**Version:** 3.9.0 · Material 3 `1.5.0` (Expressive) · Compose BOM `2026.11.01` ·
 Kotlin `2.4.21` · AGP `9.5.2` · compileSdk 37.1 · minSdk 30.
 
 ## Moduler
@@ -40,8 +40,8 @@ dependencyResolutionManagement {
 }
 ```
 
-och i versionskatalogen/byggfilen `implementation("se.kodhast.ui:ui-components:3.8.0")` och
-`testImplementation("se.kodhast.ui:ui-testing:3.8.0")`.
+och i versionskatalogen/byggfilen `implementation("se.kodhast.ui:ui-components:3.9.0")` och
+`testImplementation("se.kodhast.ui:ui-testing:3.9.0")`.
 
 - **CI i appen:** `GITHUB_TOKEN` räcker när paketet gett apprepot läsåtkomst
   (paketets inställningar → *Manage Actions access*) och jobbet har `permissions: packages: read`.
@@ -222,6 +222,19 @@ EntityDetailScreen(state: DetailUiState<T>, header: ((T) -> DetailHeader)?, onBa
   Raderna sveps med `SwipeToHide`; `UndoSnackbar` visas av listramen. `showing` är läget för "Visa
   arkiverade" – ett eget `MutableStateFlow` låter läget stå kvar längre än ViewModeln.
 - **Lägg till-knappens tagg:** `ENTITY_LIST_ADD_TAG`, som kontraktet använder för att pröva att knappen saknas.
+
+### Ta bort en rad (#118) – samma i alla appar
+
+- **Svep åt vänster tar bort**, överallt där en rad går att ta bort. Svep åt höger tar aldrig bort.
+- **Det som försvinner för gott frågar alltid** i `DeleteConfirmDialog` ("Radera X?", Avbryt / Radera); svepet begär
+  bara (`SwipeToDelete`, raden fjädrar tillbaka). **Det som går att ta tillbaka** (arkivera, dölja) frågar inte –
+  `SwipeToHide` och Ångra i `UndoSnackbar`.
+- **Alltid också ett synligt val, sist och i felfärgen:** sist i radens meny när raden öppnar något vid tryck
+  (Dagbokens postkort), sist i det utfällda när raden saknar egen sida (`Foldout(delete)`, som också ger svepet och
+  dialogen), sist i toppradens meny i ett formulär (`EntityEditScreen(delete)`).
+- **Långtryck tar aldrig bort**, och ingen rad har ✕ eller papperskorg direkt på raden. En rad i ett formulär som
+  inte är sparat är inget av detta – den tas bort med ✕ direkt.
+- **Ordet:** Radera för det som försvinner för gott, Ta bort bara för det som går att ångra.
 
 ## Sidhuvudet (Kodhäst)
 
@@ -467,7 +480,7 @@ inte använder ramen rätt.
 | `AccountRow` | Kontot överst i inställningarna: `AccountAvatar`, `name` och `email` under (utan e-post "Inloggad med Google"; utan namn står e-posten som titel), `photoUrl`; ingen tonad bakgrund | Flyttad från ReseApoteket och Dagboken (#54); Dagbokens tonade rad och extra rad "Inloggad med Google" försvinner (Mats beslut) |
 | `AddSplitButton` | "Lägg till ▾" – huvudåtgärd och pil med fler val; `style` (standard `LocalAppButtonStyle`) ger höjd och tonad färg som den sekundära `AppButton` | Menyn är en lucka: `menu = items.asSplitMenu()` (ReseApoteket) i stället för Dagbokens `menuItems` |
 | `AppBottomSheet` | Ark med rubrik; innehållet rullar alltid. `error` (`UiError`), `dirty` ("Släng ändringar?" vid bakåt, svep och tryck utanför), `canDismiss`, `hide`, `footer` (knappraden står fast i botten), `subtitle` (en rad under rubriken) | Dagbokens parametrar; ReseApotekets rullning gäller också med `footer`; `subtitle` från ReseApoteket (#75) |
-| `AppButton` | Den enda knappen: Primary, Secondary, Outlined, Text, Destructive; `loading` (snurra, eller Kodhäst-prickarna med `AppBrandStyle.dotLoading`), `compact`, `contentDescription`. Appens knappstil `AppButtonStyle(minHeight, morph, secondaryTone)` sätts en gång med `LocalAppButtonStyle` (eller parametern `style`); `AppButtonDefaults.MinHeight` 56 dp / `CompactHeight` 40 dp | Fonder: `AppButtonStyle(minHeight = 40.dp, morph = true, secondaryTone = Tone.Primary)`; standard bevarar ReseApoteket och Dagboken |
+| `AppButton` | Den enda knappen: Primary, Secondary, Outlined, Text, Destructive, DestructiveText (Radera sist bland en rads åtgärder, 3.9.0); `loading` (snurra, eller Kodhäst-prickarna med `AppBrandStyle.dotLoading`), `compact`, `contentDescription`. Appens knappstil `AppButtonStyle(minHeight, morph, secondaryTone)` sätts en gång med `LocalAppButtonStyle` (eller parametern `style`); `AppButtonDefaults.MinHeight` 56 dp / `CompactHeight` 40 dp | Fonder: `AppButtonStyle(minHeight = 40.dp, morph = true, secondaryTone = Tone.Primary)`; standard bevarar ReseApoteket och Dagboken |
 | `AppCalendar` | Månadskalendern: `month`, `onMonthChange`, `marked` (punkt), `selectedDate` (fylld primärfärg i `shapes.row`), `onDateClick`, `today` (punkt i `secondary` med ring i `progressDone.outline`), `dimFuture` (framtiden nedtonad och ovalbar, pilen till nästa månad stängd). TalkBack läser datum, "idag" och "har poster". `DayMarkerDot` och `dayDescription` är samma markering och uppläsning för en datumremsa | Flyttad från Dagbokens `DagbokenCalendar` och `DayMarker` (#68); ser ut som förut, men med `dimFuture` stängs nu också pilen till månaden efter idag |
 | `AppCard` | Kortet: `tone`, `contentColor` (standard `null`: ärver omgivande `LocalContentColor`; Dagboken `onSurface`), `onClick` (hela kortet en nod). Appens kortstil `AppCardStyle(border, padding, segmentGap, contentSpacing)` med `LocalAppCardStyle` (eller `style`); ett tonat kort har ingen kontur | ReseApotekets `ApotekCard` heter nu `AppCard`. Fonder: kontur 1 dp `outlineVariant`, `padding = Spacing.l`, `contentSpacing = 0.dp`; Filled/Error är Fonders egna toner |
 | `AppDivider` | Avdelare mellan rader i ett kort | – |
@@ -519,7 +532,7 @@ inte använder ramen rätt.
 | `ExpandableContent` | Det som fälls ut: fjädrar fram (`defaultSpatialSpec`) och fälls snabbt ihop (`fastSpatialSpec`); `visible`, `modifier` | Flyttad från Dagboken (#46) |
 | `ExampleChips` | Exempel att trycka in i ett fält; `label` är `@Composable` som i `ChoiceChips` och `ChoiceGrid` | – |
 | `ExpandButton` | Chevronknappen för något som fälls ut utan titelrad: `AppIconButton` med chevronen som fjädrar ett halvt varv, "Fäll ut"/"Fäll ihop" och läget som `stateDescription` (som `CollapsibleHeader`) | Flyttad från Dagbokens postkort (#76) |
-| `Foldout` | Hopfällbar sektion: hela titelraden växlar (`CollapsibleHeader`), `summary` under titeln i stängt läge, `trailing` (egen kontroll före chevronen, växlar inte), `header` (ersätter titeln), `contentSpacing`. Utan `expanded`/`onToggle` håller den läget själv (`initiallyExpanded`, sparat vid rotation) och kör `onExpand` när den fälls ut; `tintedWhenOpen` (hela den öppna delen på en tonad yta med radens hörn: `rowTint` ljust, `surfaceVariant` mörkt; standard av) | Flyttad från Dagboken (#46) |
+| `Foldout` | Hopfällbar sektion: hela titelraden växlar (`CollapsibleHeader`), `summary` under titeln i stängt läge, `trailing` (egen kontroll före chevronen, växlar inte), `header` (ersätter titeln), `contentSpacing`. `delete: DeleteAction?` (3.9.0, #118): Radera sist i det utfällda efter radens knappar i `actions`, svep åt vänster och `DeleteConfirmDialog`; raden ska stå på ett `AppCard`. Utan `expanded`/`onToggle` håller den läget själv (`initiallyExpanded`, sparat vid rotation) och kör `onExpand` när den fälls ut; `tintedWhenOpen` (hela den öppna delen på en tonad yta med radens hörn: `rowTint` ljust, `surfaceVariant` mörkt; standard av) | Flyttad från Dagboken (#46) |
 | `FavoriteMark` | Den lilla fyllda stjärnan i `primary` efter titeln på en stjärnmärkt post; läses "Favorit" | Flyttad från Dagboken (#57) |
 | `FavoriteStar` | Stjärnan som markerar `name` som favorit: ikonknapp, ifylld när `favorite`, läses "Markera X som favorit"/"Ta bort X som favorit" med läget "Favorit"/"Inte favorit". `favoriteMenuItem(name, favorite, onToggle)` ger samma text och stjärna som menyrad (`AppMenuItem`) | Flyttad från Dagboken (#57), med ikonerna `ic_star`/`ic_star_filled` |
 | `FieldError` | Felraden under ett fält | – |
@@ -559,7 +572,7 @@ inte använder ramen rätt.
 | `StepNavigation` | Föregående/Nästa och Spara på sista steget för en `PagerState`, i en rad (t.ex. arkets `footer`); `saveEnabled`, `saving`, klart-läget `done` med `doneText` och `doneAnnouncement` (live region) | Flyttad från Dagbokens `StepwiseScreeningNavigation` (#76) |
 | `SuggestionField` | Textfält med förslag (`Suggestion`) i ett kort under, antalet läses upp | – |
 | `SwipeBackground` | Det som syns bakom en svept rad: `icon` och `label` i högerkanten, `colors` (`ToneColors`, standard primärtonen), `shape` (standard `row`) | Ersätter bakgrunden i Dagbokens `SwipeToDelete` (`ic_delete`, felfärgen, `card`) |
-| `SwipeToDelete` | Radera med svep åt vänster för ett kort som har Radera i sin meny: svepet begär radering (`onRequest`), kortet fjädrar genast tillbaka, bakgrunden "Radera" i felfärgen (`shape`, standard kortets) läses inte. Samma svep som `SwipeToHide` | Flyttad från Dagbokens postkort (#76); ingen rå `SwipeToDismissBox` kvar i appen |
+| `SwipeToDelete` | Radera med svep åt vänster för ett kort eller en rad som har Radera synligt (menyn, eller `Foldout(delete)` som sköter svepet själv): svepet begär radering (`onRequest`), kortet fjädrar genast tillbaka, bakgrunden "Radera" i felfärgen (`shape`, standard kortets) läses inte. Samma svep som `SwipeToHide` | Flyttad från Dagbokens postkort (#76); ingen rå `SwipeToDismissBox` kvar i appen |
 | `SwipeToHide` | Arkivera/dölj med svep åt vänster, och samma åtgärd för TalkBack; bakgrunden är `SwipeBackground` med `icon` och `colors` (standard arkivera i primärtonen). Samma svep som `SwipeToDelete` | – |
 | `SwitchControl` | Själva växeln, för appens kort med reglage; `enabled`, `interactionSource` (ett tryck någon annanstans, som raden, som knoppen ska följa) | – |
 | `SwitchRow` | Inställningsrad med växel; `onClick` (växeln blir egen kontroll), `inactive` (tonar ned texten, inte växeln), `enabled` (låser växeln) | Dagbokens `inactive`; Fonders `enabled` |
@@ -631,6 +644,7 @@ efter, innan någon app bytt. Byt direkt från 1.x till 3.0.0. Det som bryter, o
 
 | Version | Ändring |
 |---|---|
+| 3.9.0 | Samma sätt att ta bort en rad i alla appar (#118): regeln står under Ramarna. `Foldout(actions, delete)` – Radera sist i det utfällda efter radens knappar, svep åt vänster och `DeleteConfirmDialog` (Fonders Händelser, #280 D); ny `ButtonVariant.DestructiveText`. Svepets bakgrund (`SwipeToDelete`, `SwipeToHide`) ritas bara medan raden dras – i vila gav dess kant en hårfin röd ring runt kortet. Ny skärmdump `Foldout_radera`; omtagna `SwipeToDelete_vila` och `ExpandButton_lagen` (ringen borta) |
 | 3.8.0 | Tidsväljaren som rullhjul (#106): `TimePickerPopup` (och därmed `TimeField` och `ReminderTimeRow`) visar två rullhjul för timme och minut i stället för urtavlan (Material 3:s `TimeScroll`). Hjulen ligger i spåret `rowTint`; samma API, OK och Avbryt, samma kant med temats djup. Omtagna: `TimePickerPopup_oppen`, `TimePickerPopup_djup`. Oskärpa bakom dialoger och ark (#104): nytt temavärde `AppBlur` (`AppTheme(blur = AppBlur())`, standard på: 12 dp oskärpa, slöja 0,2); `ConfirmDialog`, `LoadingDialog`, `TimePickerPopup`, `DateField`s väljare och `AppBottomSheet` suddar innehållet bakom och tonar slöjan när enheten har oskärpa mellan fönster påslagen, annars som förut. Ny skärmdump: `AppBottomSheet_oskarpa` (Robolectric ritar inte själva oskärpan) Progressiv oskärpa under sidhuvudet (#105): `EntityListScreen` och `EntityDetailScreen` suddar innehållets överkant när det rullat in under toppraden (`AppBlur.headerRadius` 16 dp, `headerFade` 32 dp). Ny skärmdump: `EntityListScreen_rullad` `Foldout(tintedWhenOpen = true)` (Husjakt #518): den öppna delen ligger på en tonad yta med radens hörn, radtonen i ljust och `surfaceVariant` i mörkt; standard av, så inget ändrar utseende. Ny skärmdump: `Foldout_tonad` |
 | 3.7.0 (släpptes aldrig separat; ingår i 3.8.0, som publiceras från main med allt ovan) | Avatarmenyn (#102): ny `AccountMenu` och `AccountMenuAvatar` (`AccountInfo`) – samma första nivå under avataren i alla appar, variant B. `AppMenuItem(navigates, divider)` och `AppMenuPopup(header)`, ikonerna `ic_account_settings`, `ic_account_about`, `ic_account_gallery` (egna namn, så att apparnas ikoner inte ersätter dem). Nya skärmdumpar `AccountMenu_inloggad`, `AccountMenuAvatar_utloggad`; befintliga oförändrade. Fonders bibliotekdelar (fonder #280 A): `EntityDetailScreen(errorTitle)`, `Foldout` som håller läget själv (`initiallyExpanded`, `onExpand`), `SelectField`s stödrad (`PickerField(helper)`) läses av TalkBack; inga omtagna skärmdumpar. Avbockning som syns (Dagboken #456): ny `DepartingItems` (`DepartingExit`, `DepartingDefaults`) och `Modifier.nod`; ny skärmdump `DepartingItems_paus` |
 | 3.6.0 | Beroendena likriktade och höjda till senaste stabila (#103): Kotlin 2.4.21, AGP 9.5.2, Gradle 9.9.2, Compose BOM 2026.11.01, Material 3 1.5.0 (stabil), compileSdk 37.1, navigation3 1.2.2, lifecycle 2.11.1, kotlinx-serialization 1.13.0, collections-immutable 0.5.2, Robolectric 4.18.1, Roborazzi 1.79.0, Konsist 0.18.1, Spotless 8.11.0, PMD 7.29.0. Inget API ändrat, inga omtagna skärmdumpar |

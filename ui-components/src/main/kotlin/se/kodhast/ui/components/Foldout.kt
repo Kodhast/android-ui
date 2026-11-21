@@ -7,8 +7,10 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
@@ -18,8 +20,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import se.kodhast.ui.theme.AppTheme
@@ -37,6 +42,12 @@ import se.kodhast.ui.theme.Tone
  * Med [tintedWhenOpen] ligger hela den utfällda delen, rubrik och innehåll, på en tonad yta med radens hörn, så att
  * det syns vilken rad som är öppen i en lista av utfällbara rader (Husjakt #518): radtonen (`rowTint`) i ljust läge,
  * den starkare `surfaceVariant` i mörkt. Standard `false` = som förut, utan yta.
+ *
+ * **En rad som går att radera** (android-ui #118, samma mönster i alla appar): med [delete] står Radera sist i det
+ * utfällda, som textknapp i felfärgen, efter radens egna knappar i [actions] (samma rad). Svep åt vänster på raden
+ * begär samma radering ([SwipeToDelete]: raden fjädrar tillbaka), och båda vägarna frågar i [DeleteConfirmDialog]
+ * innan något raderas. Raden ligger då på kortets yta, så att svepets bakgrund bara syns där raden dragits undan –
+ * den ska stå på ett [AppCard]. Långtryck raderar aldrig. Standard `null` = som förut, utan svep och knapp.
  */
 @Composable
 fun Foldout(
@@ -49,6 +60,37 @@ fun Foldout(
     header: (@Composable RowScope.() -> Unit)? = null,
     contentSpacing: Dp = Spacing.m,
     tintedWhenOpen: Boolean = false,
+    actions: (@Composable RowScope.() -> Unit)? = null,
+    delete: DeleteAction? = null,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    if (delete == null) {
+        FoldoutBody(title, expanded, onToggle, trailing, summary, header, contentSpacing, tintedWhenOpen, actions, null, modifier, content)
+        return
+    }
+    var confirm by rememberSaveable { mutableStateOf(false) }
+    SwipeToDelete({ confirm = true }, modifier, shape = AppTheme.shapes.row) {
+        // Ogenomskinlig, så att svepets bakgrund bara syns där raden dragits undan.
+        Box(Modifier.clip(AppTheme.shapes.row).background(AppTheme.extendedColors.card)) {
+            FoldoutBody(title, expanded, onToggle, trailing, summary, header, contentSpacing, tintedWhenOpen, actions, { confirm = true }, content = content)
+        }
+    }
+    if (confirm) DeleteConfirmDialog(delete, onDismiss = { confirm = false })
+}
+
+@Composable
+private fun FoldoutBody(
+    title: String,
+    expanded: Boolean,
+    onToggle: () -> Unit,
+    trailing: (@Composable () -> Unit)?,
+    summary: String?,
+    header: (@Composable RowScope.() -> Unit)?,
+    contentSpacing: Dp,
+    tintedWhenOpen: Boolean,
+    actions: (@Composable RowScope.() -> Unit)?,
+    onDelete: (() -> Unit)?,
+    modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit
 ) {
     Column(if (tintedWhenOpen) modifier.openTint(expanded) else modifier) {
@@ -66,7 +108,10 @@ fun Foldout(
             trailing?.invoke()
         }
         ExpandableContent(expanded) {
-            Column(Modifier.padding(bottom = Spacing.s), verticalArrangement = Arrangement.spacedBy(contentSpacing), content = content)
+            Column(Modifier.padding(bottom = Spacing.s), verticalArrangement = Arrangement.spacedBy(contentSpacing)) {
+                content()
+                if (actions != null || onDelete != null) FoldoutActions(actions, onDelete)
+            }
         }
     }
 }
@@ -74,7 +119,8 @@ fun Foldout(
 /**
  * [Foldout] som håller läget själv: börjar i [initiallyExpanded] och sparar läget med `rememberSaveable`, så att det
  * överlever en rotation. [onExpand] körs när sektionen fälls **ut** (inte ihop) – kroken för innehåll som är dyrt att
- * hämta och inte ska laddas förrän någon vill se det (Fonders jämförelsediagram). Resten som i [Foldout].
+ * hämta och inte ska laddas förrän någon vill se det (Fonders jämförelsediagram). Resten som i [Foldout]; en rad
+ * som går att radera (`delete`) håller läget hos anroparen.
  */
 @Composable
 fun Foldout(
@@ -105,6 +151,15 @@ fun Foldout(
         tintedWhenOpen = tintedWhenOpen,
         content = content
     )
+}
+
+/** Radens knappar sist i det utfällda: [actions] först, Radera ([onDelete]) sist. */
+@Composable
+private fun FoldoutActions(actions: (@Composable RowScope.() -> Unit)?, onDelete: (() -> Unit)?) {
+    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.s), verticalAlignment = Alignment.CenterVertically) {
+        actions?.invoke(this)
+        onDelete?.let { AppButton(stringResource(R.string.delete), it, variant = ButtonVariant.DestructiveText, compact = true) }
+    }
 }
 
 /** Den tonade ytan bakom en öppen [Foldout]; tonar in och ut med läget. Innehållet dras in lika mycket i båda lägena. */

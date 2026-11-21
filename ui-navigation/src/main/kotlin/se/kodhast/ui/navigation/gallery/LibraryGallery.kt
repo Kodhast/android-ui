@@ -316,13 +316,26 @@ private fun Rows() {
         StatPill(ComponentsR.drawable.ic_calendar, "–", "Sömn", tone = Tone.Primary, onClick = {}, onClickLabel = "Begär åtkomst")
     }
     StatPill(ComponentsR.drawable.ic_star, "2 saknas", "Träning · Syremättnad", Tone.Primary, Modifier.fillMaxWidth(), onClick = {}, action = "Ge åtkomst")
-    GroupLabel("Foldout · SectionFoldout · CollapsibleHeader · ExpandableContent")
+    GroupLabel("Foldout (med Radera) · SectionFoldout · CollapsibleHeader · ExpandableContent")
     var foldout by remember { mutableStateOf(true) }
     var section by remember { mutableStateOf(false) }
     var header by remember { mutableStateOf(true) }
     AppCard {
         Foldout("Fler val", foldout, { foldout = !foldout }, summary = "2 valda") {
             Text("Innehållet under rubriken.", style = AppTheme.typography.body)
+        }
+    }
+    var deletable by remember { mutableStateOf(false) }
+    AppCard {
+        Foldout(
+            "Globalfond Index A",
+            deletable,
+            { deletable = !deletable },
+            summary = "Köp · −5 000,00 kr",
+            actions = { AppButton("Bevaka alternativ", {}, variant = ButtonVariant.Secondary, compact = true) },
+            delete = DeleteAction("Radera transaktion?", "Transaktionen raderas permanent.") {}
+        ) {
+            Text("84,1203 andelar à 59,44 kr", style = AppTheme.typography.body)
         }
     }
     AppCard {

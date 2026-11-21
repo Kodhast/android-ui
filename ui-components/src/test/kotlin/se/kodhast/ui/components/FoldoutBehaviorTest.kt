@@ -18,6 +18,7 @@ import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.captureToImage
+import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.ui.test.isHeading
 import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.junit4.v2.createComposeRule
@@ -26,8 +27,11 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeLeft
 import androidx.compose.ui.unit.dp
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -140,5 +144,54 @@ class FoldoutBehaviorTest {
         expanded = false
         rule.waitForIdle()
         assertEquals(card, edge())
+    }
+
+    @Test
+    fun `Radera står sist i det utfällda, efter radens knappar, och frågar innan något raderas`() {
+        var deleted = 0
+        var followed = 0
+        show {
+            Foldout(
+                "Globalfond Index A",
+                expanded = true,
+                onToggle = {},
+                actions = { AppButton("Bevaka alternativ", { followed++ }, variant = ButtonVariant.Secondary, compact = true) },
+                delete = DeleteAction("Radera transaktion?", "Transaktionen raderas permanent.") { deleted++ }
+            ) { Text("84,1203 andelar") }
+        }
+        val follow = rule.onNodeWithText("Bevaka alternativ").getBoundsInRoot()
+        val delete = rule.onNodeWithText("Radera").getBoundsInRoot()
+        assertTrue(delete.left > follow.left, "Radera står sist")
+        rule.onNodeWithText("Radera").performClick()
+        rule.onNodeWithText("Radera transaktion?").assertExists()
+        assertEquals(0, deleted, "inget raderas förrän dialogen svarat")
+        rule.onAllNodesWithText("Radera")[1].performClick()
+        assertEquals(1, deleted)
+        rule.onNodeWithText("Radera transaktion?").assertDoesNotExist()
+    }
+
+    @Test
+    fun `svep åt vänster på raden frågar i samma dialog, och Avbryt lämnar raden`() {
+        var deleted = 0
+        show {
+            AppCard {
+                Foldout("Sverige Småbolag", expanded = false, onToggle = {}, summary = "Sälj", delete = DeleteAction("Radera transaktion?", "–") { deleted++ }) { Text("–") }
+            }
+        }
+        rule.onNodeWithText("Sverige Småbolag").performTouchInput { swipeLeft() }
+        rule.waitForIdle()
+        rule.onNodeWithText("Radera transaktion?").assertExists()
+        rule.onNodeWithText("Avbryt").performClick()
+        assertEquals(0, deleted)
+        assertTrue(rule.onNodeWithText("Sverige Småbolag").getBoundsInRoot().left >= 0.dp, "raden har fjädrat tillbaka")
+    }
+
+    @Test
+    fun `utan delete finns varken Radera eller svep`() {
+        show { Foldout("Anteckning", expanded = true, onToggle = {}) { Text("Text") } }
+        rule.onNodeWithText("Radera").assertDoesNotExist()
+        rule.onNodeWithText("Anteckning").performTouchInput { swipeLeft() }
+        rule.waitForIdle()
+        rule.onNodeWithText("Text").assertExists()
     }
 }
