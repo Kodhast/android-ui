@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.LocalRippleConfiguration
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
@@ -278,6 +279,19 @@ class DepthScreenshotTest {
                 var selected by remember { mutableIntStateOf(0) }
                 LaunchedEffect(Unit) { selected = 2 }
                 SampleSheet { AppSegmentedChoice(listOf("Ljust", "Mörkt", "Auto"), selected, { selected = it }) }
+            }
+        }
+    }
+
+    /** #98: lika breda segment mot segment efter textens bredd, i ReseApotekets formulär på 384 dp (336 dp innanför marginalen). */
+    @Test
+    fun `segmentvalet efter textens bredd`() = captureLightAndDark("AppSegmentedChoice_bredd", depth = true) {
+        SampleSheet {
+            Column(Modifier.width(336.dp), verticalArrangement = Arrangement.spacedBy(Spacing.m)) {
+                val mangd = listOf("Fast antal", "Per resenär", "Per N dagar")
+                AppSegmentedChoice(mangd, 2, {})
+                AppSegmentedChoice(mangd, 2, {}, segmentWidth = SegmentWidth.FitText)
+                AppSegmentedChoice(listOf("Varje dag", "Veckodagar", "Var X:e dag"), 1, {}, segmentWidth = SegmentWidth.FitText)
             }
         }
     }

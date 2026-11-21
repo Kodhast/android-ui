@@ -4,6 +4,7 @@ import androidx.compose.foundation.interaction.DragInteraction
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -38,6 +39,7 @@ import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.width
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -189,6 +191,33 @@ class DepthBehaviorTest {
         val pill = rule.onNodeWithTag(SEGMENT_INDICATOR_TAG, useUnmergedTree = true).getUnclippedBoundsInRoot()
         val chosen = rule.onNodeWithText("System").getUnclippedBoundsInRoot()
         assertTrue((pill.left - chosen.left).value in -1f..1f && (pill.right - chosen.right).value in -1f..1f, "pillen $pill ska ligga under $chosen")
+    }
+
+    @Test
+    fun `segmentvalet efter textens bredd ger långa texter bredare segment och pillen följer valet`() {
+        var segment by mutableIntStateOf(0)
+        show {
+            Box(Modifier.width(336.dp)) {
+                AppSegmentedChoice(listOf("Fast antal", "Per resenär", "Per N dagar"), segment, { segment = it }, segmentWidth = SegmentWidth.FitText)
+            }
+        }
+        fun widthOf(text: String) = rule.onNodeWithText(text).getUnclippedBoundsInRoot().width
+        rule.onNodeWithText("Per N dagar").performClick()
+        rule.waitForIdle()
+        assertEquals(2, segment)
+        assertTrue(widthOf("Per N dagar") > widthOf("Fast antal"), "längre text ska ge bredare segment")
+        val pill = rule.onNodeWithTag(SEGMENT_INDICATOR_TAG, useUnmergedTree = true).getUnclippedBoundsInRoot()
+        val chosen = rule.onNodeWithText("Per N dagar").getUnclippedBoundsInRoot()
+        assertTrue((pill.left - chosen.left).value in -1f..1f && (pill.right - chosen.right).value in -1f..1f, "pillen $pill ska ligga under $chosen")
+    }
+
+    @Test
+    fun `segmentens bredd efter texten delar det som blir över lika och krymper i proportion när det inte räcker`() {
+        assertEquals(listOf(30f, 50f), fitSegmentWidths(listOf(20f, 40f), available = 90f, gap = 10f))
+        assertEquals(listOf(20f, 40f), fitSegmentWidths(listOf(40f, 80f), available = 70f, gap = 10f))
+        // Bockens plats följer valet och delas mellan två segment medan pillen glider.
+        assertEquals(listOf(20f, 50f), withCheck(listOf(20f, 40f), position = 1f, check = 10f))
+        assertEquals(listOf(25f, 45f), withCheck(listOf(20f, 40f), position = 0.5f, check = 10f))
     }
 
     @Test

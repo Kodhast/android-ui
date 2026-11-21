@@ -135,6 +135,7 @@ import se.kodhast.ui.components.R as ComponentsR
 import se.kodhast.ui.components.ReminderTimeRow
 import se.kodhast.ui.components.SectionFoldout
 import se.kodhast.ui.components.SectionHeader
+import se.kodhast.ui.components.SegmentWidth
 import se.kodhast.ui.components.SelectField
 import se.kodhast.ui.components.SettingsCard
 import se.kodhast.ui.components.SettingsPage
@@ -413,6 +414,8 @@ private fun Fields() {
     ExampleChips(listOf("D-vitamin", "Omega-3", "Magnesium"), {}, chosen = "D-vitamin")
     var theme by remember { mutableIntStateOf(2) }
     AppSegmentedChoice(listOf("Ljust", "Mörkt", "System"), theme, { theme = it })
+    var rule by remember { mutableIntStateOf(1) }
+    AppSegmentedChoice(listOf("Fast antal", "Per resenär", "Per N dagar"), rule, { rule = it }, segmentWidth = SegmentWidth.FitText)
     var count by remember { mutableIntStateOf(7) }
     QuantityStepper(count, { count = it }, "dagar")
     var doses by remember { mutableIntStateOf(2) }
