@@ -12,6 +12,7 @@ import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.isHeading
+import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -85,5 +86,28 @@ class FoldoutBehaviorTest {
         assertEquals(0, rule.onAllNodesWithText("Detaljer").fetchSemanticsNodes().size)
         visible = true
         rule.onNodeWithText("Detaljer").assertExists()
+    }
+
+    @Test
+    fun `Foldout utan läge håller det själv, och onExpand körs bara när den fälls ut`() {
+        var expands = 0
+        show { Foldout("Varför byta?", onExpand = { expands++ }) { Text("Lägre avgift") } }
+        rule.onNodeWithText("Lägre avgift").assertDoesNotExist()
+        rule.onNodeWithText("Varför byta?").performClick()
+        rule.onNodeWithText("Lägre avgift").assertExists()
+        assertEquals(1, expands)
+        rule.onNodeWithText("Varför byta?").performClick()
+        rule.onNodeWithText("Lägre avgift").assertDoesNotExist()
+        assertEquals(1, expands)
+    }
+
+    @Test
+    fun `Foldout utan läge börjar utfälld med initiallyExpanded och behåller läget efter återskapande`() {
+        val restore = StateRestorationTester(rule)
+        restore.setContent { TestTheme { Foldout("Varför byta?", initiallyExpanded = true) { Text("Lägre avgift") } } }
+        rule.onNodeWithText("Lägre avgift").assertExists()
+        rule.onNodeWithText("Varför byta?").performClick()
+        restore.emulateSavedInstanceStateRestore()
+        rule.onNodeWithText("Lägre avgift").assertDoesNotExist()
     }
 }
