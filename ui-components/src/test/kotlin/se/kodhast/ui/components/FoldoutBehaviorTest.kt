@@ -1,22 +1,30 @@
 package se.kodhast.ui.components
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toPixelMap
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertHeightIsAtLeast
+import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.isHeading
 import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.dp
 import kotlin.test.assertEquals
@@ -25,6 +33,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import se.kodhast.ui.components.testing.TestTheme
+import se.kodhast.ui.theme.AppTheme
 
 /** Hopfällbara sektioner: hela titelraden växlar, sammanfattningen bara stängd, och en kontroll i raden växlar inte. */
 @RunWith(RobolectricTestRunner::class)
@@ -109,5 +118,27 @@ class FoldoutBehaviorTest {
         rule.onNodeWithText("Varför byta?").performClick()
         restore.emulateSavedInstanceStateRestore()
         rule.onNodeWithText("Lägre avgift").assertDoesNotExist()
+    }
+
+    @Test
+    fun `tonat öppet läge lägger radtonen bakom den öppna delen, stängd ingen yta`() {
+        var expanded by mutableStateOf(true)
+        var tint = Color.Unspecified
+        var card = Color.Unspecified
+        rule.setContent {
+            TestTheme {
+                tint = AppTheme.extendedColors.rowTint
+                card = AppTheme.extendedColors.card
+                Box(Modifier.background(card)) {
+                    Foldout("Uppgifter", expanded, { expanded = !expanded }, Modifier.testTag("foldout"), tintedWhenOpen = true) { Text("Boarea") }
+                }
+            }
+        }
+        fun edge() = rule.onRoot().captureToImage().toPixelMap().let { it[it.width - 2, it.height / 2] }
+        rule.waitForIdle()
+        assertEquals(tint, edge())
+        expanded = false
+        rule.waitForIdle()
+        assertEquals(card, edge())
     }
 }
