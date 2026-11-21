@@ -180,6 +180,19 @@ class DepthScreenshotTest {
         }
     }
 
+    /** Robolectric ritar inte oskärpan mellan fönster; bilden visar arkets svagare slöja. */
+    @Test
+    fun `bottenark med oskärpa`() = rule.captureScreenLightAndDark("AppBottomSheet_oskarpa", depth = true) {
+        androidx.compose.runtime.CompositionLocalProvider(LocalCrossWindowBlur provides true) {
+            Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+                AppBottomSheet("Ändra mängd", onDismiss = {}) {
+                    QuantityStepper(9, {}, "Antal tabletter")
+                    AppButton("Spara", {})
+                }
+            }
+        }
+    }
+
     @Test
     fun `datumväljaren med djup`() = rule.captureScreenLightAndDark("DatePicker_djup", open = { onNode(hasClickAction()).clickWithoutRipple() }, depth = true) {
         Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(Spacing.l)) {

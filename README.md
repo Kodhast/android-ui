@@ -63,6 +63,7 @@ fun AppTheme(
     typography: AppTypography = AppTypography.from(typeScale), // de namngivna stilarna
     motionScheme: MotionScheme = MotionScheme.expressive(),
     depth: AppDepth? = null,                                   // djup och tryckkänsla; null = platt
+    blur: AppBlur? = AppBlur(),                                // oskärpa bakom dialoger och ark; null = av
     content: @Composable () -> Unit
 )
 
@@ -72,6 +73,7 @@ AppTheme.transparent      // ingen fyllnad (t.ex. ovalda segment)
 AppTheme.typography       // screenTitle, bigNumber, headline, sectionTitle, quantity, itemTitle, itemSubtitle, body, pill, caption, button
 AppTheme.tone(tone)       // ToneColors(container, content)
 AppTheme.depth            // AppDepth?: highlight, sheen, shadow, cardEdge, cardShadow, pressedScale, cardSheen, headerShadow
+AppTheme.blur             // AppBlur?: behindRadius (12 dp), scrimAlpha (0,2)
 Spacing.xs … Spacing.xxl  // 4, 8, 12, 16, 24, 32 dp
 IconSize.marker … .standard // 14 (marker), 16 (pill), 18 (small), 20 (button), 22 (row), 24 (standard) dp
 TRACK_HEIGHT, PROGRESS_STROKE // spårets höjd 8 dp, snurrans linje 2,5 dp
@@ -92,6 +94,10 @@ TRACK_HEIGHT, PROGRESS_STROKE // spårets höjd 8 dp, snurrans linje 2,5 dp
   `colorScheme.primaryContainer`) och `ExtendedColors.progressDone` fyllnaden när allt är klart,
   `ProgressDoneColors(fill, outline)` (standard `null` = `colorScheme.primary` utan kontur; Dagboken sätter
   solgult med mörk kontur, ReseApoteket grönt).
+- **Oskärpa (#104):** innehållet bakom `ConfirmDialog`, `LoadingDialog`, `TimePickerPopup`, datumväljaren i
+  `DateField` och `AppBottomSheet` blir suddigt (`AppBlur.behindRadius`) och slöjan svagare (`scrimAlpha`).
+  Standard på i alla appar; `blur = null` stänger av. Kräver oskärpa mellan fönster på enheten (Android 12+,
+  inte i energisparläget); annars dagens slöja. Robolectric ritar inte oskärpan, så skärmdumparna visar bara slöjan.
 - **Djup (#35):** med `depth = AppDepth(…)` får knappar en ljuskant upptill, ett svagt skimmer och
   en tonad skugga, och sjunker in (krymper till `pressedScale`, skuggan tonar bort) när de trycks.
   Valda chips, segment och verktygsradens flik får ljuskanten och skimret, tonade ikonknappar en
@@ -620,7 +626,7 @@ efter, innan någon app bytt. Byt direkt från 1.x till 3.0.0. Det som bryter, o
 
 | Version | Ändring |
 |---|---|
-| 3.8.0 (under arbete) | Tidsväljaren som rullhjul (#106): `TimePickerPopup` (och därmed `TimeField` och `ReminderTimeRow`) visar två rullhjul för timme och minut i stället för urtavlan (Material 3:s `TimeScroll`). Hjulen ligger i spåret `rowTint`; samma API, OK och Avbryt, samma kant med temats djup. Omtagna: `TimePickerPopup_oppen`, `TimePickerPopup_djup` |
+| 3.8.0 (under arbete) | Tidsväljaren som rullhjul (#106): `TimePickerPopup` (och därmed `TimeField` och `ReminderTimeRow`) visar två rullhjul för timme och minut i stället för urtavlan (Material 3:s `TimeScroll`). Hjulen ligger i spåret `rowTint`; samma API, OK och Avbryt, samma kant med temats djup. Omtagna: `TimePickerPopup_oppen`, `TimePickerPopup_djup`. Oskärpa bakom dialoger och ark (#104): nytt temavärde `AppBlur` (`AppTheme(blur = AppBlur())`, standard på: 12 dp oskärpa, slöja 0,2); `ConfirmDialog`, `LoadingDialog`, `TimePickerPopup`, `DateField`s väljare och `AppBottomSheet` suddar innehållet bakom och tonar slöjan när enheten har oskärpa mellan fönster påslagen, annars som förut. Ny skärmdump: `AppBottomSheet_oskarpa` (Robolectric ritar inte själva oskärpan) |
 | 3.7.0 (under arbete) | Avatarmenyn (#102): ny `AccountMenu` och `AccountMenuAvatar` (`AccountInfo`) – samma första nivå under avataren i alla appar, variant B. `AppMenuItem(navigates, divider)` och `AppMenuPopup(header)`, ikonerna `ic_account_settings`, `ic_account_about`, `ic_account_gallery` (egna namn, så att apparnas ikoner inte ersätter dem). Nya skärmdumpar `AccountMenu_inloggad`, `AccountMenuAvatar_utloggad`; befintliga oförändrade |
 | 3.6.0 | Beroendena likriktade och höjda till senaste stabila (#103): Kotlin 2.4.21, AGP 9.5.2, Gradle 9.9.2, Compose BOM 2026.11.01, Material 3 1.5.0 (stabil), compileSdk 37.1, navigation3 1.2.2, lifecycle 2.11.1, kotlinx-serialization 1.13.0, collections-immutable 0.5.2, Robolectric 4.18.1, Roborazzi 1.79.0, Konsist 0.18.1, Spotless 8.11.0, PMD 7.29.0. Inget API ändrat, inga omtagna skärmdumpar |
 | 3.5.0 | Segmentvalet animerar bytet (#100): med temats djup är den valda pillen i `AppSegmentedChoice` en egen yta bakom segmenten som glider till nytt val med temats fjäder (`motionScheme.defaultSpatialSpec()`); texten byter färg när pillen passerar och bocken växer fram i stället för att texten hoppar. Pillen krymper med det valda segmentet när det trycks. Samma API och samma stillbild; `SEGMENT_INDICATOR_TAG` för proven. Inga omtagna skärmdumpar; ny: `AppSegmentedChoice_glid` (mitt i glidet). Utan djup oförändrat |

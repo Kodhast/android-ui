@@ -60,6 +60,7 @@ fun TimePickerPopup(time: LocalTime, title: String, onPick: (LocalTime) -> Unit,
     val state = rememberTimePickerState(initialHour = time.hour, initialMinute = time.minute, is24Hour = true)
     TimePickerDialog(
         onDismissRequest = onDismiss,
+        properties = blurDialogProperties(),
         modifier = modifier.floating(AppTheme.shapes.dialog, shadow = false),
         shape = AppTheme.shapes.dialog,
         confirmButton = { AppButton(stringResource(R.string.ok), onClick = { onPick(LocalTime(state.hour, state.minute)) }, variant = ButtonVariant.Text) },
