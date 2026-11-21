@@ -20,6 +20,6 @@ import androidx.compose.ui.unit.dp
 data class AppBlur(
     val behindRadius: Dp = 12.dp,
     val scrimAlpha: Float = 0.2f,
-    val headerRadius: Dp = 16.dp,
-    val headerFade: Dp = 32.dp
+    val headerRadius: Dp = 8.dp,
+    val headerFade: Dp = 24.dp
 )
