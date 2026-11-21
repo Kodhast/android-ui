@@ -88,7 +88,8 @@ fun DateField(
             // Med temats djup får väljaren kortens kant, som tidsväljaren.
             modifier = Modifier.floating(AppTheme.shapes.dialog, shadow = false),
             shape = AppTheme.shapes.dialog,
-            colors = DatePickerDefaults.colors(containerColor = AppTheme.extendedColors.card)
+            colors = DatePickerDefaults.colors(containerColor = AppTheme.extendedColors.card),
+            properties = blurDialogProperties()
         ) {
             DatePicker(state)
         }

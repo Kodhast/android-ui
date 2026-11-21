@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -107,14 +108,17 @@ fun AppBottomSheet(
         subtitle?.let { Text(it, style = AppTheme.typography.itemSubtitle, color = MaterialTheme.colorScheme.onSurfaceVariant) }
     }
     val errorText = @Composable { error?.let { FieldError(stringResource(it.message)) } }
+    val blur = activeBlur()
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         // Med temats djup får arket kortens kant längs överkanten.
         modifier = AppTheme.depth?.let { modifier.sheetEdge(AppTheme.shapes.sheet, it) } ?: modifier,
         sheetState = sheetState,
         shape = AppTheme.shapes.sheet,
-        containerColor = AppTheme.extendedColors.card
+        containerColor = AppTheme.extendedColors.card,
+        scrimColor = sheetScrim(blur, BottomSheetDefaults.ScrimColor)
     ) {
+        BlurSheetWindow(blur)
         if (footer == null) {
             Column(
                 Modifier

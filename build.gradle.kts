@@ -18,7 +18,7 @@ val ktlintRules = mapOf(
     "ktlint_code_style" to "android_studio",
     "max_line_length" to "off",
     "ktlint_function_naming_ignore_when_annotated_with" to "Composable",
-    "compose_allowed_composition_locals" to "LocalExtendedColors,LocalAppShapes,LocalAppTypography,LocalAppDepth,LocalTopBarStatus,LocalItemRowTextGap,LocalBottomClearance,LocalAppButtonStyle,LocalAppCardStyle,LocalAppBrandStyle,LocalTopBarBackStyle,LocalEditScreenMargin,LocalDetailSectionGap,LocalQuantityStepperButtonSize,LocalAppIdentity,LocalTopBarAccount,LocalTopBarSyncing,LocalAvatarRing",
+    "compose_allowed_composition_locals" to "LocalExtendedColors,LocalAppShapes,LocalAppTypography,LocalAppDepth,LocalTopBarStatus,LocalItemRowTextGap,LocalBottomClearance,LocalAppButtonStyle,LocalAppCardStyle,LocalAppBrandStyle,LocalTopBarBackStyle,LocalEditScreenMargin,LocalDetailSectionGap,LocalQuantityStepperButtonSize,LocalAppIdentity,LocalTopBarAccount,LocalTopBarSyncing,LocalAvatarRing,LocalAppBlur,LocalCrossWindowBlur",
     // Samma undantag som i apparna: komponenternas API flyttas oförändrat (ingen app får ändras här).
     "ktlint_compose_parameter-naming" to "disabled",
     "ktlint_compose_lambda-param-event-trailing" to "disabled",

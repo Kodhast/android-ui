@@ -18,7 +18,6 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import se.kodhast.ui.theme.AppTheme
 import se.kodhast.ui.theme.Spacing
 
@@ -35,7 +34,7 @@ import se.kodhast.ui.theme.Spacing
 fun LoadingDialog(title: String, message: String, modifier: Modifier = Modifier) {
     Dialog(
         onDismissRequest = {},
-        properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)
+        properties = blurDialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)
     ) {
         val shape = AppTheme.shapes.card
         Row(

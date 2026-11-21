@@ -12,7 +12,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.DialogProperties
 import se.kodhast.ui.theme.AppTheme
 import se.kodhast.ui.theme.Spacing
 
@@ -62,7 +61,7 @@ fun ConfirmDialog(
         },
         shape = AppTheme.shapes.card,
         containerColor = AppTheme.extendedColors.card,
-        properties = if (content == null) DialogProperties() else DialogProperties(usePlatformDefaultWidth = false)
+        properties = blurDialogProperties(usePlatformDefaultWidth = content == null)
     )
 }
 

@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Color
  * mörkt och skickar in rätt färger; biblioteket har inga egna färger eller typsnitt. Formerna
  * ([AppTheme.shapes]) är bibliotekets och samma i alla appar – ingen appinställning.
  * [depth] ger knappar, kort och valda element djup och tryckkänsla ([AppDepth]); standard `null` = platt.
+ * [blur] gör innehållet bakom dialoger och ark suddigt ([AppBlur]); standard på, `null` = av.
  */
 @Composable
 fun AppTheme(
@@ -26,13 +27,15 @@ fun AppTheme(
     typography: AppTypography = remember(typeScale) { AppTypography.from(typeScale) },
     motionScheme: MotionScheme = MotionScheme.expressive(),
     depth: AppDepth? = null,
+    blur: AppBlur? = AppBlur(),
     content: @Composable () -> Unit
 ) {
     CompositionLocalProvider(
         LocalExtendedColors provides extendedColors,
         LocalAppShapes provides DefaultShapes,
         LocalAppTypography provides typography,
-        LocalAppDepth provides depth
+        LocalAppDepth provides depth,
+        LocalAppBlur provides blur
     ) {
         MaterialExpressiveTheme(
             colorScheme = colorScheme,
@@ -65,6 +68,11 @@ object AppTheme {
         @Composable @ReadOnlyComposable
         get() = LocalAppDepth.current
 
+    /** Oskärpan bakom dialoger och ark ([AppBlur]); `null` = av. */
+    val blur: AppBlur?
+        @Composable @ReadOnlyComposable
+        get() = LocalAppBlur.current
+
     /** Färgerna för en [Tone] i aktuellt tema. */
     @Composable
     @ReadOnlyComposable
@@ -79,3 +87,4 @@ internal val LocalExtendedColors = staticCompositionLocalOf<ExtendedColors> { mi
 internal val LocalAppShapes = staticCompositionLocalOf<AppShapes> { missing("AppShapes") }
 internal val LocalAppTypography = staticCompositionLocalOf<AppTypography> { missing("AppTypography") }
 internal val LocalAppDepth = staticCompositionLocalOf<AppDepth?> { null }
+internal val LocalAppBlur = staticCompositionLocalOf<AppBlur?> { AppBlur() }
