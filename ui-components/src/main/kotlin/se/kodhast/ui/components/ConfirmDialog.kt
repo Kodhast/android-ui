@@ -25,7 +25,7 @@ import se.kodhast.ui.theme.Spacing
  * **Bredden med [content]**: i stället för plattformens fönsterbredd fyller dialogen skärmen minus
  * `Spacing.xl` på var sida, högst 560 dp (M3:s tak). Ett textfält i ett fönster med plattformens
  * WRAP_CONTENT-bredd mäts annars med flera bredder per layout, och Robolectric-testernas väntan på vila tar
- * aldrig slut. Utan [content] är dialogen som förut. Med temats djup får dialogen kortens hårfina kant (skuggan klipps av fönstret, och bakgrunden är redan nedtonad).
+ * aldrig slut. Utan [content] är dialogen som förut. Med temats djup flyter dialogen som alla fönster: kant och tonad skugga, med luft runt ytan ([floatingWindow]).
  */
 @Composable
 fun ConfirmDialog(
@@ -45,7 +45,7 @@ fun ConfirmDialog(
         confirmButton = {
             AppButton(confirmLabel, onConfirm, variant = if (destructive) ButtonVariant.Destructive else ButtonVariant.Primary)
         },
-        modifier = (if (content == null) modifier else modifier.padding(horizontal = Spacing.xl).widthIn(max = DIALOG_MAX_WIDTH)).floating(AppTheme.shapes.card, shadow = false),
+        modifier = (if (content == null) modifier else modifier.padding(horizontal = Spacing.xl).widthIn(max = DIALOG_MAX_WIDTH)).floatingWindow(AppTheme.shapes.card),
         dismissButton = dismissLabel?.let { { AppButton(it, onDecline, variant = ButtonVariant.Text) } },
         title = { Text(title, style = AppTheme.typography.headline) },
         text = {

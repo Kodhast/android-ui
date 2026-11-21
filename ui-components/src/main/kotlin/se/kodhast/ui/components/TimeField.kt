@@ -61,7 +61,7 @@ fun TimePickerPopup(time: LocalTime, title: String, onPick: (LocalTime) -> Unit,
     TimePickerDialog(
         onDismissRequest = onDismiss,
         properties = blurDialogProperties(),
-        modifier = modifier.floating(AppTheme.shapes.dialog, shadow = false),
+        modifier = modifier.floatingWindow(AppTheme.shapes.dialog),
         shape = AppTheme.shapes.dialog,
         confirmButton = { AppButton(stringResource(R.string.ok), onClick = { onPick(LocalTime(state.hour, state.minute)) }, variant = ButtonVariant.Text) },
         title = { Text(title, style = AppTheme.typography.sectionTitle) },

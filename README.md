@@ -5,7 +5,7 @@ eventuellt Fonder): ett tema-API och de delade komponenterna, så att samma elem
 beter sig likadant i alla appar och bara finns på ett ställe. Varje app behåller sina egna
 färger och typsnitt och skickar in dem i temat; formerna är samma i alla appar.
 
-**Version:** 3.10.0 · Material 3 `1.5.0` (Expressive) · Compose BOM `2026.11.01` ·
+**Version:** 3.11.0 · Material 3 `1.5.0` (Expressive) · Compose BOM `2026.11.01` ·
 Kotlin `2.4.21` · AGP `9.5.2` · compileSdk 37.1 · minSdk 30.
 
 ## Moduler
@@ -40,8 +40,8 @@ dependencyResolutionManagement {
 }
 ```
 
-och i versionskatalogen/byggfilen `implementation("se.kodhast.ui:ui-components:3.10.0")` och
-`testImplementation("se.kodhast.ui:ui-testing:3.10.0")`.
+och i versionskatalogen/byggfilen `implementation("se.kodhast.ui:ui-components:3.11.0")` och
+`testImplementation("se.kodhast.ui:ui-testing:3.11.0")`.
 
 - **CI i appen:** `GITHUB_TOKEN` räcker när paketet gett apprepot läsåtkomst
   (paketets inställningar → *Manage Actions access*) och jobbet har `permissions: packages: read`.
@@ -117,8 +117,7 @@ TRACK_HEIGHT, PROGRESS_STROKE // spårets höjd 8 dp, snurrans linje 2,5 dp
   `EmojiPicker`) en liten skugga och utan ring skimmer; `AppSlider` ett sänkt spår och en knopp med knapparnas
   skugga, som sjunker in medan den trycks eller dras. Fältet i fokus (`AppTextField` och fälten som bygger på det) får en
   mjuk ring i primärfärgen utanför kanten. Meddelandet i `AppSnackbarHost` flyter med skugga och
-  hårfin kant; `AppMenuPopup`, `ConfirmDialog`, `TimePickerPopup` och datumväljaren i `DateField` får den
-  hårfina kanten, och `AppBottomSheet` samma kant längs överkanten. Listrader,
+  hårfin kant; `AppMenuPopup`, `ConfirmDialog`, `LoadingDialog`, `TimePickerPopup` och datumväljaren i `DateField` flyter som snackbaren (kant och tonad skugga, #83), och `AppBottomSheet` samma kant längs överkanten. Listrader,
   pills, rubriker och tomma lägen är platta med avsikt. Färgerna ger appen per tema; utan `depth` är
   allt som förut.
 - Appens egna färger och det som hör till appens domän (t.ex. Dagbokens energiskala, sömnstadier och
@@ -492,7 +491,7 @@ inte använder ramen rätt.
 | `AppProgress` | Framstegsraden "x av y": appens text (`label`, `doneLabel`) ovanför ett rundat spår (`ExtendedColors.track`, standard `primaryContainer`) som fylls fjädrande i `primary`; när allt är klart fyllnaden i `ExtendedColors.progressDone` (`ProgressDoneColors(fill, outline)`, standard `primary` utan kontur) och `doneLabel`. `celebrate = false` håller raden i primärfärgen (en tidigare dag), `compact` ger ett kort spår och "9 / 14" för en listrad. TalkBack läser texten och framsteget (`progressBarRangeInfo`); `doneDescription` = egen talad text vid klart (standard `doneLabel`) | Ersätter Dagbokens `ProgressBar` och ReseApotekets `SuitcaseProgress` (#55, form A): Dagboken ser ut och låter som förut med sin `track`, solgula `progressDone` med kontur och `doneDescription`; i ReseApoteket försvinner vågen, det stora talet, resväskerutan och det gröna klart-kortet |
 | `AppMenu` | Menyn bakom ⋮ (`AppMenuItem`: `icon`, `destructive`, `section` (rubrik), `checked` (kryssrad som håller menyn öppen), `supporting`/`supportingTone` (undertext), `muted` (dämpad etikett), `navigates` (pil till höger), `divider` (linje före, utan rubrik)) | `section`, `checked` från Dagboken; `asSplitMenu()` från ReseApoteket |
 | `AppNavHost` | Navigationsramen i `ui-navigation` (se Navigationsramen): `backStack`, `tabs`, `entryProvider`, `sync`, `onSyncErrorShown`, `action`, `onPopped`, `account` | Flyttad från ReseApoteket och Dagboken (#52); appens `onExit` behövs inte – i första flikens rot stänger systemet appen |
-| `AppMenuPopup` | Själva menyn, för egna knappar som öppnar en meny; `header` står överst med en linje under | Publik (Dagboken använder den direkt) |
+| `AppMenuPopup` | Själva menyn, för egna knappar som öppnar en meny; `header` står överst med en linje under. Med temats djup en egen popup med kant och tonad skugga (3.11.0, #83) | Publik (Dagboken använder den direkt) |
 | `AppPullToRefresh` | Dra för att uppdatera runt eget rullbart innehåll, för skärmar utan ram: `refreshing`, `onRefresh` (`null` = ingen gest); samma yta och tagg (`ENTITY_REFRESH_TAG`) som i ramarna | Fonder: Översikt, Innehav, Beslut |
 | `AppSegmentedChoice` | Ett val av få alternativ (2–4, ett alltid valt) som segmentknappar; `segmentWidth = SegmentWidth.FitText` (3.10.0, #98) gör varje segment så brett som sin text och delar det som blir över lika – för val med olika långa texter. Standard `Equal` (lika breda) | ReseApoteket Mängd, Dagboken Kön och Upprepning: `FitText` |
 | `AppSlider` | Skjutreglaget: `label`, heltalsvärdet (`value`, `valueRange`, `step`), `valueText` och valfri `badge` (t.ex. en nivå-`InfoPill`) ovanför spåret; `trackBrush` (standard `primary`, en skala skickar sin gradient) och `thumbColor` (ringen). Går skalan under noll utgår fyllnaden från nollan, markerad med ett streck. Minst 48 dp högt; TalkBack läser `label` och `stateDescription` (standard `valueText`) | Flyttad från Dagbokens `ValueSlider` (#76): energiskalan, nivåpillen och färgerna är parametrar som Dagboken skickar. Med djup sänkt spår och lyft knopp (#74) |
@@ -644,6 +643,7 @@ efter, innan någon app bytt. Byt direkt från 1.x till 3.0.0. Det som bryter, o
 
 | Version | Ändring |
 |---|---|
+| 3.11.0 | Alla flytande ytor ser likadana ut (#83, Mats "den typen av popup ser likadan ut överallt"): med temats djup får menyer (`AppMenuPopup`, och därmed `AppMenu`, `AccountMenu`, `SelectField`, verktygsradens meny), `ConfirmDialog`, `LoadingDialog`, `TimePickerPopup` och datumväljaren kantlinje och tonad skugga i två lager, som snackbaren. Fönstren får 28 dp luft runt ytan så att skuggan inte klipps (`floatingWindow`); menyn är med djup en egen popup med Material 3:s placering (under, annars över ankaret, innanför skärmen), in- och utanimering, stängning vid tryck utanför och bakåt. Dialogerna är 56 dp smalare på bredden med djup. Utan djup oförändrat. Robolectric ritar inte popupens skugga: omtagna `AppMenu_djup`, dialog- och väljarbilderna visar bara den nya luften |
 | 3.10.0 | Segment efter textens bredd (#98): `AppSegmentedChoice(segmentWidth = SegmentWidth.FitText)` – varje segment får sin texts bredd med luft, det valda också bockens plats (som flyttar med pillen), och det som blir över delas lika; räcker inte spåret krymper segmenten i proportion. Pillen glider och byter bredd. Standard `Equal` bevarar dagens utseende; utan djup alltid lika breda. Ny skärmdump `AppSegmentedChoice_bredd` (336 dp, ReseApotekets formulär på 384 dp) |
 | 3.9.0 | Samma sätt att ta bort en rad i alla appar (#118): regeln står under Ramarna. `Foldout(actions, delete)` – Radera sist i det utfällda efter radens knappar, svep åt vänster och `DeleteConfirmDialog` (Fonders Händelser, #280 D); ny `ButtonVariant.DestructiveText`. Svepets bakgrund (`SwipeToDelete`, `SwipeToHide`) ritas bara medan raden dras – i vila gav dess kant en hårfin röd ring runt kortet. Ny skärmdump `Foldout_radera`; omtagna `SwipeToDelete_vila` och `ExpandButton_lagen` (ringen borta) |
 | 3.8.0 | Tidsväljaren som rullhjul (#106): `TimePickerPopup` (och därmed `TimeField` och `ReminderTimeRow`) visar två rullhjul för timme och minut i stället för urtavlan (Material 3:s `TimeScroll`). Hjulen ligger i spåret `rowTint`; samma API, OK och Avbryt, samma kant med temats djup. Omtagna: `TimePickerPopup_oppen`, `TimePickerPopup_djup`. Oskärpa bakom dialoger och ark (#104): nytt temavärde `AppBlur` (`AppTheme(blur = AppBlur())`, standard på: 12 dp oskärpa, slöja 0,2); `ConfirmDialog`, `LoadingDialog`, `TimePickerPopup`, `DateField`s väljare och `AppBottomSheet` suddar innehållet bakom och tonar slöjan när enheten har oskärpa mellan fönster påslagen, annars som förut. Ny skärmdump: `AppBottomSheet_oskarpa` (Robolectric ritar inte själva oskärpan) Progressiv oskärpa under sidhuvudet (#105): `EntityListScreen` och `EntityDetailScreen` suddar innehållets överkant när det rullat in under toppraden (`AppBlur.headerRadius` 16 dp, `headerFade` 32 dp). Ny skärmdump: `EntityListScreen_rullad` `Foldout(tintedWhenOpen = true)` (Husjakt #518): den öppna delen ligger på en tonad yta med radens hörn, radtonen i ljust och `surfaceVariant` i mörkt; standard av, så inget ändrar utseende. Ny skärmdump: `Foldout_tonad` |
