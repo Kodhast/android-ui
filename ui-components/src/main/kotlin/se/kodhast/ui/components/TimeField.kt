@@ -3,13 +3,16 @@
 package se.kodhast.ui.components
 
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TimePicker
+import androidx.compose.material3.TimePickerDefaults
 import androidx.compose.material3.TimePickerDialog
+import androidx.compose.material3.TimeScroll
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -51,7 +54,7 @@ fun TimeField(
     }
 }
 
-/** Tidsväljaren (24 timmar) med [title], OK och Avbryt – för [TimeField] och appens egna tidsrader. Med temats djup får den kanten som [ConfirmDialog]. */
+/** Tidsväljaren (24 timmar, rullhjul för timme och minut) med [title], OK och Avbryt – för [TimeField] och appens egna tidsrader. Med temats djup får den kanten som [ConfirmDialog]. */
 @Composable
 fun TimePickerPopup(time: LocalTime, title: String, onPick: (LocalTime) -> Unit, onDismiss: () -> Unit, modifier: Modifier = Modifier) {
     val state = rememberTimePickerState(initialHour = time.hour, initialMinute = time.minute, is24Hour = true)
@@ -64,6 +67,13 @@ fun TimePickerPopup(time: LocalTime, title: String, onPick: (LocalTime) -> Unit,
         dismissButton = { AppButton(stringResource(R.string.cancel), onDismiss, variant = ButtonVariant.Text) },
         containerColor = AppTheme.extendedColors.card
     ) {
-        TimePicker(state)
+        // Hjulen ligger nedsänkta i kortet med samma spår som segmentvalet. Material 3 tar hjulens
+        // bakgrund ur surfaceContainerLowest, som i ljust läge är lika vit som kortet.
+        val scheme = MaterialTheme.colorScheme
+        val track = AppTheme.extendedColors.rowTint
+        val wheelScheme = remember(scheme, track) { scheme.copy(surfaceContainerLowest = track) }
+        MaterialTheme(colorScheme = wheelScheme) {
+            TimeScroll(state, TimePickerDefaults.shapes())
+        }
     }
 }
