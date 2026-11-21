@@ -46,7 +46,10 @@ enum class ButtonVariant {
     Text,
 
     /** Permanent radering – bara i en `ConfirmDialog` med `destructive = true`. */
-    Destructive
+    Destructive,
+
+    /** Textknapp i felfärgen: Radera sist bland en rads åtgärder (`Foldout(delete)`), som sedan frågar i `DeleteConfirmDialog`. */
+    DestructiveText
 }
 
 /**
@@ -131,6 +134,8 @@ private fun ButtonBase(
 
         ButtonVariant.Text -> ButtonDefaults.textButtonColors()
 
+        ButtonVariant.DestructiveText -> ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+
         ButtonVariant.Destructive -> ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.error,
             contentColor = MaterialTheme.colorScheme.onError
@@ -139,7 +144,7 @@ private fun ButtonBase(
     val elevation = when (variant) {
         ButtonVariant.Primary, ButtonVariant.Destructive -> ButtonDefaults.buttonElevation()
         ButtonVariant.Secondary -> ButtonDefaults.filledTonalButtonElevation()
-        ButtonVariant.Outlined, ButtonVariant.Text -> null
+        ButtonVariant.Outlined, ButtonVariant.Text, ButtonVariant.DestructiveText -> null
     }
     val border = if (variant == ButtonVariant.Outlined) ButtonDefaults.outlinedButtonBorder(active) else null
     val interactionSource = remember { MutableInteractionSource() }
@@ -149,7 +154,7 @@ private fun ButtonBase(
             // Formmorfens knappar har Expressive-luften efter höjden – samma som Material 3:s standard där.
             Button(onClick, ButtonDefaults.shapes(), sized, active, colors, elevation, border, ButtonDefaults.contentPaddingFor(ButtonDefaults.MinHeight), interactionSource, content)
         } else {
-            val padding = if (variant == ButtonVariant.Text) ButtonDefaults.TextButtonContentPadding else ButtonDefaults.ContentPadding
+            val padding = if (variant == ButtonVariant.Text || variant == ButtonVariant.DestructiveText) ButtonDefaults.TextButtonContentPadding else ButtonDefaults.ContentPadding
             Button(onClick, sized, active, AppTheme.shapes.pill, colors, elevation, border, padding, interactionSource, content)
         }
     }
