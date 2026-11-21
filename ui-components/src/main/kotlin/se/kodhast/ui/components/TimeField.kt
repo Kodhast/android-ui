@@ -2,12 +2,14 @@
 
 package se.kodhast.ui.components
 
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TimePickerDefaults
 import androidx.compose.material3.TimePickerDialog
 import androidx.compose.material3.TimeScroll
+import androidx.compose.material3.Typography
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -20,6 +22,7 @@ import androidx.compose.ui.res.stringResource
 import kotlinx.datetime.LocalTime
 import se.kodhast.ui.common.DateFormat
 import se.kodhast.ui.theme.AppTheme
+import se.kodhast.ui.theme.Spacing
 
 /**
  * Tidsfält: visar tiden som "07:00" och öppnar tidsväljaren (24 timmar) vid tryck – samma
@@ -64,7 +67,8 @@ fun TimePickerPopup(time: LocalTime, title: String, onPick: (LocalTime) -> Unit,
         modifier = modifier.floatingWindow(AppTheme.shapes.dialog),
         shape = AppTheme.shapes.dialog,
         confirmButton = { AppButton(stringResource(R.string.ok), onClick = { onPick(LocalTime(state.hour, state.minute)) }, variant = ButtonVariant.Text) },
-        title = { Text(title, style = AppTheme.typography.sectionTitle) },
+        // Rubriken som i ConfirmDialog, med luft ner till hjulen.
+        title = { Text(title, style = AppTheme.typography.headline, modifier = Modifier.padding(bottom = Spacing.s)) },
         dismissButton = { AppButton(stringResource(R.string.cancel), onDismiss, variant = ButtonVariant.Text) },
         containerColor = AppTheme.extendedColors.card
     ) {
@@ -73,7 +77,13 @@ fun TimePickerPopup(time: LocalTime, title: String, onPick: (LocalTime) -> Unit,
         val scheme = MaterialTheme.colorScheme
         val track = AppTheme.extendedColors.rowTint
         val wheelScheme = remember(scheme, track) { scheme.copy(surfaceContainerLowest = track) }
-        MaterialTheme(colorScheme = wheelScheme) {
+        // Material 3 ritar grannarna med displayMedium, talet i mitten med displayLargeEmphasized och kolonet med
+        // displayLarge. Apparna sätter inte de stilarna (då blir det Roboto, större än hjulets rader), så de byts här.
+        val typography = AppTheme.typography
+        val wheelTypography = remember(typography) {
+            Typography().copy(displayMedium = typography.timeWheel, displayLargeEmphasized = typography.timeWheelSelected, displayLarge = typography.timeWheelSelected)
+        }
+        MaterialTheme(colorScheme = wheelScheme, typography = wheelTypography) {
             TimeScroll(state, TimePickerDefaults.shapes())
         }
     }

@@ -3,8 +3,10 @@ package se.kodhast.ui.theme
 import androidx.compose.material3.Typography
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.Hyphens
 import androidx.compose.ui.text.style.LineBreak
+import androidx.compose.ui.unit.sp
 
 /**
  * De namngivna textstilarna – det enda sättet komponenter och feature-kod väljer typografi.
@@ -34,7 +36,11 @@ data class AppTypography(
     /** Liten rubrik över en grupp ("UTSEENDE"). */
     val caption: TextStyle,
     /** Knapptext. */
-    val button: TextStyle
+    val button: TextStyle,
+    /** Talen ovanför och under det valda i tidsväljarens rullhjul: brödtextens typsnitt med tabulära siffror. */
+    val timeWheel: TextStyle = body.copy(fontSize = 32.sp, lineHeight = 40.sp, letterSpacing = 0.sp, fontFeatureSettings = "tnum"),
+    /** Det valda talet och kolonet i tidsväljarens rullhjul – får plats i hjulets 52 dp höga rad. */
+    val timeWheelSelected: TextStyle = timeWheel.copy(fontSize = 45.sp, lineHeight = 52.sp, fontWeight = FontWeight.Medium)
 ) {
     companion object {
         /** Stilarna ur en Material 3-typskala, som i ReseApoteket och Dagboken. */
