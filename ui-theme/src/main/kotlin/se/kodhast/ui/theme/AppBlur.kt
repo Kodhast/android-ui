@@ -11,9 +11,15 @@ import androidx.compose.ui.unit.dp
  *
  * - [behindRadius]: hur suddigt innehållet bakom blir.
  * - [scrimAlpha]: slöjans styrka ovanpå oskärpan (0–1); svagare än utan oskärpa, eftersom suddet redan lyfter dialogen.
+ * - [headerRadius]: hur suddigt innehållet är precis under sidhuvudet när det rullats in under det.
+ * - [headerFade]: hur långt ned under sidhuvudet suddet tonar ut till skarpt.
+ *
+ * Oskärpan under sidhuvudet ritas i appens eget fönster och kräver bara Android 12+.
  */
 @Immutable
 data class AppBlur(
     val behindRadius: Dp = 12.dp,
-    val scrimAlpha: Float = 0.2f
+    val scrimAlpha: Float = 0.2f,
+    val headerRadius: Dp = 16.dp,
+    val headerFade: Dp = 32.dp
 )

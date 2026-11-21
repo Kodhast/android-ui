@@ -23,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -119,7 +120,9 @@ fun <T> EntityDetailScreen(
             }
         }
     ) { padding ->
-        AppPullToRefresh(refreshing, onRefresh, Modifier.fillMaxSize().padding(padding)) {
+        val contentScroll = rememberScrollState()
+        val fade = with(LocalDensity.current) { (AppTheme.blur?.headerFade ?: Spacing.xxl).toPx() }
+        AppPullToRefresh(refreshing, onRefresh, Modifier.fillMaxSize().padding(padding).underHeaderBlur { contentScroll.value / fade }) {
             when (state) {
                 DetailUiState.Loading -> RefreshableState(onRefresh) { AppLoading(Modifier.padding(bottom = clearance)) }
 
@@ -128,7 +131,7 @@ fun <T> EntityDetailScreen(
                 }
 
                 is DetailUiState.Content -> Column(
-                    Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = Spacing.l, vertical = Spacing.s).padding(bottom = clearance),
+                    Modifier.fillMaxSize().verticalScroll(contentScroll).padding(horizontal = Spacing.l, vertical = Spacing.s).padding(bottom = clearance),
                     verticalArrangement = Arrangement.spacedBy(sectionGap)
                 ) {
                     header?.let { DetailTop(it(state.value)) { leading(state.value) } }
