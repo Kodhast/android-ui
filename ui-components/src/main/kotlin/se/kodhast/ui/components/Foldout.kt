@@ -2,8 +2,10 @@ package se.kodhast.ui.components
 
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -17,6 +19,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import se.kodhast.ui.theme.AppTheme
@@ -30,6 +33,10 @@ import se.kodhast.ui.theme.Tone
  * sektionen (en periodväljare, en lägg till-knapp); den har egen klickyta och växlar inte sektionen. [summary] står under
  * titeln i stängt läge – det valda värdet eller början av en text (högst två rader). [header] ersätter titeln helt
  * (som i [SectionFoldout]).
+ *
+ * Med [tintedWhenOpen] ligger hela den utfällda delen, rubrik och innehåll, på en tonad yta med radens hörn, så att
+ * det syns vilken rad som är öppen i en lista av utfällbara rader (Husjakt #518): radtonen (`rowTint`) i ljust läge,
+ * den starkare `surfaceVariant` i mörkt. Standard `false` = som förut, utan yta.
  */
 @Composable
 fun Foldout(
@@ -41,9 +48,10 @@ fun Foldout(
     summary: String? = null,
     header: (@Composable RowScope.() -> Unit)? = null,
     contentSpacing: Dp = Spacing.m,
+    tintedWhenOpen: Boolean = false,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    Column(modifier) {
+    Column(if (tintedWhenOpen) modifier.openTint(expanded) else modifier) {
         CollapsibleHeader(expanded, onToggle) {
             if (header != null) {
                 header()
@@ -78,6 +86,7 @@ fun Foldout(
     summary: String? = null,
     header: (@Composable RowScope.() -> Unit)? = null,
     contentSpacing: Dp = Spacing.m,
+    tintedWhenOpen: Boolean = false,
     content: @Composable ColumnScope.() -> Unit
 ) {
     var expanded by rememberSaveable { mutableStateOf(initiallyExpanded) }
@@ -93,9 +102,22 @@ fun Foldout(
         summary = summary,
         header = header,
         contentSpacing = contentSpacing,
+        tintedWhenOpen = tintedWhenOpen,
         content = content
     )
 }
+
+/** Den tonade ytan bakom en öppen [Foldout]; tonar in och ut med läget. Innehållet dras in lika mycket i båda lägena. */
+@Composable
+private fun Modifier.openTint(expanded: Boolean): Modifier {
+    val colors = MaterialTheme.colorScheme
+    val tint = if (colors.background.luminance() < DARK_LUMINANCE) colors.surfaceVariant else AppTheme.extendedColors.rowTint
+    val color by animateColorAsState(if (expanded) tint else tint.copy(alpha = 0f), MaterialTheme.motionScheme.defaultEffectsSpec(), label = "utfälld yta")
+    return background(color, AppTheme.shapes.row).padding(horizontal = Spacing.s)
+}
+
+/** Under den här ljusheten räknas temat som mörkt. */
+private const val DARK_LUMINANCE = 0.5f
 
 /**
  * Rubrikvarianten av [Foldout] för ett sektionskort med [SectionHeader]: ikonrutan, titeln och räknaren i [countTone]

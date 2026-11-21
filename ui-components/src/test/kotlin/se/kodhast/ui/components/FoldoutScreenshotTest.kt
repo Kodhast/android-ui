@@ -21,6 +21,21 @@ class FoldoutScreenshotTest {
         }
     }
 
+    /** Tonat öppet läge (Husjakt #518): en lista av utfällbara rader, den mellersta öppen. */
+    @Test
+    fun `Foldout - tonat öppet läge`() = captureLightAndDark("Foldout_tonad") {
+        SampleSheet {
+            SampleCard {
+                Foldout("Läge", expanded = false, onToggle = {}, summary = "Landsbygd, 6 km till affär", tintedWhenOpen = true) { Text("–") }
+                Foldout("Uppgifter", expanded = true, onToggle = {}, tintedWhenOpen = true) {
+                    ItemRow("Utgångspris", subtitle = "2 450 000 kr")
+                    ItemRow("Boarea", subtitle = "142 kvm")
+                }
+                Foldout("Visning", expanded = false, onToggle = {}, summary = "sön 30 nov 13:00", tintedWhenOpen = true) { Text("–") }
+            }
+        }
+    }
+
     @Test
     fun `SectionFoldout - lägen med lägg till-knapp`() = captureLightAndDark("SectionFoldout_lagen") {
         SampleSheet {
