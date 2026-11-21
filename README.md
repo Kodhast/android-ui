@@ -5,7 +5,7 @@ eventuellt Fonder): ett tema-API och de delade komponenterna, så att samma elem
 beter sig likadant i alla appar och bara finns på ett ställe. Varje app behåller sina egna
 färger och typsnitt och skickar in dem i temat; formerna är samma i alla appar.
 
-**Version:** 3.11.0 · Material 3 `1.5.0` (Expressive) · Compose BOM `2026.11.01` ·
+**Version:** 3.11.1 · Material 3 `1.5.0` (Expressive) · Compose BOM `2026.11.01` ·
 Kotlin `2.4.21` · AGP `9.5.2` · compileSdk 37.1 · minSdk 30.
 
 ## Moduler
@@ -40,8 +40,8 @@ dependencyResolutionManagement {
 }
 ```
 
-och i versionskatalogen/byggfilen `implementation("se.kodhast.ui:ui-components:3.11.0")` och
-`testImplementation("se.kodhast.ui:ui-testing:3.11.0")`.
+och i versionskatalogen/byggfilen `implementation("se.kodhast.ui:ui-components:3.11.1")` och
+`testImplementation("se.kodhast.ui:ui-testing:3.11.1")`.
 
 - **CI i appen:** `GITHUB_TOKEN` räcker när paketet gett apprepot läsåtkomst
   (paketets inställningar → *Manage Actions access*) och jobbet har `permissions: packages: read`.
@@ -73,7 +73,7 @@ AppTheme.transparent      // ingen fyllnad (t.ex. ovalda segment)
 AppTheme.typography       // screenTitle, bigNumber, headline, sectionTitle, quantity, itemTitle, itemSubtitle, body, pill, caption, button
 AppTheme.tone(tone)       // ToneColors(container, content)
 AppTheme.depth            // AppDepth?: highlight, sheen, shadow, cardEdge, cardShadow, pressedScale, cardSheen, headerShadow
-AppTheme.blur             // AppBlur?: behindRadius (12 dp), scrimAlpha (0,2), headerRadius (16 dp), headerFade (32 dp)
+AppTheme.blur             // AppBlur?: behindRadius (12 dp), scrimAlpha (0,2), headerRadius (8 dp), headerFade (24 dp)
 Spacing.xs … Spacing.xxl  // 4, 8, 12, 16, 24, 32 dp
 IconSize.marker … .standard // 14 (marker), 16 (pill), 18 (small), 20 (button), 22 (row), 24 (standard) dp
 TRACK_HEIGHT, PROGRESS_STROKE // spårets höjd 8 dp, snurrans linje 2,5 dp
@@ -643,6 +643,7 @@ efter, innan någon app bytt. Byt direkt från 1.x till 3.0.0. Det som bryter, o
 
 | Version | Ändring |
 |---|---|
+| 3.11.1 | Mildare oskärpa under sidhuvudet (Mats: "för kraftig", innehållet nästan oläsligt): `AppBlur.headerRadius` 16 → 8 dp och `headerFade` 32 → 24 dp, så raden under sidhuvudet går att läsa. Samma API. Omtagen: `EntityListScreen_rullad` |
 | 3.11.0 | Alla flytande ytor ser likadana ut (#83, Mats "den typen av popup ser likadan ut överallt"): med temats djup får menyer (`AppMenuPopup`, och därmed `AppMenu`, `AccountMenu`, `SelectField`, verktygsradens meny), `ConfirmDialog`, `LoadingDialog`, `TimePickerPopup` och datumväljaren kantlinje och tonad skugga i två lager, som snackbaren. Fönstren får 28 dp luft runt ytan så att skuggan inte klipps (`floatingWindow`); menyn är med djup en egen popup med Material 3:s placering (under, annars över ankaret, innanför skärmen), in- och utanimering, stängning vid tryck utanför och bakåt. Dialogerna är 56 dp smalare på bredden med djup. Utan djup oförändrat. Robolectric ritar inte popupens skugga: omtagna `AppMenu_djup`, dialog- och väljarbilderna visar bara den nya luften |
 | 3.10.0 | Segment efter textens bredd (#98): `AppSegmentedChoice(segmentWidth = SegmentWidth.FitText)` – varje segment får sin texts bredd med luft, det valda också bockens plats (som flyttar med pillen), och det som blir över delas lika; räcker inte spåret krymper segmenten i proportion. Pillen glider och byter bredd. Standard `Equal` bevarar dagens utseende; utan djup alltid lika breda. Ny skärmdump `AppSegmentedChoice_bredd` (336 dp, ReseApotekets formulär på 384 dp) |
 | 3.9.0 | Samma sätt att ta bort en rad i alla appar (#118): regeln står under Ramarna. `Foldout(actions, delete)` – Radera sist i det utfällda efter radens knappar, svep åt vänster och `DeleteConfirmDialog` (Fonders Händelser, #280 D); ny `ButtonVariant.DestructiveText`. Svepets bakgrund (`SwipeToDelete`, `SwipeToHide`) ritas bara medan raden dras – i vila gav dess kant en hårfin röd ring runt kortet. Ny skärmdump `Foldout_radera`; omtagna `SwipeToDelete_vila` och `ExpandButton_lagen` (ringen borta) |

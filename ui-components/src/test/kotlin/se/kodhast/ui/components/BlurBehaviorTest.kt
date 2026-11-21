@@ -105,9 +105,9 @@ class BlurBehaviorTest {
 
     @Test
     fun `inrullat är överkanten suddigast och skarp efter övergången`() {
-        val expected = BlurRadiusSpec.verticalGradient(listOf(BlurStop(0f, 16.dp), BlurStop(32f / 600f, 0.dp)))
+        val expected = BlurRadiusSpec.verticalGradient(listOf(BlurStop(0f, 8.dp), BlurStop(24f / 600f, 0.dp)))
         assertEquals(expected, underHeaderSpec(AppBlur(), overlap = 1f, height = 600.dp))
-        val half = BlurRadiusSpec.verticalGradient(listOf(BlurStop(0f, 8.dp), BlurStop(32f / 600f, 0.dp)))
+        val half = BlurRadiusSpec.verticalGradient(listOf(BlurStop(0f, 4.dp), BlurStop(24f / 600f, 0.dp)))
         assertEquals(half, underHeaderSpec(AppBlur(), overlap = 0.5f, height = 600.dp))
     }
 }
