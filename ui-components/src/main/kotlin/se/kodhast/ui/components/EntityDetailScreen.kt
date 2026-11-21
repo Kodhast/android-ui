@@ -57,7 +57,8 @@ data class DetailHeader(val title: String, val subtitle: String? = null)
  * bekräftelser) i samma yta som felen. Med [onRefresh] dras skärmen ned för att uppdatera, med indikatorn
  * överst så länge [refreshing] är sant; utan (standard) finns ingen gest.
  *
- * [titleModifier] läggs på toppradens rubrik (se [AppTopBar]).
+ * [titleModifier] läggs på toppradens rubrik (se [AppTopBar]). [errorTitle] ersätter läsfelets rubrik ("Kunde inte
+ * hämta uppgifterna"), som i [EntityListScreen] – t.ex. "Bevakningen finns inte".
  *
  * @param header vad huvudet visar för ett laddat värde; `null` = inget huvud.
  * @param menu valen i "Fler val" (arkivera/återställ m.m.) för ett laddat värde.
@@ -82,6 +83,7 @@ fun <T> EntityDetailScreen(
     leading: @Composable (T) -> Unit = {},
     refreshing: Boolean = false,
     onRefresh: (() -> Unit)? = null,
+    errorTitle: String? = null,
     content: @Composable ColumnScope.(T) -> Unit
 ) {
     ErrorSnackbar(error, snackbar, onShown = onErrorShown)
@@ -122,7 +124,7 @@ fun <T> EntityDetailScreen(
                 DetailUiState.Loading -> RefreshableState(onRefresh) { AppLoading(Modifier.padding(bottom = clearance)) }
 
                 is DetailUiState.Error -> RefreshableState(onRefresh) {
-                    LoadErrorState(stringResource(R.string.load_error_title), state.error, onRetry, Modifier.padding(bottom = clearance))
+                    LoadErrorState(errorTitle ?: stringResource(R.string.load_error_title), state.error, onRetry, Modifier.padding(bottom = clearance))
                 }
 
                 is DetailUiState.Content -> Column(

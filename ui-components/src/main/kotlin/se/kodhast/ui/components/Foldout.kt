@@ -12,6 +12,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -57,6 +61,40 @@ fun Foldout(
             Column(Modifier.padding(bottom = Spacing.s), verticalArrangement = Arrangement.spacedBy(contentSpacing), content = content)
         }
     }
+}
+
+/**
+ * [Foldout] som håller läget själv: börjar i [initiallyExpanded] och sparar läget med `rememberSaveable`, så att det
+ * överlever en rotation. [onExpand] körs när sektionen fälls **ut** (inte ihop) – kroken för innehåll som är dyrt att
+ * hämta och inte ska laddas förrän någon vill se det (Fonders jämförelsediagram). Resten som i [Foldout].
+ */
+@Composable
+fun Foldout(
+    title: String,
+    modifier: Modifier = Modifier,
+    initiallyExpanded: Boolean = false,
+    onExpand: () -> Unit = {},
+    trailing: (@Composable () -> Unit)? = null,
+    summary: String? = null,
+    header: (@Composable RowScope.() -> Unit)? = null,
+    contentSpacing: Dp = Spacing.m,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    var expanded by rememberSaveable { mutableStateOf(initiallyExpanded) }
+    Foldout(
+        title = title,
+        expanded = expanded,
+        onToggle = {
+            expanded = !expanded
+            if (expanded) onExpand()
+        },
+        modifier = modifier,
+        trailing = trailing,
+        summary = summary,
+        header = header,
+        contentSpacing = contentSpacing,
+        content = content
+    )
 }
 
 /**

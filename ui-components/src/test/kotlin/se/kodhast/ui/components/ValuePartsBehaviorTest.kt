@@ -195,6 +195,15 @@ class ValuePartsBehaviorTest {
     }
 
     @Test
+    fun `stödraden läses med fältet, och ett fel i stället för den`() {
+        var error by mutableStateOf<String?>(null)
+        show { SelectField("Byt till", FUNDS, "Räntefond Kort", { it }, {}, supportingText = "Samma risknivå eller lägre", error = error) }
+        rule.onNodeWithContentDescription("Byt till, Räntefond Kort, Samma risknivå eller lägre").assertExists()
+        error = "Välj en annan fond"
+        rule.onNodeWithContentDescription("Byt till, Räntefond Kort, Välj en annan fond").assertExists()
+    }
+
+    @Test
     fun `låst fält visar valet men öppnar ingen meny`() {
         show { SelectField("Byt till", FUNDS, "Sverige Småbolag", { it }, {}, enabled = false) }
         rule.onNodeWithContentDescription("Byt till, Sverige Småbolag").assertIsNotEnabled().performClick()

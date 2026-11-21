@@ -50,6 +50,7 @@ import se.kodhast.ui.components.testing.TestTheme
 import se.kodhast.ui.components.testing.assertSameColor
 import se.kodhast.ui.components.testing.pixelAt
 import se.kodhast.ui.components.testing.pixelAtEnd
+import se.kodhast.ui.components.testing.sampleNotFound
 import se.kodhast.ui.components.testing.sampleOffline
 import se.kodhast.ui.components.testing.textStyle
 import se.kodhast.ui.theme.AppTheme
@@ -422,6 +423,17 @@ class VariantBehaviorTest {
         }
         rule.onNodeWithText("Kunde inte läsa händelserna").assertExists()
         rule.onNodeWithText(ApplicationProvider.getApplicationContext<Context>().getString(R.string.list_error_title)).assertDoesNotExist()
+    }
+
+    @Test
+    fun `detaljskärmens läsfel får en egen rubrik`() {
+        rule.setContent {
+            TestTheme {
+                EntityDetailScreen<String>(DetailUiState.Error(sampleNotFound()), header = null, onBack = {}, title = "Global Index", errorTitle = "Bevakningen finns inte") { ItemRow(it) }
+            }
+        }
+        rule.onNodeWithText("Bevakningen finns inte").assertExists()
+        rule.onNodeWithText(ApplicationProvider.getApplicationContext<Context>().getString(R.string.load_error_title)).assertDoesNotExist()
     }
 
     @Test
