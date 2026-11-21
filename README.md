@@ -5,7 +5,7 @@ eventuellt Fonder): ett tema-API och de delade komponenterna, så att samma elem
 beter sig likadant i alla appar och bara finns på ett ställe. Varje app behåller sina egna
 färger och typsnitt och skickar in dem i temat; formerna är samma i alla appar.
 
-**Version:** 3.9.0 · Material 3 `1.5.0` (Expressive) · Compose BOM `2026.11.01` ·
+**Version:** 3.10.0 · Material 3 `1.5.0` (Expressive) · Compose BOM `2026.11.01` ·
 Kotlin `2.4.21` · AGP `9.5.2` · compileSdk 37.1 · minSdk 30.
 
 ## Moduler
@@ -40,8 +40,8 @@ dependencyResolutionManagement {
 }
 ```
 
-och i versionskatalogen/byggfilen `implementation("se.kodhast.ui:ui-components:3.9.0")` och
-`testImplementation("se.kodhast.ui:ui-testing:3.9.0")`.
+och i versionskatalogen/byggfilen `implementation("se.kodhast.ui:ui-components:3.10.0")` och
+`testImplementation("se.kodhast.ui:ui-testing:3.10.0")`.
 
 - **CI i appen:** `GITHUB_TOKEN` räcker när paketet gett apprepot läsåtkomst
   (paketets inställningar → *Manage Actions access*) och jobbet har `permissions: packages: read`.
@@ -494,7 +494,7 @@ inte använder ramen rätt.
 | `AppNavHost` | Navigationsramen i `ui-navigation` (se Navigationsramen): `backStack`, `tabs`, `entryProvider`, `sync`, `onSyncErrorShown`, `action`, `onPopped`, `account` | Flyttad från ReseApoteket och Dagboken (#52); appens `onExit` behövs inte – i första flikens rot stänger systemet appen |
 | `AppMenuPopup` | Själva menyn, för egna knappar som öppnar en meny; `header` står överst med en linje under | Publik (Dagboken använder den direkt) |
 | `AppPullToRefresh` | Dra för att uppdatera runt eget rullbart innehåll, för skärmar utan ram: `refreshing`, `onRefresh` (`null` = ingen gest); samma yta och tagg (`ENTITY_REFRESH_TAG`) som i ramarna | Fonder: Översikt, Innehav, Beslut |
-| `AppSegmentedChoice` | Ett val av få alternativ som segmentknappar | – |
+| `AppSegmentedChoice` | Ett val av få alternativ (2–4, ett alltid valt) som segmentknappar; `segmentWidth = SegmentWidth.FitText` (3.10.0, #98) gör varje segment så brett som sin text och delar det som blir över lika – för val med olika långa texter. Standard `Equal` (lika breda) | ReseApoteket Mängd, Dagboken Kön och Upprepning: `FitText` |
 | `AppSlider` | Skjutreglaget: `label`, heltalsvärdet (`value`, `valueRange`, `step`), `valueText` och valfri `badge` (t.ex. en nivå-`InfoPill`) ovanför spåret; `trackBrush` (standard `primary`, en skala skickar sin gradient) och `thumbColor` (ringen). Går skalan under noll utgår fyllnaden från nollan, markerad med ett streck. Minst 48 dp högt; TalkBack läser `label` och `stateDescription` (standard `valueText`) | Flyttad från Dagbokens `ValueSlider` (#76): energiskalan, nivåpillen och färgerna är parametrar som Dagboken skickar. Med djup sänkt spår och lyft knopp (#74) |
 | `AppSnackbarHost` | Den enda platsen där meddelanden visas | – |
 | `AppTextField` | Det enda textfältet; `maxLength` (`AppTextFieldDefaults.SHORT_MAX_LENGTH` 200 / `LONG_MAX_LENGTH` 2000), `maxLines`, `suffix`, `valueIsPlaceholder` | Dagboken anger `maxLength = 5000` för långa fält |
@@ -644,6 +644,7 @@ efter, innan någon app bytt. Byt direkt från 1.x till 3.0.0. Det som bryter, o
 
 | Version | Ändring |
 |---|---|
+| 3.10.0 | Segment efter textens bredd (#98): `AppSegmentedChoice(segmentWidth = SegmentWidth.FitText)` – varje segment får sin texts bredd med luft, det valda också bockens plats (som flyttar med pillen), och det som blir över delas lika; räcker inte spåret krymper segmenten i proportion. Pillen glider och byter bredd. Standard `Equal` bevarar dagens utseende; utan djup alltid lika breda. Ny skärmdump `AppSegmentedChoice_bredd` (336 dp, ReseApotekets formulär på 384 dp) |
 | 3.9.0 | Samma sätt att ta bort en rad i alla appar (#118): regeln står under Ramarna. `Foldout(actions, delete)` – Radera sist i det utfällda efter radens knappar, svep åt vänster och `DeleteConfirmDialog` (Fonders Händelser, #280 D); ny `ButtonVariant.DestructiveText`. Svepets bakgrund (`SwipeToDelete`, `SwipeToHide`) ritas bara medan raden dras – i vila gav dess kant en hårfin röd ring runt kortet. Ny skärmdump `Foldout_radera`; omtagna `SwipeToDelete_vila` och `ExpandButton_lagen` (ringen borta) |
 | 3.8.0 | Tidsväljaren som rullhjul (#106): `TimePickerPopup` (och därmed `TimeField` och `ReminderTimeRow`) visar två rullhjul för timme och minut i stället för urtavlan (Material 3:s `TimeScroll`). Hjulen ligger i spåret `rowTint`; samma API, OK och Avbryt, samma kant med temats djup. Omtagna: `TimePickerPopup_oppen`, `TimePickerPopup_djup`. Oskärpa bakom dialoger och ark (#104): nytt temavärde `AppBlur` (`AppTheme(blur = AppBlur())`, standard på: 12 dp oskärpa, slöja 0,2); `ConfirmDialog`, `LoadingDialog`, `TimePickerPopup`, `DateField`s väljare och `AppBottomSheet` suddar innehållet bakom och tonar slöjan när enheten har oskärpa mellan fönster påslagen, annars som förut. Ny skärmdump: `AppBottomSheet_oskarpa` (Robolectric ritar inte själva oskärpan) Progressiv oskärpa under sidhuvudet (#105): `EntityListScreen` och `EntityDetailScreen` suddar innehållets överkant när det rullat in under toppraden (`AppBlur.headerRadius` 16 dp, `headerFade` 32 dp). Ny skärmdump: `EntityListScreen_rullad` `Foldout(tintedWhenOpen = true)` (Husjakt #518): den öppna delen ligger på en tonad yta med radens hörn, radtonen i ljust och `surfaceVariant` i mörkt; standard av, så inget ändrar utseende. Ny skärmdump: `Foldout_tonad` |
 | 3.7.0 (släpptes aldrig separat; ingår i 3.8.0, som publiceras från main med allt ovan) | Avatarmenyn (#102): ny `AccountMenu` och `AccountMenuAvatar` (`AccountInfo`) – samma första nivå under avataren i alla appar, variant B. `AppMenuItem(navigates, divider)` och `AppMenuPopup(header)`, ikonerna `ic_account_settings`, `ic_account_about`, `ic_account_gallery` (egna namn, så att apparnas ikoner inte ersätter dem). Nya skärmdumpar `AccountMenu_inloggad`, `AccountMenuAvatar_utloggad`; befintliga oförändrade. Fonders bibliotekdelar (fonder #280 A): `EntityDetailScreen(errorTitle)`, `Foldout` som håller läget själv (`initiallyExpanded`, `onExpand`), `SelectField`s stödrad (`PickerField(helper)`) läses av TalkBack; inga omtagna skärmdumpar. Avbockning som syns (Dagboken #456): ny `DepartingItems` (`DepartingExit`, `DepartingDefaults`) och `Modifier.nod`; ny skärmdump `DepartingItems_paus` |
