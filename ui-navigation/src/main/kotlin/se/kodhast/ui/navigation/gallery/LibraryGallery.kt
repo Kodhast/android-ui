@@ -90,6 +90,8 @@ import se.kodhast.ui.components.DayMarkerDot
 import se.kodhast.ui.components.DayPicker
 import se.kodhast.ui.components.DeleteAction
 import se.kodhast.ui.components.DeleteConfirmDialog
+import se.kodhast.ui.components.DepartingExit
+import se.kodhast.ui.components.DepartingItems
 import se.kodhast.ui.components.DetailHeader
 import se.kodhast.ui.components.DiscardChangesDialog
 import se.kodhast.ui.components.DurationRow
@@ -160,6 +162,7 @@ import se.kodhast.ui.components.ValueRow
 import se.kodhast.ui.components.ValueTile
 import se.kodhast.ui.components.asSplitMenu
 import se.kodhast.ui.components.copyOnLongPress
+import se.kodhast.ui.components.nod
 import se.kodhast.ui.navigation.AppNavHost
 import se.kodhast.ui.navigation.R
 import se.kodhast.ui.navigation.TabBackStack
@@ -257,6 +260,22 @@ private fun Rows() {
         AppDivider()
         SwitchRow("Påminnelser", on, { on = it }, subtitle = "3 tider om dagen")
         SwitchRow("Dags att packa", on, { on = it }, subtitle = "3 dagar före · 18:00", onClick = {})
+    }
+    GroupLabel("DepartingItems · nod – bocka av, raden glider till Visa tagna")
+    var taken by remember { mutableStateOf(emptySet<String>()) }
+    var departedCount by remember { mutableIntStateOf(0) }
+    AppCard {
+        DepartingItems(
+            items = DEPARTING_DOSES.filter { it !in taken },
+            key = { it },
+            departed = { it },
+            exit = DepartingExit.SlideAway,
+            onDeparted = { departedCount++ }
+        ) { dose ->
+            val done = dose in taken
+            CheckRow(dose, done, { taken = if (it) taken + dose else taken - dose }, subtitle = if (done) "tagen" else "08:00")
+        }
+        AppButton("Visa tagna (${taken.size})", { taken = emptySet() }, Modifier.nod(departedCount), variant = ButtonVariant.Text)
     }
     GroupLabel("CardSegment · LeadingSlot · ItemRowText · MorphingCheck · SwitchControl · SwipeBackground")
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
@@ -798,3 +817,5 @@ private val ROW_HEIGHT = 56.dp
 private val LOADING_HEIGHT = 96.dp
 private val CONFETTI_HEIGHT = 120.dp
 private val FRAME_HEIGHT = 480.dp
+
+private val DEPARTING_DOSES = listOf("Levaxin 50 µg", "Waran 2,5 mg", "Omeprazol 20 mg")
