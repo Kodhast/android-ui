@@ -236,9 +236,22 @@ CompositionLocalProvider(
     LocalAppBrandStyle provides AppBrandStyle(headerDots = true),          // Kodhästs prickar före rubriken
     LocalTopBarSyncing provides syncing,                                   // prickarna hoppar medan ändringar väntar
     // Sidhuvudet syns bara inloggad; utloggad visar AuthGateHost inloggningen (se Inloggningen).
-    LocalTopBarAccount provides { AccountAvatar(user.name, onClick = openAccount, online = online, photoUrl = user.photoUrl) }
+    LocalTopBarAccount provides {
+        AccountMenuAvatar(
+            AccountInfo(user.name, user.email, user.photoUrl), appName,
+            onOpenSettings = openSettings, onOpenAbout = openAbout,
+            onSignIn = null, onSignOut = signOut, online = online,
+            onOpenGallery = openGallery.takeIf { BuildConfig.DEBUG }
+        )
+    }
 ) { content() }
 ```
+
+**Avatarmenyn** (#102) är likadan i alla appar: avataren fäller ut `AccountMenu` under sig med kontoraden
+(inloggad), **Inställningar**, **Komponentgalleri** (bara när `onOpenGallery` är satt – appen sätter den i
+debug-bygget), **Om <app>** och sist **Logga ut** (frågar "Logga ut?") eller, utloggad, **Logga in med Google**
+med `signInNote` som undertext (Fonder: "För säkerhetskopia på Drive"). Ordningen går inte att ändra; vad
+raderna öppnar är appens.
 
 1. **Ikonen** är en vektor eller bitmapp i appens `res/drawable` – inte den adaptiva startikonen.
 2. **Färgerna:** `ExtendedColors(online = …)` om pluppen inte ska vara `primary`;
@@ -439,6 +452,8 @@ inte använder ramen rätt.
 |---|---|---|
 | `AboutCard` | Om-kortet: `appName`, "Version …" (`version`) och `MakerMark` under texten; `extra` är appens egna rader i samma kort | Flyttad från ReseApoteket och Dagboken (#54) |
 | `AccountAvatar` | Kontots avatar: `name` (initialer, "Anna Berg" → "AB"; utan namn en person-ikon), `onClick` (`null` = bara en bild utan semantik), `online` (`true` plupp i `ExtendedColors.online` och "Ansluten", `false` "Utan anslutning", `null` inget läge), `photoUrl` (profilfotot ovanpå initialerna, laddat och cachat på disk med Coil), `photo` (egen slot, går före `photoUrl`). 36 dp i 48 dp tryckyta, "Konto och inställningar" | Flyttad från Dagboken (#42); `photoUrl` och cachen flyttade från Dagboken (#46) |
+| `AccountMenu` | Menyn under avataren (#102, variant B), fast ordning: kontoraden (`AccountRow`, bara med `account: AccountInfo?`), Inställningar (`onOpenSettings`), Komponentgalleri (`onOpenGallery`, bara när satt), Om `appName` (`onOpenAbout`), en linje och Logga ut (frågar som `SignOutRow`, `onSignOut`) eller utloggad Logga in med Google (`onSignIn`, `null` = ingen rad; `signInNote` undertext). `expanded`/`onDismiss`, förankrad i omgivande `Box`; tryck utanför och bakåt stänger. | Ny (3.7.0); ersätter Dagbokens `AccountSheet` och RA:s avatar som öppnar inställningarna |
+| `AccountMenuAvatar` | `AccountAvatar` och `AccountMenu` tillsammans: ett tryck på avataren fäller ut menyn; `online` går till avataren, resten till menyn. Läggs i `AppNavHost(account = …)` | Ny (3.7.0) |
 | `AccountRow` | Kontot överst i inställningarna: `AccountAvatar`, `name` och `email` under (utan e-post "Inloggad med Google"; utan namn står e-posten som titel), `photoUrl`; ingen tonad bakgrund | Flyttad från ReseApoteket och Dagboken (#54); Dagbokens tonade rad och extra rad "Inloggad med Google" försvinner (Mats beslut) |
 | `AddSplitButton` | "Lägg till ▾" – huvudåtgärd och pil med fler val; `style` (standard `LocalAppButtonStyle`) ger höjd och tonad färg som den sekundära `AppButton` | Menyn är en lucka: `menu = items.asSplitMenu()` (ReseApoteket) i stället för Dagbokens `menuItems` |
 | `AppBottomSheet` | Ark med rubrik; innehållet rullar alltid. `error` (`UiError`), `dirty` ("Släng ändringar?" vid bakåt, svep och tryck utanför), `canDismiss`, `hide`, `footer` (knappraden står fast i botten), `subtitle` (en rad under rubriken) | Dagbokens parametrar; ReseApotekets rullning gäller också med `footer`; `subtitle` från ReseApoteket (#75) |
@@ -452,9 +467,9 @@ inte använder ramen rätt.
 | `AppIconButton` | Ikonknapp, minst 48 dp, alltid `contentDescription`; `tone` (platta och ikon för Tonal, ikonen för Plain; standard Material-färgerna) | – |
 | `AppLoading` | Expressive laddningsindikator mitt på ytan; med `AppBrandStyle(dotLoading = true)` Kodhästs två prickar som hoppar | – |
 | `AppProgress` | Framstegsraden "x av y": appens text (`label`, `doneLabel`) ovanför ett rundat spår (`ExtendedColors.track`, standard `primaryContainer`) som fylls fjädrande i `primary`; när allt är klart fyllnaden i `ExtendedColors.progressDone` (`ProgressDoneColors(fill, outline)`, standard `primary` utan kontur) och `doneLabel`. `celebrate = false` håller raden i primärfärgen (en tidigare dag), `compact` ger ett kort spår och "9 / 14" för en listrad. TalkBack läser texten och framsteget (`progressBarRangeInfo`); `doneDescription` = egen talad text vid klart (standard `doneLabel`) | Ersätter Dagbokens `ProgressBar` och ReseApotekets `SuitcaseProgress` (#55, form A): Dagboken ser ut och låter som förut med sin `track`, solgula `progressDone` med kontur och `doneDescription`; i ReseApoteket försvinner vågen, det stora talet, resväskerutan och det gröna klart-kortet |
-| `AppMenu` | Menyn bakom ⋮ (`AppMenuItem`: `icon`, `destructive`, `section` (rubrik), `checked` (kryssrad som håller menyn öppen), `supporting`/`supportingTone` (undertext), `muted` (dämpad etikett)) | `section`, `checked` från Dagboken; `asSplitMenu()` från ReseApoteket |
+| `AppMenu` | Menyn bakom ⋮ (`AppMenuItem`: `icon`, `destructive`, `section` (rubrik), `checked` (kryssrad som håller menyn öppen), `supporting`/`supportingTone` (undertext), `muted` (dämpad etikett), `navigates` (pil till höger), `divider` (linje före, utan rubrik)) | `section`, `checked` från Dagboken; `asSplitMenu()` från ReseApoteket |
 | `AppNavHost` | Navigationsramen i `ui-navigation` (se Navigationsramen): `backStack`, `tabs`, `entryProvider`, `sync`, `onSyncErrorShown`, `action`, `onPopped`, `account` | Flyttad från ReseApoteket och Dagboken (#52); appens `onExit` behövs inte – i första flikens rot stänger systemet appen |
-| `AppMenuPopup` | Själva menyn, för egna knappar som öppnar en meny | Publik (Dagboken använder den direkt) |
+| `AppMenuPopup` | Själva menyn, för egna knappar som öppnar en meny; `header` står överst med en linje under | Publik (Dagboken använder den direkt) |
 | `AppPullToRefresh` | Dra för att uppdatera runt eget rullbart innehåll, för skärmar utan ram: `refreshing`, `onRefresh` (`null` = ingen gest); samma yta och tagg (`ENTITY_REFRESH_TAG`) som i ramarna | Fonder: Översikt, Innehav, Beslut |
 | `AppSegmentedChoice` | Ett val av få alternativ som segmentknappar | – |
 | `AppSlider` | Skjutreglaget: `label`, heltalsvärdet (`value`, `valueRange`, `step`), `valueText` och valfri `badge` (t.ex. en nivå-`InfoPill`) ovanför spåret; `trackBrush` (standard `primary`, en skala skickar sin gradient) och `thumbColor` (ringen). Går skalan under noll utgår fyllnaden från nollan, markerad med ett streck. Minst 48 dp högt; TalkBack läser `label` och `stateDescription` (standard `valueText`) | Flyttad från Dagbokens `ValueSlider` (#76): energiskalan, nivåpillen och färgerna är parametrar som Dagboken skickar. Med djup sänkt spår och lyft knopp (#74) |
@@ -606,6 +621,7 @@ efter, innan någon app bytt. Byt direkt från 1.x till 3.0.0. Det som bryter, o
 | Version | Ändring |
 |---|---|
 | 3.8.0 (under arbete) | Tidsväljaren som rullhjul (#106): `TimePickerPopup` (och därmed `TimeField` och `ReminderTimeRow`) visar två rullhjul för timme och minut i stället för urtavlan (Material 3:s `TimeScroll`). Hjulen ligger i spåret `rowTint`; samma API, OK och Avbryt, samma kant med temats djup. Omtagna: `TimePickerPopup_oppen`, `TimePickerPopup_djup` |
+| 3.7.0 (under arbete) | Avatarmenyn (#102): ny `AccountMenu` och `AccountMenuAvatar` (`AccountInfo`) – samma första nivå under avataren i alla appar, variant B. `AppMenuItem(navigates, divider)` och `AppMenuPopup(header)`, ikonerna `ic_account_settings`, `ic_account_about`, `ic_account_gallery` (egna namn, så att apparnas ikoner inte ersätter dem). Nya skärmdumpar `AccountMenu_inloggad`, `AccountMenuAvatar_utloggad`; befintliga oförändrade |
 | 3.6.0 | Beroendena likriktade och höjda till senaste stabila (#103): Kotlin 2.4.21, AGP 9.5.2, Gradle 9.9.2, Compose BOM 2026.11.01, Material 3 1.5.0 (stabil), compileSdk 37.1, navigation3 1.2.2, lifecycle 2.11.1, kotlinx-serialization 1.13.0, collections-immutable 0.5.2, Robolectric 4.18.1, Roborazzi 1.79.0, Konsist 0.18.1, Spotless 8.11.0, PMD 7.29.0. Inget API ändrat, inga omtagna skärmdumpar |
 | 3.5.0 | Segmentvalet animerar bytet (#100): med temats djup är den valda pillen i `AppSegmentedChoice` en egen yta bakom segmenten som glider till nytt val med temats fjäder (`motionScheme.defaultSpatialSpec()`); texten byter färg när pillen passerar och bocken växer fram i stället för att texten hoppar. Pillen krymper med det valda segmentet när det trycks. Samma API och samma stillbild; `SEGMENT_INDICATOR_TAG` för proven. Inga omtagna skärmdumpar; ny: `AppSegmentedChoice_glid` (mitt i glidet). Utan djup oförändrat |
 | 3.4.0 | Segmentvalet med mer djup (#97): med temats djup ligger `AppSegmentedChoice` i ett sänkt spår (stegarens, `rowTint` och samma inre skugga) och det valda segmentet lyfts upp som en egen pill med knapparnas skugga, skimmer och ljuskant; ovalda står i `onSurfaceVariant` utan kontur. Samma API, samma höjd (40 dp, 48 dp tryckyta), valt segment fortfarande med bock. Utan djup oförändrat (Material 3:s konturerade segment). Omtagna: `Valda_djup` |

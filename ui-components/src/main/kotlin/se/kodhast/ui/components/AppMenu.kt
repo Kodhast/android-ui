@@ -36,7 +36,8 @@ import se.kodhast.ui.theme.Tone
  * det som radering. [section] är en avdelning med rubrik: där den börjar står en avdelare och rubriken
  * (t.ex. "Recept"); `null` = ingen rubrik. [supporting] är en undertext under etiketten, i [supportingTone]
  * (t.ex. en varning) eller dämpad när den är `null`; [muted] tonar ned etiketten (något som inte går just nu
- * men fortfarande kan väljas).
+ * men fortfarande kan väljas). [navigates] ger en pil till höger (valet öppnar en vy, som [ItemRow]s `navigates`).
+ * [divider] = en linje före posten utan rubrik (t.ex. före "Logga ut" i [AccountMenu]).
  */
 data class AppMenuItem(
     val label: String,
@@ -52,7 +53,9 @@ data class AppMenuItem(
     val checked: Boolean? = null,
     val supporting: String? = null,
     val supportingTone: Tone? = null,
-    val muted: Boolean = false
+    val muted: Boolean = false,
+    val navigates: Boolean = false,
+    val divider: Boolean = false
 )
 
 /** Menyn bakom "Fler val" (⋮): arkivera, radera, visa arkiverade m.m. */
@@ -70,10 +73,17 @@ fun List<AppMenuItem>.asSplitMenu(): (@Composable (expanded: Boolean, onDismiss:
 
 /**
  * Själva menyn, förankrad i omgivande `Box` – delas av [AppMenu], [AddSplitButton], [CheckRow] och appens
- * egna knappar som öppnar en meny. Med temats djup får menyn kortens hårfina kant.
+ * egna knappar som öppnar en meny. Med temats djup får menyn kortens hårfina kant. [header] står överst,
+ * före valen, med en linje under (t.ex. kontoraden i [AccountMenu]); `null` = ingen.
  */
 @Composable
-fun AppMenuPopup(items: List<AppMenuItem>, expanded: Boolean, onDismiss: () -> Unit, modifier: Modifier = Modifier) {
+fun AppMenuPopup(
+    items: List<AppMenuItem>,
+    expanded: Boolean,
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier,
+    header: (@Composable () -> Unit)? = null
+) {
     DropdownMenu(
         expanded = expanded,
         onDismissRequest = onDismiss,
@@ -82,11 +92,17 @@ fun AppMenuPopup(items: List<AppMenuItem>, expanded: Boolean, onDismiss: () -> U
         containerColor = AppTheme.extendedColors.card,
         border = AppTheme.depth?.edgeStroke()
     ) {
+        if (header != null) {
+            header()
+            AppDivider(Modifier.padding(vertical = Spacing.xs))
+        }
         items.forEachIndexed { index, item ->
             val section = item.section
             if (section != null && section != items.getOrNull(index - 1)?.section) {
                 if (index > 0) AppDivider(Modifier.padding(vertical = Spacing.xs))
                 GroupLabel(section, Modifier.padding(horizontal = Spacing.s, vertical = Spacing.xs))
+            } else if (item.divider && index > 0) {
+                AppDivider(Modifier.padding(vertical = Spacing.xs))
             }
             val color = when {
                 item.destructive -> MaterialTheme.colorScheme.error
@@ -123,7 +139,8 @@ fun AppMenuPopup(items: List<AppMenuItem>, expanded: Boolean, onDismiss: () -> U
                 },
                 modifier = semantics,
                 leadingIcon = if (icon == null && checked == null) null else ({ icon?.let { Icon(painterResource(it), contentDescription = null) } ?: Spacer(Modifier.size(IconSize.standard)) }),
-                colors = MenuDefaults.itemColors(textColor = color, leadingIconColor = color)
+                trailingIcon = if (item.navigates) ({ Icon(painterResource(R.drawable.ic_chevron_right), contentDescription = null) }) else null,
+                colors = MenuDefaults.itemColors(textColor = color, leadingIconColor = color, trailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant)
             )
         }
     }

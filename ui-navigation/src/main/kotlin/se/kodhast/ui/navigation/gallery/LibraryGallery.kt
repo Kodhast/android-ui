@@ -46,6 +46,9 @@ import se.kodhast.ui.common.SyncUiState
 import se.kodhast.ui.common.UiError
 import se.kodhast.ui.components.AboutCard
 import se.kodhast.ui.components.AccountAvatar
+import se.kodhast.ui.components.AccountInfo
+import se.kodhast.ui.components.AccountMenu
+import se.kodhast.ui.components.AccountMenuAvatar
 import se.kodhast.ui.components.AccountRow
 import se.kodhast.ui.components.AddAction
 import se.kodhast.ui.components.AddSplitButton
@@ -441,6 +444,17 @@ private fun Settings() {
         AccountAvatar("Anna Berg", {}, online = true)
         AccountAvatar("Anna Berg", {}, online = false)
         AccountAvatar(null, {})
+    }
+    GroupLabel("AccountMenuAvatar · inloggad med galleriet, utloggad med förklaring")
+    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
+        AccountMenuAvatar(AccountInfo("Anna Berg", "anna.berg@example.com"), appName, {}, {}, onSignIn = {}, onSignOut = {}, online = true, onOpenGallery = {})
+        AccountMenuAvatar(null, appName, {}, {}, onSignIn = {}, onSignOut = {}, signInNote = "För säkerhetskopia på Drive")
+    }
+    GroupLabel("AccountMenu · bara menyn, för en egen knapp")
+    var accountMenu by remember { mutableStateOf(false) }
+    Box {
+        AppButton("Öppna kontomenyn", { accountMenu = true }, variant = ButtonVariant.Text)
+        AccountMenu(accountMenu, { accountMenu = false }, AccountInfo("Anna Berg", null), appName, {}, {}, onSignIn = null, onSignOut = {})
     }
 }
 
