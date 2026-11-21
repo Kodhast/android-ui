@@ -5,6 +5,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeUp
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toImmutableList
@@ -213,6 +216,26 @@ class FrameScreenshotTest {
         captureLightAndDark("EntityDetailScreen_finns_inte") {
             EntityDetailScreen<String>(DetailUiState.Error(sampleNotFound()), header = { DetailHeader(it) }, onBack = {}) {}
         }
+    }
+
+    /** Listan rullad in under toppraden: överkanten suddas progressivt (#105). Varje bild rullar en bit till. */
+    @Test
+    fun `EntityListScreen - rullad under toppraden`() = rule.captureLightAndDark(
+        "EntityListScreen_rullad",
+        settle = {
+            onRoot().performTouchInput { swipeUp(startY = bottom * 0.8f, endY = bottom * 0.3f) }
+            waitForIdle()
+        }
+    ) {
+        val many = (1..24).map { "Artikel $it" to if (it % 3 == 0) "Plåster & förband" else "Krämer & salvor" }
+        EntityListScreen(
+            "Familjeartiklar",
+            ListUiState.Content(many.toImmutableList()),
+            empty,
+            add,
+            key = { it.first },
+            group = ::group
+        ) { ItemRow(it.first, subtitle = "1 tub per 7 dagar", navigates = true, onClick = {}) }
     }
 
     @Test

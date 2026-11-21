@@ -209,7 +209,7 @@ fun <T> EntityListScreen(
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
             filter?.let { Box(Modifier.padding(start = Spacing.l, end = Spacing.l, bottom = Spacing.m)) { it() } }
-            AppPullToRefresh(refreshing, onRefresh, Modifier.fillMaxWidth().weight(1f)) {
+            AppPullToRefresh(refreshing, onRefresh, Modifier.fillMaxWidth().weight(1f).underHeaderBlur { scroll.state.overlappedFraction }) {
                 when (state) {
                     ListUiState.Loading -> RefreshableState(onRefresh) { AppLoading() }
 

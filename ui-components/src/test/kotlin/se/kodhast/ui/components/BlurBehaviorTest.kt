@@ -2,6 +2,8 @@ package se.kodhast.ui.components
 
 import android.view.Window
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.graphics.blur.BlurRadiusSpec
+import androidx.compose.ui.graphics.blur.BlurStop
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.unit.Dp
@@ -94,5 +96,18 @@ class BlurBehaviorTest {
         val attributes = (parent as DialogWindowProvider).window.attributes
         assertTrue(attributes.flags and android.view.WindowManager.LayoutParams.FLAG_BLUR_BEHIND != 0)
         assertTrue(attributes.blurBehindRadius > 0)
+    }
+
+    @Test
+    fun `i vila är innehållet under sidhuvudet skarpt`() {
+        assertEquals(BlurRadiusSpec.uniform(0.dp), underHeaderSpec(AppBlur(), overlap = 0f, height = 600.dp))
+    }
+
+    @Test
+    fun `inrullat är överkanten suddigast och skarp efter övergången`() {
+        val expected = BlurRadiusSpec.verticalGradient(listOf(BlurStop(0f, 16.dp), BlurStop(32f / 600f, 0.dp)))
+        assertEquals(expected, underHeaderSpec(AppBlur(), overlap = 1f, height = 600.dp))
+        val half = BlurRadiusSpec.verticalGradient(listOf(BlurStop(0f, 8.dp), BlurStop(32f / 600f, 0.dp)))
+        assertEquals(half, underHeaderSpec(AppBlur(), overlap = 0.5f, height = 600.dp))
     }
 }
