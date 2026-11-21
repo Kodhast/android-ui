@@ -553,7 +553,7 @@ inte använder ramen rätt.
 | `SwitchControl` | Själva växeln, för appens kort med reglage; `enabled`, `interactionSource` (ett tryck någon annanstans, som raden, som knoppen ska följa) | – |
 | `SwitchRow` | Inställningsrad med växel; `onClick` (växeln blir egen kontroll), `inactive` (tonar ned texten, inte växeln), `enabled` (låser växeln) | Dagbokens `inactive`; Fonders `enabled` |
 | `TimeField` | Tidsfält (kotlinx `LocalTime`) som öppnar `TimePickerPopup` | – |
-| `TimePickerPopup` | Tidsväljaren som dialog | – |
+| `TimePickerPopup` | Tidsväljaren som dialog: två rullhjul (timme, minut, 24 timmar) med OK och Avbryt | – |
 | `UnknownValueNotice` | I stället för ett värde som appversionen inte känner till (t.ex. en typ som en nyare version sparat); `text`, standard "Det här kan inte visas i den här versionen. Uppdatera appen för att ändra." | Flyttad från ReseApoteket (#75) |
 | `UpdateRequiredScreen` | "Uppdatera appen": `message`, `note`, knappen "Hämta senaste versionen" som öppnar `releasesUrl` | Flyttad från ReseApoteket och Dagboken (#53) |
 | `UndoSnackbar` | "Arkiverad – Ångra" för `UndoRequest`; `format`, `onRequestDismissed` | – |
@@ -620,6 +620,7 @@ efter, innan någon app bytt. Byt direkt från 1.x till 3.0.0. Det som bryter, o
 
 | Version | Ändring |
 |---|---|
+| 3.8.0 (under arbete) | Tidsväljaren som rullhjul (#106): `TimePickerPopup` (och därmed `TimeField` och `ReminderTimeRow`) visar två rullhjul för timme och minut i stället för urtavlan (Material 3:s `TimeScroll`). Hjulen ligger i spåret `rowTint`; samma API, OK och Avbryt, samma kant med temats djup. Omtagna: `TimePickerPopup_oppen`, `TimePickerPopup_djup` |
 | 3.7.0 (under arbete) | Avatarmenyn (#102): ny `AccountMenu` och `AccountMenuAvatar` (`AccountInfo`) – samma första nivå under avataren i alla appar, variant B. `AppMenuItem(navigates, divider)` och `AppMenuPopup(header)`, ikonerna `ic_account_settings`, `ic_account_about`, `ic_account_gallery` (egna namn, så att apparnas ikoner inte ersätter dem). Nya skärmdumpar `AccountMenu_inloggad`, `AccountMenuAvatar_utloggad`; befintliga oförändrade |
 | 3.6.0 | Beroendena likriktade och höjda till senaste stabila (#103): Kotlin 2.4.21, AGP 9.5.2, Gradle 9.9.2, Compose BOM 2026.11.01, Material 3 1.5.0 (stabil), compileSdk 37.1, navigation3 1.2.2, lifecycle 2.11.1, kotlinx-serialization 1.13.0, collections-immutable 0.5.2, Robolectric 4.18.1, Roborazzi 1.79.0, Konsist 0.18.1, Spotless 8.11.0, PMD 7.29.0. Inget API ändrat, inga omtagna skärmdumpar |
 | 3.5.0 | Segmentvalet animerar bytet (#100): med temats djup är den valda pillen i `AppSegmentedChoice` en egen yta bakom segmenten som glider till nytt val med temats fjäder (`motionScheme.defaultSpatialSpec()`); texten byter färg när pillen passerar och bocken växer fram i stället för att texten hoppar. Pillen krymper med det valda segmentet när det trycks. Samma API och samma stillbild; `SEGMENT_INDICATOR_TAG` för proven. Inga omtagna skärmdumpar; ny: `AppSegmentedChoice_glid` (mitt i glidet). Utan djup oförändrat |

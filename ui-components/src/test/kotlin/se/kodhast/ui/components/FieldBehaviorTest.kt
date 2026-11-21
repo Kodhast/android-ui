@@ -110,6 +110,18 @@ class FieldBehaviorTest {
     }
 
     @Test
+    fun `tidsväljaren är två rullhjul och OK väljer tiden som hjulen står på`() {
+        var picked: LocalTime? = null
+        show { TimePickerPopup(LocalTime(21, 30), "Välj tid", onPick = { picked = it }, onDismiss = {}) }
+        // Hjulen visar raden före och efter den valda; ett tryck på en av dem rullar dit.
+        rule.onNodeWithText("22", useUnmergedTree = true).performClick()
+        rule.onNodeWithText("29", useUnmergedTree = true).performClick()
+        rule.waitForIdle()
+        rule.onNodeWithText("OK").performClick()
+        assertEquals(LocalTime(22, 29), picked)
+    }
+
+    @Test
     fun `tidsväljaren avbryts utan att tiden ändras`() {
         var picked: LocalTime? = null
         var dismissed = 0
