@@ -5,7 +5,7 @@ eventuellt Fonder): ett tema-API och de delade komponenterna, så att samma elem
 beter sig likadant i alla appar och bara finns på ett ställe. Varje app behåller sina egna
 färger och typsnitt och skickar in dem i temat; formerna är samma i alla appar.
 
-**Version:** 3.13.0 · Material 3 `1.5.0` (Expressive) · Compose BOM `2026.11.01` ·
+**Version:** 3.14.0 · Material 3 `1.5.0` (Expressive) · Compose BOM `2026.11.01` ·
 Kotlin `2.4.21` · AGP `9.5.2` · compileSdk 37.1 · minSdk 30.
 
 ## Moduler
@@ -40,8 +40,8 @@ dependencyResolutionManagement {
 }
 ```
 
-och i versionskatalogen/byggfilen `implementation("se.kodhast.ui:ui-components:3.13.0")` och
-`testImplementation("se.kodhast.ui:ui-testing:3.13.0")`.
+och i versionskatalogen/byggfilen `implementation("se.kodhast.ui:ui-components:3.14.0")` och
+`testImplementation("se.kodhast.ui:ui-testing:3.14.0")`.
 
 - **CI i appen:** `GITHUB_TOKEN` räcker när paketet gett apprepot läsåtkomst
   (paketets inställningar → *Manage Actions access*) och jobbet har `permissions: packages: read`.
@@ -472,7 +472,7 @@ inte använder ramen rätt.
 
 | Komponent | Vad | Skillnad mot apparnas tidigare version |
 |---|---|---|
-| `AboutCard` | Om-kortet: `appName`, "Version …" (`version`) och `MakerMark` under texten; `extra` är appens egna rader i samma kort | Flyttad från ReseApoteket och Dagboken (#54) |
+| `AboutCard` | Om-kortet: `appName`, "Version …" (`version`) och `MakerMark` under texten; `extra` är appens egna rader i samma kort. Med `update` (standard `LocalAppUpdate`) raden "Ny version X finns" och **Hämta**, som öppnar APK:n (`onDownload` ersätter det) | Flyttad från ReseApoteket och Dagboken (#54) |
 | `AccountAvatar` | Kontots avatar: `name` (initialer, "Anna Berg" → "AB"; utan namn en person-ikon), `onClick` (`null` = bara en bild utan semantik), `online` (`true` plupp i `ExtendedColors.online` och "Ansluten", `false` "Utan anslutning", `null` inget läge), `photoUrl` (profilfotot ovanpå initialerna, laddat och cachat på disk med Coil), `photo` (egen slot, går före `photoUrl`). 36 dp i 48 dp tryckyta, "Konto och inställningar" | Flyttad från Dagboken (#42); `photoUrl` och cachen flyttade från Dagboken (#46) |
 | `AccountMenu` | Menyn under avataren (#102, variant B), fast ordning: kontoraden (`AccountRow`, bara med `account: AccountInfo?`), Inställningar (`onOpenSettings`), Komponentgalleri (`onOpenGallery`, bara när satt), Om `appName` (`onOpenAbout`), en linje och Logga ut (frågar som `SignOutRow`, `onSignOut`) eller utloggad Logga in med Google (`onSignIn`, `null` = ingen rad; `signInNote` undertext). `expanded`/`onDismiss`, förankrad i omgivande `Box`; tryck utanför och bakåt stänger. | Ny (3.8.0); ersätter Dagbokens `AccountSheet` och RA:s avatar som öppnar inställningarna |
 | `AccountMenuAvatar` | `AccountAvatar` och `AccountMenu` tillsammans: ett tryck på avataren fäller ut menyn; `online` går till avataren, resten till menyn. Läggs i `AppNavHost(account = …)` | Ny (3.8.0) |
@@ -485,7 +485,8 @@ inte använder ramen rätt.
 | `AppDivider` | Avdelare mellan rader i ett kort | – |
 | `AppFilterChip` | Filterchip; `icon`, `onLongClick`, `value` (värde efter etiketten), `emphasized` (det aktiva bland flera valda), `pending` (`ChipPending`: väntande läge, tonat med streckad kant, ikon och tilläggstext) | `chipColors()` är publik för egna chips |
 | `AppFloatingToolbar` | Toppnivånavigeringen: flytande flikar; `action` (`ToolbarAction`, huvudknapp i `secondary` till höger – Dagboken; med `menu: List<AppMenuItem>` fäller knappen ut en meny och läses "Hopfälld"/"Utfälld" – Fonders plusknapp), `style: ToolbarStyle`, `actionMenu: ActionMenuStyle` och `actionColor: ActionColor` (huvudknappens färg, `Secondary` eller `Tertiary`; standard ur `AppBrandStyle`; se Sidfoten), `ToolbarItem.badgeCount` (märke med antal i `secondary` på en ovald flik, läses "Beslut, 3 nya" – Fonder). `LocalBottomClearance`, `FloatingToolbarClearance`, `NoBottomClearance` | – |
-| `AppHeader` | Kodhäst-sidhuvudet på en flik (se Sidhuvudet): `title`, `scrollBehavior`, `subtitle`, `syncing` (`LocalTopBarSyncing`), `identity` (`LocalAppIdentity`, med valfri `version`), `status`, `account` (`LocalTopBarAccount`), `actions`, `titleModifier`; taggen `APP_HEADER_TAG` | Ny (#42); ramarnas flikläge med `LocalAppIdentity` |
+| `AppUpdateNotice` / `LocalAppUpdate` / `rememberAppUpdate` | Ny version finns (#125): `rememberAppUpdate(UpdateChecker(owner, repo, BuildConfig.VERSION_NAME))` frågar GitHubs `releases/latest` vid start och i förgrunden (högst en gång i timmen; `null` = debug, frågar aldrig). Appen sätter `LocalAppUpdate provides AppUpdateNotice(update, onOpen = Om-vyn)` runt `AppNavHost`; då får `AppHeader` en prick efter versionen (namnet öppnar Om-vyn), Om-raden i `AccountMenu` undertexten och `AboutCard` Hämta. `UpdateChecker`, `AppUpdate` och `isNewerVersion` ligger i `ui-common` | Ny (#125) |
+| `AppHeader` | Kodhäst-sidhuvudet på en flik (se Sidhuvudet): `title`, `scrollBehavior`, `subtitle`, `syncing` (`LocalTopBarSyncing`), `identity` (`LocalAppIdentity`, med valfri `version`), `update` (`LocalAppUpdate`: prick efter versionen, namnet öppnar Om-vyn), `status`, `account` (`LocalTopBarAccount`), `actions`, `titleModifier`; taggen `APP_HEADER_TAG` | Ny (#42); ramarnas flikläge med `LocalAppIdentity` |
 | `AppIconButton` | Ikonknapp, minst 48 dp, alltid `contentDescription`; `tone` (platta och ikon för Tonal, ikonen för Plain; standard Material-färgerna) | – |
 | `AppLoading` | Expressive laddningsindikator mitt på ytan; med `AppBrandStyle(dotLoading = true)` Kodhästs två prickar som hoppar | – |
 | `AppProgress` | Framstegsraden "x av y": appens text (`label`, `doneLabel`) ovanför ett rundat spår (`ExtendedColors.track`, standard `primaryContainer`) som fylls fjädrande i `primary`; när allt är klart fyllnaden i `ExtendedColors.progressDone` (`ProgressDoneColors(fill, outline)`, standard `primary` utan kontur) och `doneLabel`. `celebrate = false` håller raden i primärfärgen (en tidigare dag), `compact` ger ett kort spår och "9 / 14" för en listrad. TalkBack läser texten och framsteget (`progressBarRangeInfo`); `doneDescription` = egen talad text vid klart (standard `doneLabel`) | Ersätter Dagbokens `ProgressBar` och ReseApotekets `SuitcaseProgress` (#55, form A): Dagboken ser ut och låter som förut med sin `track`, solgula `progressDone` med kontur och `doneDescription`; i ReseApoteket försvinner vågen, det stora talet, resväskerutan och det gröna klart-kortet |
@@ -643,6 +644,7 @@ efter, innan någon app bytt. Byt direkt från 1.x till 3.0.0. Det som bryter, o
 
 | Version | Ändring |
 |---|---|
+| 3.14.0 | Ny version finns (#125, variant C): `UpdateChecker`/`AppUpdate`/`isNewerVersion` i `ui-common` (GitHubs `releases/latest`, utan nyckel och utan nya beroenden), `rememberAppUpdate`, `AppUpdateNotice` och `LocalAppUpdate` i `ui-components`. Med `LocalAppUpdate` satt: en prick i `primary` efter versionsnumret i `AppHeader` (namnet och versionen öppnar Om-vyn, inte ihopfällt), "Ny version X finns" under Om-raden i `AccountMenu` och raden med Hämta i `AboutCard`. `UriHandler.tryOpenUri` delas med `UpdateRequiredScreen`. Utan den är allt som förut; inga befintliga skärmdumpar omtagna, nya: `AppHeader_ny_version`, `AccountMenu_ny_version`, `AboutCard_ny_version` |
 | 3.13.0 | `SwipeToDelete(delete: DeleteAction)` med frågan inbyggd (svep eller kortets Radera → `DeleteConfirmDialog`, läget sparat över rotation). Samma sju rader stod för hand i `Foldout`, Fonders Pågående byte, ReseApotekets personsida och Dagbokens postkort (granskningen 2026-11-22); `Foldout(delete)` använder den nu. Inget synligt ändrat. |
 | 3.12.0 | Tidsväljarens rullhjul i appens typsnitt (#123, Mats: "typsnitt följer inte appen", "ser hoptryckt ut"): Material 3 ritade talen med display-stilarna, som apparna inte sätter (Roboto, 57 sp i 52 dp höga rader). Nya stilar `AppTypography.timeWheel` (32 sp) och `timeWheelSelected` (45 sp, Medium), standard ur brödtexten med tabulära siffror; `TimePickerPopup` använder dem. Rubriken "Välj tid" i `headline` som `ConfirmDialog`, med luft ner till hjulen. Omtagna: `TimePickerPopup_oppen`, `TimePickerPopup_djup` |
 | 3.11.1 | Mildare oskärpa under sidhuvudet (Mats: "för kraftig", innehållet nästan oläsligt): `AppBlur.headerRadius` 16 → 8 dp och `headerFade` 32 → 24 dp, så raden under sidhuvudet går att läsa. Samma API. Omtagen: `EntityListScreen_rullad` |

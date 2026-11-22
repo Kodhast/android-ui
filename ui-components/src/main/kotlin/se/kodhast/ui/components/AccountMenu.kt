@@ -8,6 +8,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import se.kodhast.ui.common.AppUpdate
 
 /** Den inloggade: namn, e-post och Googles profilfoto – vad som finns. Visas överst i [AccountMenu]. */
 data class AccountInfo(val name: String?, val email: String?, val photoUrl: String? = null)
@@ -19,7 +20,8 @@ data class AccountInfo(val name: String?, val email: String?, val photoUrl: Stri
  * 1. Kontoraden ([AccountRow]) med en linje under – bara inloggad ([account] satt).
  * 2. **Inställningar** → [onOpenSettings], appens egen inställningsvy. Alltid, också utloggad.
  * 3. **Komponentgalleri** → [onOpenGallery] – bara när den är satt (appen sätter den i debug-bygget).
- * 4. **Om [appName]** → [onOpenAbout], näst sist.
+ * 4. **Om [appName]** → [onOpenAbout], näst sist. Finns en ny version ([update], standard [LocalAppUpdate])
+ *    står "Ny version X finns" under (#125).
  * 5. En linje och **Logga ut** (frågar "Logga ut?" som [SignOutRow] innan [onSignOut]) när inloggad; utloggad
  *    **Logga in med Google** → [onSignIn], med [signInNote] som undertext (Fonder: "För säkerhetskopia på
  *    Drive"). Utan [onSignIn] står ingen inloggningsrad.
@@ -39,13 +41,22 @@ fun AccountMenu(
     onSignOut: () -> Unit,
     modifier: Modifier = Modifier,
     signInNote: String? = null,
-    onOpenGallery: (() -> Unit)? = null
+    onOpenGallery: (() -> Unit)? = null,
+    update: AppUpdate? = LocalAppUpdate.current?.update
 ) {
     var confirmSignOut by rememberSaveable { mutableStateOf(false) }
     val items = buildList {
         add(AppMenuItem(stringResource(R.string.account_menu_settings), onOpenSettings, R.drawable.ic_account_settings, navigates = true))
         onOpenGallery?.let { add(AppMenuItem(stringResource(R.string.account_menu_gallery), it, R.drawable.ic_account_gallery, navigates = true)) }
-        add(AppMenuItem(stringResource(R.string.account_menu_about_format, appName), onOpenAbout, R.drawable.ic_account_about, navigates = true))
+        add(
+            AppMenuItem(
+                stringResource(R.string.account_menu_about_format, appName),
+                onOpenAbout,
+                R.drawable.ic_account_about,
+                navigates = true,
+                supporting = update?.let { stringResource(R.string.update_available_format, it.version) }
+            )
+        )
         if (account != null) {
             add(AppMenuItem(stringResource(R.string.sign_out), { confirmSignOut = true }, R.drawable.ic_logout, divider = true))
         } else if (onSignIn != null) {
@@ -78,7 +89,8 @@ fun AccountMenuAvatar(
     modifier: Modifier = Modifier,
     online: Boolean? = null,
     signInNote: String? = null,
-    onOpenGallery: (() -> Unit)? = null
+    onOpenGallery: (() -> Unit)? = null,
+    update: AppUpdate? = LocalAppUpdate.current?.update
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
     Box(modifier) {
@@ -93,7 +105,8 @@ fun AccountMenuAvatar(
             onSignIn = onSignIn,
             onSignOut = onSignOut,
             signInNote = signInNote,
-            onOpenGallery = onOpenGallery
+            onOpenGallery = onOpenGallery,
+            update = update
         )
     }
 }

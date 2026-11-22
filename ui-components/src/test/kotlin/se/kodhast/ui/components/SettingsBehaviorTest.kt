@@ -15,6 +15,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.dp
@@ -26,6 +27,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.Shadows.shadowOf
+import se.kodhast.ui.common.AppUpdate
 import se.kodhast.ui.components.testing.TestTheme
 
 /** Inställningarnas delar (android-ui #54): kontoraden, Logga ut, Om, NoticeBanner och notisbehörigheten. */
@@ -97,6 +99,22 @@ class SettingsBehaviorTest {
         rule.onNodeWithText("Version 0.12.0").assertIsDisplayed()
         rule.onNodeWithText("En kodhäst-app").assertIsDisplayed()
         rule.onNodeWithText("Läkemedelslista").assertIsDisplayed()
+    }
+
+    @Test
+    fun `Om-kortet visar en ny version med Hämta, som får versionen`() {
+        val downloaded = mutableListOf<AppUpdate>()
+        val update = AppUpdate("0.19.0", "https://example.com/a.apk")
+        show { AboutCard("ReseApoteket", "0.18.3", update = update, onDownload = { downloaded += it }) }
+        rule.onNodeWithText("Ny version 0.19.0 finns").assertIsDisplayed()
+        rule.onNodeWithText("Hämta").performClick()
+        assertEquals(listOf(update), downloaded)
+    }
+
+    @Test
+    fun `utan ny version har Om-kortet ingen Hämta`() {
+        show { AboutCard("ReseApoteket", "0.18.3", update = null) }
+        rule.onNodeWithTag(ABOUT_UPDATE_TAG).assertDoesNotExist()
     }
 
     @Test

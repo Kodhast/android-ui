@@ -1,6 +1,7 @@
 package se.kodhast.ui.components
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.ui.test.junit4.v2.createComposeRule
@@ -14,6 +15,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import se.kodhast.ui.common.AppUpdate
 import se.kodhast.ui.components.testing.TestTheme
 
 /** Menyn under avataren (android-ui #102): fast ordning, inloggad och utloggad, utloggningsfrågan, stängning. */
@@ -57,6 +59,19 @@ class AccountMenuBehaviorTest {
         val order = listOf("Anna Berg", "anna.berg@example.com", "Inställningar", "Komponentgalleri", "Om Dagboken", "Logga ut").map(::top)
         assertEquals(order.sorted(), order)
         rule.onNodeWithText("Logga in med Google").assertDoesNotExist()
+    }
+
+    @Test
+    fun `en ny version står under Om, ur LocalAppUpdate, och ändrar inte raderna`() {
+        show {
+            CompositionLocalProvider(LocalAppUpdate provides AppUpdateNotice(AppUpdate("4.24.0", "https://example.com/a.apk")) {}) { Avatar(anna) }
+        }
+        open()
+        rule.onNodeWithText("Ny version 4.24.0 finns").assertIsDisplayed()
+        val order = listOf("Inställningar", "Komponentgalleri", "Om Dagboken", "Ny version 4.24.0 finns", "Logga ut").map(::top)
+        assertEquals(order.sorted(), order)
+        rule.onNodeWithText("Om Dagboken").performClick()
+        assertEquals(1, about)
     }
 
     @Test

@@ -11,6 +11,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import se.kodhast.ui.common.AppUpdate
 import se.kodhast.ui.components.testing.Blue
 import se.kodhast.ui.components.testing.Green
 import se.kodhast.ui.components.testing.SampleSheet
@@ -61,6 +62,16 @@ class SettingsScreenshotTest {
     fun `AboutCard - standard`() = captureLightAndDark("AboutCard_standard") {
         Sample {
             AboutCard("ReseApoteket", "0.12.0") {
+                AppDivider()
+                ItemRow("Läkemedelslista", subtitle = "Läkemedelsverket, tis 3 nov 2026 · CC BY 4.0")
+            }
+        }
+    }
+
+    @Test
+    fun `AboutCard - ny version`() = captureLightAndDark("AboutCard_ny_version") {
+        Sample {
+            AboutCard("ReseApoteket", "0.18.3", update = AppUpdate("0.19.0", "https://example.com/a.apk")) {
                 AppDivider()
                 ItemRow("Läkemedelslista", subtitle = "Läkemedelsverket, tis 3 nov 2026 · CC BY 4.0")
             }

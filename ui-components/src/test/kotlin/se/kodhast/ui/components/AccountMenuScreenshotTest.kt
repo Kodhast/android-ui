@@ -15,6 +15,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import se.kodhast.ui.common.AppUpdate
 import se.kodhast.ui.components.testing.captureScreenLightAndDark
 import se.kodhast.ui.components.testing.clickWithoutRipple
 import se.kodhast.ui.theme.Spacing
@@ -50,6 +51,26 @@ class AccountMenuScreenshotTest {
                     onSignIn = {},
                     onSignOut = {},
                     onOpenGallery = {}
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `AccountMenu - ny version`() = rule.captureScreenLightAndDark("AccountMenu_ny_version", depth = true) {
+        TopEnd {
+            Box {
+                AccountAvatar("Anna Berg", onClick = {}, online = true)
+                AccountMenu(
+                    expanded = true,
+                    onDismiss = {},
+                    account = AccountInfo("Anna Berg", "anna.berg@example.com"),
+                    appName = "ReseApoteket",
+                    onOpenSettings = {},
+                    onOpenAbout = {},
+                    onSignIn = {},
+                    onSignOut = {},
+                    update = AppUpdate("0.19.0", "https://example.com/a.apk")
                 )
             }
         }
