@@ -5,7 +5,7 @@ eventuellt Fonder): ett tema-API och de delade komponenterna, så att samma elem
 beter sig likadant i alla appar och bara finns på ett ställe. Varje app behåller sina egna
 färger och typsnitt och skickar in dem i temat; formerna är samma i alla appar.
 
-**Version:** 3.12.0 · Material 3 `1.5.0` (Expressive) · Compose BOM `2026.11.01` ·
+**Version:** 3.13.0 · Material 3 `1.5.0` (Expressive) · Compose BOM `2026.11.01` ·
 Kotlin `2.4.21` · AGP `9.5.2` · compileSdk 37.1 · minSdk 30.
 
 ## Moduler
@@ -40,8 +40,8 @@ dependencyResolutionManagement {
 }
 ```
 
-och i versionskatalogen/byggfilen `implementation("se.kodhast.ui:ui-components:3.12.0")` och
-`testImplementation("se.kodhast.ui:ui-testing:3.12.0")`.
+och i versionskatalogen/byggfilen `implementation("se.kodhast.ui:ui-components:3.13.0")` och
+`testImplementation("se.kodhast.ui:ui-testing:3.13.0")`.
 
 - **CI i appen:** `GITHUB_TOKEN` räcker när paketet gett apprepot läsåtkomst
   (paketets inställningar → *Manage Actions access*) och jobbet har `permissions: packages: read`.
@@ -571,7 +571,7 @@ inte använder ramen rätt.
 | `StepNavigation` | Föregående/Nästa och Spara på sista steget för en `PagerState`, i en rad (t.ex. arkets `footer`); `saveEnabled`, `saving`, klart-läget `done` med `doneText` och `doneAnnouncement` (live region) | Flyttad från Dagbokens `StepwiseScreeningNavigation` (#76) |
 | `SuggestionField` | Textfält med förslag (`Suggestion`) i ett kort under, antalet läses upp | – |
 | `SwipeBackground` | Det som syns bakom en svept rad: `icon` och `label` i högerkanten, `colors` (`ToneColors`, standard primärtonen), `shape` (standard `row`) | Ersätter bakgrunden i Dagbokens `SwipeToDelete` (`ic_delete`, felfärgen, `card`) |
-| `SwipeToDelete` | Radera med svep åt vänster för ett kort eller en rad som har Radera synligt (menyn, eller `Foldout(delete)` som sköter svepet själv): svepet begär radering (`onRequest`), kortet fjädrar genast tillbaka, bakgrunden "Radera" i felfärgen (`shape`, standard kortets) läses inte. Samma svep som `SwipeToHide` | Flyttad från Dagbokens postkort (#76); ingen rå `SwipeToDismissBox` kvar i appen |
+| `SwipeToDelete` | Radera med svep åt vänster för ett kort eller en rad som har Radera synligt (menyn, eller `Foldout(delete)` som sköter svepet själv): svepet begär radering (`onRequest`), kortet fjädrar genast tillbaka, bakgrunden "Radera" i felfärgen (`shape`, standard kortets) läses inte. Samma svep som `SwipeToHide`. **`SwipeToDelete(delete: DeleteAction) { requestDelete -> … }`** (3.13.0) har frågan inbyggd: svepet eller kortets egen Radera (`requestDelete`) öppnar `DeleteConfirmDialog`, och läget sparas över en rotation – samma som `Foldout(delete)` använder | Flyttad från Dagbokens postkort (#76); ingen rå `SwipeToDismissBox` kvar i appen |
 | `SwipeToHide` | Arkivera/dölj med svep åt vänster, och samma åtgärd för TalkBack; bakgrunden är `SwipeBackground` med `icon` och `colors` (standard arkivera i primärtonen). Samma svep som `SwipeToDelete` | – |
 | `SwitchControl` | Själva växeln, för appens kort med reglage; `enabled`, `interactionSource` (ett tryck någon annanstans, som raden, som knoppen ska följa) | – |
 | `SwitchRow` | Inställningsrad med växel; `onClick` (växeln blir egen kontroll), `inactive` (tonar ned texten, inte växeln), `enabled` (låser växeln) | Dagbokens `inactive`; Fonders `enabled` |
@@ -643,6 +643,7 @@ efter, innan någon app bytt. Byt direkt från 1.x till 3.0.0. Det som bryter, o
 
 | Version | Ändring |
 |---|---|
+| 3.13.0 | `SwipeToDelete(delete: DeleteAction)` med frågan inbyggd (svep eller kortets Radera → `DeleteConfirmDialog`, läget sparat över rotation). Samma sju rader stod för hand i `Foldout`, Fonders Pågående byte, ReseApotekets personsida och Dagbokens postkort (granskningen 2026-11-22); `Foldout(delete)` använder den nu. Inget synligt ändrat. |
 | 3.12.0 | Tidsväljarens rullhjul i appens typsnitt (#123, Mats: "typsnitt följer inte appen", "ser hoptryckt ut"): Material 3 ritade talen med display-stilarna, som apparna inte sätter (Roboto, 57 sp i 52 dp höga rader). Nya stilar `AppTypography.timeWheel` (32 sp) och `timeWheelSelected` (45 sp, Medium), standard ur brödtexten med tabulära siffror; `TimePickerPopup` använder dem. Rubriken "Välj tid" i `headline` som `ConfirmDialog`, med luft ner till hjulen. Omtagna: `TimePickerPopup_oppen`, `TimePickerPopup_djup` |
 | 3.11.1 | Mildare oskärpa under sidhuvudet (Mats: "för kraftig", innehållet nästan oläsligt): `AppBlur.headerRadius` 16 → 8 dp och `headerFade` 32 → 24 dp, så raden under sidhuvudet går att läsa. Samma API. Omtagen: `EntityListScreen_rullad` |
 | 3.11.0 | Alla flytande ytor ser likadana ut (#83, Mats "den typen av popup ser likadan ut överallt"): med temats djup får menyer (`AppMenuPopup`, och därmed `AppMenu`, `AccountMenu`, `SelectField`, verktygsradens meny), `ConfirmDialog`, `LoadingDialog`, `TimePickerPopup` och datumväljaren kantlinje och tonad skugga i två lager, som snackbaren. Fönstren får 28 dp luft runt ytan så att skuggan inte klipps (`floatingWindow`); menyn är med djup en egen popup med Material 3:s placering (under, annars över ankaret, innanför skärmen), in- och utanimering, stängning vid tryck utanför och bakåt. Dialogerna är 56 dp smalare på bredden med djup. Utan djup oförändrat. Robolectric ritar inte popupens skugga: omtagna `AppMenu_djup`, dialog- och väljarbilderna visar bara den nya luften |
