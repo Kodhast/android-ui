@@ -68,14 +68,12 @@ fun Foldout(
         FoldoutBody(title, expanded, onToggle, trailing, summary, header, contentSpacing, tintedWhenOpen, actions, null, modifier, content)
         return
     }
-    var confirm by rememberSaveable { mutableStateOf(false) }
-    SwipeToDelete({ confirm = true }, modifier, shape = AppTheme.shapes.row) {
+    SwipeToDelete(delete, modifier, shape = AppTheme.shapes.row) { requestDelete ->
         // Ogenomskinlig, så att svepets bakgrund bara syns där raden dragits undan.
         Box(Modifier.clip(AppTheme.shapes.row).background(AppTheme.extendedColors.card)) {
-            FoldoutBody(title, expanded, onToggle, trailing, summary, header, contentSpacing, tintedWhenOpen, actions, { confirm = true }, content = content)
+            FoldoutBody(title, expanded, onToggle, trailing, summary, header, contentSpacing, tintedWhenOpen, actions, requestDelete, content = content)
         }
     }
-    if (confirm) DeleteConfirmDialog(delete, onDismiss = { confirm = false })
 }
 
 @Composable

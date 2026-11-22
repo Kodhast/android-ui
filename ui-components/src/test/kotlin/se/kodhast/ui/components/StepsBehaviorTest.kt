@@ -140,6 +140,40 @@ class StepsBehaviorTest {
     }
 
     @Test
+    fun `svep med frågan raderar först efter dialogens Radera`() {
+        var deleted = 0
+        show {
+            SwipeToDelete(DeleteAction("Radera Promenad?", "Går inte att ångra.", onConfirm = { deleted++ })) {
+                SampleCard { Text("Promenad") }
+            }
+        }
+        rule.onNodeWithText("Promenad").performTouchInput { swipeLeft() }
+        rule.waitForIdle()
+        rule.onNodeWithText("Radera Promenad?").assertExists()
+        assertEquals(0, deleted, "svepet frågar bara")
+        rule.onNodeWithText("Radera").performClick()
+        rule.waitForIdle()
+        assertEquals(1, deleted)
+        rule.onNodeWithText("Radera Promenad?").assertDoesNotExist()
+    }
+
+    @Test
+    fun `kortets egen Radera öppnar samma fråga, och Avbryt raderar inte`() {
+        var deleted = 0
+        show {
+            SwipeToDelete(DeleteAction("Radera Promenad?", "Går inte att ångra.", onConfirm = { deleted++ })) { requestDelete ->
+                SampleCard { AppButton(text = "Ta bort kortet", onClick = requestDelete) }
+            }
+        }
+        rule.onNodeWithText("Ta bort kortet").performClick()
+        rule.onNodeWithText("Radera Promenad?").assertExists()
+        rule.onNodeWithText("Avbryt").performClick()
+        rule.waitForIdle()
+        rule.onNodeWithText("Radera Promenad?").assertDoesNotExist()
+        assertEquals(0, deleted)
+    }
+
+    @Test
     fun `chevronknappen växlar och läses med åtgärd och läge`() {
         var expanded by mutableStateOf(false)
         show { ExpandButton(expanded, { expanded = !expanded }) }

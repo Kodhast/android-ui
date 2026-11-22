@@ -15,8 +15,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -112,6 +115,25 @@ fun SwipeToDelete(onRequest: () -> Unit, modifier: Modifier = Modifier, shape: S
         },
         content = content
     )
+}
+
+/**
+ * [SwipeToDelete] med frågan: svep åt vänster, eller [content]s synliga Radera (`requestDelete`), öppnar
+ * [DeleteConfirmDialog] för [delete], och först dialogens Radera kör `delete.onConfirm`. Att frågan är öppen sparas
+ * över en rotation. Samma mönster som `Foldout(delete)`, för ett kort eller en rad utan Foldout – så att ingen app
+ * skriver svepet, läget och dialogen för hand.
+ */
+@Composable
+fun SwipeToDelete(
+    delete: DeleteAction,
+    modifier: Modifier = Modifier,
+    shape: Shape = AppTheme.shapes.card,
+    content: @Composable (requestDelete: () -> Unit) -> Unit
+) {
+    var confirm by rememberSaveable { mutableStateOf(false) }
+    val requestDelete = { confirm = true }
+    SwipeToDelete(requestDelete, modifier, shape) { content(requestDelete) }
+    if (confirm) DeleteConfirmDialog(delete, onDismiss = { confirm = false })
 }
 
 /**
