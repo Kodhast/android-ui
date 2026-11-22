@@ -14,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.res.stringResource
 import se.kodhast.ui.common.UiError
 import se.kodhast.ui.theme.Spacing
@@ -91,20 +92,24 @@ fun UpdateRequiredScreen(message: String, note: String?, releasesUrl: String, mo
                 if (failures > 0) AppSnackbarHost(snackbar)
                 AppButton(
                     text = stringResource(R.string.update_required_action),
-                    onClick = {
-                        // AndroidUriHandler kastar IllegalArgumentException när ingen aktivitet tar emot länken.
-                        try {
-                            uriHandler.openUri(releasesUrl)
-                        } catch (_: IllegalArgumentException) {
-                            failures++
-                        } catch (_: ActivityNotFoundException) {
-                            failures++
-                        }
-                    },
+                    onClick = { if (!uriHandler.tryOpenUri(releasesUrl)) failures++ },
                     modifier = Modifier.fillMaxWidth(),
                     icon = R.drawable.ic_download
                 )
             }
         }
     )
+}
+
+/**
+ * Öppnar [uri] och svarar falskt i stället för att krascha när ingen app tar emot länken
+ * (AndroidUriHandler kastar då IllegalArgumentException eller ActivityNotFoundException).
+ */
+internal fun UriHandler.tryOpenUri(uri: String): Boolean = try {
+    openUri(uri)
+    true
+} catch (_: IllegalArgumentException) {
+    false
+} catch (_: ActivityNotFoundException) {
+    false
 }

@@ -74,6 +74,9 @@
     <!-- Eget namn (inte sign_out_message), så att apparnas gamla text inte ersätter den -->
     <string name="sign_out_message_format">Det du sparat i %s finns kvar i ditt konto och kommer tillbaka när du loggar in igen.</string>
     <string name="version_format">Version %s</string>
+    <!-- Ny version finns (#125): sidhuvudet, Om-raden i kontomenyn och Om-kortet. -->
+    <string name="update_available_format">Ny version %s finns</string>
+    <string name="update_download">Hämta</string>
     <!-- NoticeBanner: vad ett tryck på bannern gör, för TalkBack -->
     <string name="open">Öppna</string>
     <!-- DateTimeRow -->

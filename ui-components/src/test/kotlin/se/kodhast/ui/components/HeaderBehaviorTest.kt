@@ -21,6 +21,7 @@ import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertHeightIsEqualTo
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.ui.test.hasScrollAction
@@ -47,6 +48,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import se.kodhast.ui.common.AppUpdate
 import se.kodhast.ui.common.DetailUiState
 import se.kodhast.ui.common.ListUiState
 import se.kodhast.ui.components.testing.FakePhoto
@@ -231,6 +233,30 @@ class HeaderBehaviorTest {
     }
 
     @Test
+    fun `en ny version ger en prick efter versionen, och namnet öppnar Om-vyn`() {
+        var opened = 0
+        show { SampleHeader(collapsed = 0f, version = "4.19.1", update = AppUpdateNotice(AppUpdate("4.20.0", "https://example.com/a.apk")) { opened++ }) }
+        rule.onNodeWithTag(APP_HEADER_UPDATE_DOT_TAG, useUnmergedTree = true).assertIsDisplayed()
+        rule.onNodeWithContentDescription("Ny version 4.20.0 finns").performClick()
+        assertEquals(1, opened)
+    }
+
+    @Test
+    fun `utan ny version finns ingen prick och namnet är ingen knapp`() {
+        show { SampleHeader(collapsed = 0f, version = "4.19.1") }
+        rule.onNodeWithTag(APP_HEADER_UPDATE_DOT_TAG, useUnmergedTree = true).assertDoesNotExist()
+        rule.onNodeWithTag(APP_HEADER_UPDATE_TAG).assertDoesNotExist()
+    }
+
+    @Test
+    fun `ihopfällt sidhuvud öppnar inte Om-vyn`() {
+        var opened = 0
+        show { SampleHeader(collapsed = 1f, version = "4.19.1", update = AppUpdateNotice(AppUpdate("4.20.0", "https://example.com/a.apk")) { opened++ }) }
+        rule.onNodeWithTag(APP_HEADER_UPDATE_TAG).assertIsNotEnabled()
+        assertEquals(0, opened)
+    }
+
+    @Test
     fun `utan version ritas ingen version`() {
         show { SampleHeader(collapsed = 0f) }
         versionNode().assertDoesNotExist()
@@ -331,6 +357,7 @@ internal fun SampleHeader(
     syncing: Boolean = false,
     version: String? = null,
     appName: String = "Dagboken",
+    update: AppUpdateNotice? = null,
     account: @Composable () -> Unit = { AccountAvatar("Anna Berg", onClick = {}, online = true) }
 ) {
     val limit = with(LocalDensity.current) { (COLLAPSED - EXPANDED).toPx() }
@@ -341,6 +368,7 @@ internal fun SampleHeader(
         subtitle = subtitle,
         syncing = syncing,
         identity = AppIdentity(R.drawable.ic_box, appName, version),
+        update = update,
         account = account
     )
 }

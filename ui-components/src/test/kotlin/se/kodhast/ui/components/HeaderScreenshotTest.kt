@@ -15,6 +15,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import se.kodhast.ui.common.AppUpdate
 import se.kodhast.ui.components.testing.FakePhoto
 import se.kodhast.ui.components.testing.PHOTO_COLOR
 import se.kodhast.ui.components.testing.SampleCard
@@ -54,6 +55,11 @@ class HeaderScreenshotTest {
     @Test
     fun `AppHeader - halvvägs med version`() = captureLightAndDark("AppHeader_halvvags_version", depth = true) {
         Dots { WithContent { SampleHeader(collapsed = 0.3f, version = "4.19.1") } }
+    }
+
+    @Test
+    fun `AppHeader - ny version`() = captureLightAndDark("AppHeader_ny_version", depth = true) {
+        Dots { WithContent { SampleHeader(collapsed = 0f, version = "4.19.1", update = AppUpdateNotice(AppUpdate("4.20.0", "https://example.com/a.apk")) {}) } }
     }
 
     @Test

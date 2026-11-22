@@ -5,7 +5,10 @@ package se.kodhast.ui.components
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -43,11 +46,16 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.lerp
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Constraints
@@ -98,6 +106,7 @@ fun AppHeader(
     subtitle: String? = null,
     syncing: Boolean = LocalTopBarSyncing.current,
     identity: AppIdentity? = LocalAppIdentity.current,
+    update: AppUpdateNotice? = LocalAppUpdate.current,
     status: @Composable RowScope.() -> Unit = LocalTopBarStatus.current,
     account: @Composable () -> Unit = LocalTopBarAccount.current,
     actions: @Composable RowScope.() -> Unit = {}
@@ -144,7 +153,34 @@ fun AppHeader(
     }
     val name: @Composable () -> Unit = {
         identity?.let {
-            NameWithVersion(it.name, it.version, Modifier.graphicsLayer { alpha = fadeOut(state.collapsedFraction, NAME_FADE) }.clearAndSetSemantics { })
+            val fade = Modifier.graphicsLayer { alpha = fadeOut(state.collapsedFraction, NAME_FADE) }
+            if (update == null) {
+                NameWithVersion(it.name, it.version, fade.clearAndSetSemantics { })
+            } else {
+                // Pricken säger att en ny version finns; namnet och versionen öppnar Om-vyn så länge de syns.
+                val shown by remember(state) { derivedStateOf { state.collapsedFraction < NAME_FADE } }
+                val label = stringResource(R.string.update_available_format, update.update.version)
+                NameWithVersion(
+                    it.name,
+                    it.version,
+                    fade
+                        .clickable(enabled = shown, onClick = update.onOpen)
+                        .clearAndSetSemantics {
+                            contentDescription = label
+                            role = Role.Button
+                            testTag = APP_HEADER_UPDATE_TAG
+                            if (shown) {
+                                onClick {
+                                    update.onOpen()
+                                    true
+                                }
+                            } else {
+                                disabled()
+                            }
+                        },
+                    updateDot = true
+                )
+            }
         }
     }
     val trailing: @Composable () -> Unit = {
@@ -214,10 +250,11 @@ fun AppHeader(
 
 /**
  * Appnamnet med [version] efter sig, på namnets baslinje i etikettstilen (`caption`) och dämpad färg.
- * Ryms inte versionen bredvid ett helt namn ritas den inte alls; namnet kapas aldrig för den.
+ * Ryms inte versionen bredvid ett helt namn ritas den inte alls; namnet kapas aldrig för den. Med
+ * [updateDot] står en liten prick i `primary` sist (ny version finns, #125), om den ryms.
  */
 @Composable
-private fun NameWithVersion(name: String, version: String?, modifier: Modifier = Modifier) {
+private fun NameWithVersion(name: String, version: String?, modifier: Modifier = Modifier, updateDot: Boolean = false) {
     val colors = MaterialTheme.colorScheme
     Layout(
         content = {
@@ -225,20 +262,27 @@ private fun NameWithVersion(name: String, version: String?, modifier: Modifier =
             if (version != null) {
                 Text(version, style = AppTheme.typography.caption, color = colors.onSurfaceVariant, maxLines = 1, modifier = Modifier.testTag(APP_HEADER_VERSION_TAG))
             }
+            if (updateDot) {
+                Box(Modifier.size(UPDATE_DOT).background(colors.primary, AppTheme.shapes.pill).testTag(APP_HEADER_UPDATE_DOT_TAG))
+            }
         },
         modifier = modifier
     ) { measurables, constraints ->
         val nameText = measurables[0].measure(Constraints(maxWidth = constraints.maxWidth))
-        val versionText = measurables.getOrNull(1)?.measure(Constraints())
+        val versionText = if (version != null) measurables[1].measure(Constraints()) else null
+        val dot = if (updateDot) measurables.last().measure(Constraints()) else null
         val gap = Spacing.xs.roundToPx()
         val fits = versionText != null && nameText.width + gap + versionText.width <= constraints.maxWidth
-        val width = if (fits) nameText.width + gap + versionText!!.width else nameText.width
+        val textEnd = if (fits) nameText.width + gap + versionText!!.width else nameText.width
+        val dotFits = dot != null && textEnd + gap + dot.width <= constraints.maxWidth
+        val width = if (dotFits) textEnd + gap + dot!!.width else textEnd
         layout(width, nameText.height) {
             nameText.placeRelative(0, 0)
             if (fits) {
                 val y = nameText[FirstBaseline] - versionText!![FirstBaseline]
                 versionText.placeRelative(nameText.width + gap, y)
             }
+            if (dotFits) dot!!.placeRelative(textEnd + gap, (nameText.height - dot.height) / 2)
         }
     }
 }
@@ -305,6 +349,7 @@ private val DOTS_HEIGHT = 11.dp
 private val SHADOW_RADIUS = 12.dp
 private val SHADOW_OFFSET = 4.dp
 private val HAIRLINE = 1.dp
+private val UPDATE_DOT = 6.dp
 
 private const val NAME_FADE = 0.4f
 private const val SUBTITLE_FADE = 0.33f
@@ -318,6 +363,12 @@ const val APP_HEADER_TAG = "app-header"
 
 /** Versionsnumret efter appnamnet i [AppHeader] (finns bara i det omslagna trädet; namnet och versionen läses inte av TalkBack). */
 const val APP_HEADER_VERSION_TAG = "app-header-version"
+
+/** Appnamnet och versionen när en ny version finns: öppnar Om-vyn (#125). */
+const val APP_HEADER_UPDATE_TAG = "app-header-update"
+
+/** Pricken efter versionsnumret när en ny version finns (#125). */
+const val APP_HEADER_UPDATE_DOT_TAG = "app-header-update-dot"
 
 /** Prickarna före rubriken (`AppBrandStyle.headerDots`), för tester. */
 internal const val HEADER_DOTS_TAG = "header-dots"
