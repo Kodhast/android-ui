@@ -89,27 +89,27 @@ class DepthBehaviorTest {
 
     @Test
     fun `knappen med djup krymper nedtryckt`() {
-        show { AppButton("Spara", {}) }
+        show { AppButton("Spara", {}, variant = ButtonVariant.Primary) }
         val ratio = pressedWidthRatio()
         assertTrue(ratio < 0.99f, "nedtryckt/vila = $ratio")
     }
 
     @Test
     fun `knappen utan djup krymper inte`() {
-        show(depth = false) { AppButton("Spara", {}) }
+        show(depth = false) { AppButton("Spara", {}, variant = ButtonVariant.Primary) }
         assertEquals(1f, pressedWidthRatio())
     }
 
     @Test
     fun `en inaktiv knapp krymper inte med djup`() {
-        show { AppButton("Spara", {}, enabled = false) }
+        show { AppButton("Spara", {}, enabled = false, variant = ButtonVariant.Primary) }
         assertEquals(1f, pressedWidthRatio())
     }
 
     @Test
     fun `knappen med djup anropar onClick och har 48 dp tryckyta även kompakt`() {
         var clicks = 0
-        show { AppButton("Spara", { clicks++ }, compact = true) }
+        show { AppButton("Spara", { clicks++ }, compact = true, variant = ButtonVariant.Primary) }
         rule.onNodeWithText("Spara").assertTouchHeightIsEqualTo(48.dp).performClick()
         assertEquals(1, clicks)
     }
@@ -119,7 +119,7 @@ class DepthBehaviorTest {
         show {
             Column {
                 // Rutan runt varje element mäter platsen i layouten; elementets egen nod har sitt eget mått.
-                Box(Modifier.testTag("knapp")) { AppButton("Spara", {}, compact = true) }
+                Box(Modifier.testTag("knapp")) { AppButton("Spara", {}, compact = true, variant = ButtonVariant.Primary) }
                 Box(Modifier.testTag("chip")) { AppFilterChip("Tablett", false, {}) }
                 Box(Modifier.testTag("segment")) { AppSegmentedChoice(listOf("Ljust", "Mörkt"), 0, {}) }
             }
@@ -134,7 +134,7 @@ class DepthBehaviorTest {
         show {
             Column {
                 AppFilterChip("Imigran", selected = false, onClick = {}, modifier = Modifier.semantics { stateDescription = "Bara idag" })
-                AppButton("Spara", {}, modifier = Modifier.testTag("knapp"))
+                AppButton("Spara", {}, modifier = Modifier.testTag("knapp"), variant = ButtonVariant.Primary)
             }
         }
         rule.onNodeWithText("Imigran").assert(state("Bara idag")).assert(hasClickAction())

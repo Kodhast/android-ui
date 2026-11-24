@@ -46,7 +46,7 @@ fun NoticeBanner(
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
                 Text(text, style = AppTheme.typography.itemTitle, color = colors.content)
                 if (detail != null) Text(detail, style = AppTheme.typography.caption, color = colors.content)
-                action?.let { AppButton(it, checkNotNull(onClick)) }
+                action?.let { AppButton(it, checkNotNull(onClick), variant = ButtonVariant.Primary) }
             }
             if (cardClick != null) Icon(painterResource(R.drawable.ic_chevron_right), contentDescription = null, tint = colors.content)
         }

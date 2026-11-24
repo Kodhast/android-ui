@@ -145,7 +145,7 @@ class OverlayBehaviorTest {
     fun `knappraden står fast i botten med långt innehåll och felet står ovanför den`() {
         var saved = 0
         show {
-            AppBottomSheet("Promenad", onDismiss = {}, error = sampleOffline(), footer = { AppButton("Spara", { saved++ }) }) {
+            AppBottomSheet("Promenad", onDismiss = {}, error = sampleOffline(), footer = { AppButton("Spara", { saved++ }, variant = ButtonVariant.Primary) }) {
                 repeat(40) { Text("Rad $it") }
             }
         }

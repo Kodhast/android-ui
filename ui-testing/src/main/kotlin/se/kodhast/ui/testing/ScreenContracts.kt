@@ -52,7 +52,8 @@ private val ContractEnvironment.failureText: String get() = text(errors.map(retr
 
 /**
  * Kontraktet för en skärm på `EntityListScreen`: laddning, tomt med knapp som lägger till, fel med
- * "Försök igen" och innehåll med lägg till ovanför listan. Feature-tester anropar det här och testar
+ * "Försök igen" och innehåll med lägg till ovanför listan, med högst en primär handling i varje läge
+ * ([assertSinglePrimaryAction]). Feature-tester anropar det här och testar
  * sedan bara det som är unikt för skärmen.
  *
  * @param item en rad och [itemText] som ska synas för den.
@@ -89,15 +90,18 @@ fun <T> ComposeContentTestRule.runListScreenContract(
         onNodeWithTag(ENTITY_LIST_ADD_TAG).assertDoesNotExist()
     }
     emptyActions.forEach { onNodeWithText(it).assertIsDisplayed() }
+    assertSinglePrimaryAction()
 
     state = ListUiState.Error(environment.errors.map(environment.retryableFailure))
     onNodeWithText(errorTitle).assertIsDisplayed()
     onNodeWithText(environment.failureText).assertIsDisplayed()
+    assertSinglePrimaryAction()
     onNodeWithText(text(R.string.retry)).performClick()
     assertEquals("fel: Försök igen ska läsa om listan", 1, retries)
 
     state = ListUiState.Content(persistentListOf(item))
     onNodeWithText(itemText).assertIsDisplayed()
+    assertSinglePrimaryAction()
     if (addLabel != null) {
         onNodeWithText(addLabel).performClick()
         assertEquals("innehåll: lägg till ska finnas ovanför listan", 2, adds)
@@ -149,9 +153,11 @@ fun <T> ComposeContentTestRule.runEditScreenContract(
 
     runOnIdle { editor.makeValid() }
     saveButton.assertIsEnabled()
+    assertSinglePrimaryAction()
 
     onNodeWithContentDescription(text(R.string.back)).performClick()
     onNodeWithText(text(R.string.discard_title)).assertIsDisplayed()
+    assertSinglePrimaryAction()
     onNodeWithText(text(R.string.keep_editing)).performClick()
     assertEquals("Fortsätt redigera ska stanna kvar", 0, closes)
 
@@ -215,6 +221,7 @@ fun <T> ComposeContentTestRule.runDetailScreenContract(
 
     state = DetailUiState.Content(value)
     onNodeWithText(valueText).assertIsDisplayed()
+    assertSinglePrimaryAction()
     if (editable) {
         onNodeWithContentDescription(text(R.string.edit)).performClick()
         assertEquals("innehåll: Redigera i toppraden", 1, edits)

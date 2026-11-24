@@ -162,7 +162,7 @@ class StepsBehaviorTest {
         var deleted = 0
         show {
             SwipeToDelete(DeleteAction("Radera Promenad?", "Går inte att ångra.", onConfirm = { deleted++ })) { requestDelete ->
-                SampleCard { AppButton(text = "Ta bort kortet", onClick = requestDelete) }
+                SampleCard { AppButton(text = "Ta bort kortet", onClick = requestDelete, variant = ButtonVariant.Primary) }
             }
         }
         rule.onNodeWithText("Ta bort kortet").performClick()

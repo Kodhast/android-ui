@@ -132,7 +132,7 @@ fun EntityEditScreen(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             AppTopBar(title, size = TopBarSize.Small, onBack = { askFirst(AfterDiscard.Close) }) {
-                AppButton(saveLabel, onSave, Modifier.padding(horizontal = Spacing.xs), enabled = state.canSave, loading = state.saving, compact = true)
+                AppButton(saveLabel, onSave, Modifier.padding(horizontal = Spacing.xs), enabled = state.canSave, loading = state.saving, compact = true, variant = ButtonVariant.Primary)
                 val menu = listOfNotNull(
                     onArchive?.let { AppMenuItem(stringResource(R.string.archive), { askFirst(AfterDiscard.Archive) }, R.drawable.ic_archive) },
                     onRestore?.let { AppMenuItem(stringResource(R.string.restore), { askFirst(AfterDiscard.Restore) }, R.drawable.ic_unarchive) },

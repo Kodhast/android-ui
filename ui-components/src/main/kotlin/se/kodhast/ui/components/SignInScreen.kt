@@ -58,7 +58,8 @@ fun SignInScreen(
                         onClick = onSignIn,
                         modifier = Modifier.fillMaxWidth(),
                         icon = R.drawable.ic_login,
-                        loading = busy
+                        loading = busy,
+                        variant = ButtonVariant.Primary
                     )
                 }
             }
@@ -94,7 +95,8 @@ fun UpdateRequiredScreen(message: String, note: String?, releasesUrl: String, mo
                     text = stringResource(R.string.update_required_action),
                     onClick = { if (!uriHandler.tryOpenUri(releasesUrl)) failures++ },
                     modifier = Modifier.fillMaxWidth(),
-                    icon = R.drawable.ic_download
+                    icon = R.drawable.ic_download,
+                    variant = ButtonVariant.Primary
                 )
             }
         }

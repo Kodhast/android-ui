@@ -39,12 +39,12 @@ class VariantMotionScreenshotTest {
     fun `AppButton - appens knappstil`() = rule.captureLightAndDark("AppButton_appstil") {
         CompositionLocalProvider(LocalAppButtonStyle provides AppButtonStyle(minHeight = AppButtonDefaults.CompactHeight, morph = true, secondaryTone = Tone.Blue)) {
             SampleSheet {
-                AppButton("Spara", {})
+                AppButton("Spara", {}, variant = ButtonVariant.Primary)
                 AppButton("Exportera", {}, variant = ButtonVariant.Secondary)
                 AppButton("Registrera sälj", {}, variant = ButtonVariant.Outlined)
                 AppButton("Stäng", {}, variant = ButtonVariant.Text)
                 AppButton("Töm databasen", {}, variant = ButtonVariant.Destructive)
-                AppButton("Importerar …", {}, loading = true)
+                AppButton("Importerar …", {}, loading = true, variant = ButtonVariant.Primary)
             }
         }
     }

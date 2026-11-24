@@ -190,12 +190,12 @@ internal fun librarySections(): List<GallerySection> = listOf(
 @Composable
 private fun Buttons() {
     GroupLabel("AppButton")
-    AppButton("Ny post", {}, Modifier.fillMaxWidth(), icon = ComponentsR.drawable.ic_add)
-    AppButton("Sparar …", {}, Modifier.fillMaxWidth(), loading = true)
+    AppButton("Ny post", {}, Modifier.fillMaxWidth(), icon = ComponentsR.drawable.ic_add, variant = ButtonVariant.Primary)
+    AppButton("Sparar …", {}, Modifier.fillMaxWidth(), loading = true, variant = ButtonVariant.Primary)
     Row(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
         AppButton("Lägg till", {}, variant = ButtonVariant.Secondary)
         AppButton("Avbryt", {}, variant = ButtonVariant.Text)
-        AppButton("Spara", {}, enabled = false)
+        AppButton("Spara", {}, enabled = false, variant = ButtonVariant.Primary)
     }
     Row(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
         AppButton("Visa alla", {}, variant = ButtonVariant.Outlined, compact = true)
@@ -632,13 +632,13 @@ private fun Overlays() {
             onDismiss = { sheet = false },
             subtitle = "Ändra tiden och spara",
             dirty = minutes != 45,
-            footer = { AppButton("Spara", { sheet = false }) }
+            footer = { AppButton("Spara", { sheet = false }, variant = ButtonVariant.Primary) }
         ) {
             QuantityStepper(minutes, { minutes = it }, "minuter")
         }
     }
     EmptyState(ComponentsR.drawable.ic_box, "Inget här än", "Det du lägger till med plusknappen hamnar här.") {
-        AppButton("Lägg till", {}, Modifier.fillMaxWidth(), icon = ComponentsR.drawable.ic_add)
+        AppButton("Lägg till", {}, Modifier.fillMaxWidth(), icon = ComponentsR.drawable.ic_add, variant = ButtonVariant.Primary)
     }
     LoadErrorState("Kunde inte hämta listan", offlineError(), onRetry = {})
     Box(Modifier.fillMaxWidth().height(CONFETTI_HEIGHT)) {
