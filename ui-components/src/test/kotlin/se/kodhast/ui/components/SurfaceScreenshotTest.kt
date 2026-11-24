@@ -81,7 +81,7 @@ class SurfaceScreenshotTest {
     fun `EmptyState - standard, fel och kompakt`() = captureLightAndDark("EmptyState_varianter") {
         SampleSheet {
             EmptyState(R.drawable.ic_box, "Inga resor än", "Lägg till en resa så räknar appen ut vad som ska packas.", note = "Du kan ändra allt senare.") {
-                AppButton("Lägg till resa", {}, Modifier.padding(horizontal = Spacing.xl))
+                AppButton("Lägg till resa", {}, Modifier.padding(horizontal = Spacing.xl), variant = ButtonVariant.Primary)
             }
             // Dagboken: i ett kort, t.ex. ett diagram utan data.
             AppCard { EmptyState(R.drawable.ic_clock, "För lite data än", "Logga några dagar till så syns kurvan.", compact = true) }
@@ -92,7 +92,7 @@ class SurfaceScreenshotTest {
     fun `EmptyState - helskärm`() = captureLightAndDark("EmptyState_helskarm") {
         Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
             EmptyState(R.drawable.ic_wifi_off, "Uppdatera appen", "Hushållets data är sparad med en nyare version av appen.", fullScreen = true, isError = true) {
-                AppButton("Uppdatera", {}, Modifier.fillMaxWidth())
+                AppButton("Uppdatera", {}, Modifier.fillMaxWidth(), variant = ButtonVariant.Primary)
             }
         }
     }

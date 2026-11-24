@@ -117,7 +117,7 @@ class SurfaceBehaviorTest {
     @Test
     fun `det tomma tillståndet har rubrik, knapp och not`() {
         var added = 0
-        show { EmptyState(R.drawable.ic_box, "Inga resor än", "Lägg till en resa så räknar appen ut vad som ska packas.", note = "Du kan ändra allt senare.") { AppButton("Lägg till resa", { added++ }) } }
+        show { EmptyState(R.drawable.ic_box, "Inga resor än", "Lägg till en resa så räknar appen ut vad som ska packas.", note = "Du kan ändra allt senare.") { AppButton("Lägg till resa", { added++ }, variant = ButtonVariant.Primary) } }
         rule.onNodeWithText("Inga resor än").assert(SemanticsMatcher.keyIsDefined(SemanticsProperties.Heading))
         rule.onNodeWithText("Du kan ändra allt senare.").assertExists()
         rule.onNodeWithText("Lägg till resa").performClick()

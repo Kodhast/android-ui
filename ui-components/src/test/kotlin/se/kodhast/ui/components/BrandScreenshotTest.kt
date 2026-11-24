@@ -101,7 +101,7 @@ class BrandScreenshotTest {
             waitForIdle()
         }) {
             Brand(AppBrandStyle(dotLoading = true)) {
-                SampleSheet { AppButton("Sparar …", {}, loading = true) }
+                SampleSheet { AppButton("Sparar …", {}, loading = true, variant = ButtonVariant.Primary) }
             }
         }
     }

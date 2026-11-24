@@ -62,7 +62,7 @@ class DepthScreenshotTest {
     @Test
     fun `AppButton - djup i alla varianter`() = captureLightAndDark("AppButton_djup", depth = true) {
         SampleSheet {
-            AppButton("Logga in", {}, Modifier.fillMaxWidth(), icon = R.drawable.ic_add)
+            AppButton("Logga in", {}, Modifier.fillMaxWidth(), icon = R.drawable.ic_add, variant = ButtonVariant.Primary)
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
                 AppButton("Lägg till", {}, variant = ButtonVariant.Secondary)
                 AppButton("Visa alla", {}, variant = ButtonVariant.Outlined)
@@ -72,12 +72,12 @@ class DepthScreenshotTest {
                 AppButton("Avbryt", {}, variant = ButtonVariant.Text)
             }
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
-                AppButton("Spara", {}, enabled = false)
-                AppButton("Sparar …", {}, loading = true)
-                AppButton("Spara", {}, compact = true)
+                AppButton("Spara", {}, enabled = false, variant = ButtonVariant.Primary)
+                AppButton("Sparar …", {}, loading = true, variant = ButtonVariant.Primary)
+                AppButton("Spara", {}, compact = true, variant = ButtonVariant.Primary)
             }
             CompositionLocalProvider(LocalAppButtonStyle provides AppButtonStyle(morph = true)) {
-                AppButton("Med formmorf", {})
+                AppButton("Med formmorf", {}, variant = ButtonVariant.Primary)
             }
         }
     }
@@ -97,8 +97,8 @@ class DepthScreenshotTest {
     @Composable
     private fun PressedButtons() {
         Row(horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
-            AppButton("Spara", {})
-            AppButton("Spara", {}, Modifier.testTag("tryckt"))
+            AppButton("Spara", {}, variant = ButtonVariant.Primary)
+            AppButton("Spara", {}, Modifier.testTag("tryckt"), variant = ButtonVariant.Primary)
         }
         Row(horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
             AppButton("Lägg till", {}, variant = ButtonVariant.Secondary)
@@ -176,7 +176,7 @@ class DepthScreenshotTest {
         Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
             AppBottomSheet("Ändra mängd", onDismiss = {}) {
                 QuantityStepper(9, {}, "Antal tabletter")
-                AppButton("Spara", {})
+                AppButton("Spara", {}, variant = ButtonVariant.Primary)
             }
         }
     }
@@ -188,7 +188,7 @@ class DepthScreenshotTest {
             Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
                 AppBottomSheet("Ändra mängd", onDismiss = {}) {
                     QuantityStepper(9, {}, "Antal tabletter")
-                    AppButton("Spara", {})
+                    AppButton("Spara", {}, variant = ButtonVariant.Primary)
                 }
             }
         }

@@ -212,7 +212,8 @@ private fun ToolbarActionButton(action: ToolbarAction, menuStyle: ActionMenuStyl
     val state = expandLabels(menuOpen).state
     val colors = actionColors(color)
     val onClick = { if (hasMenu) menuOpen = true else action.onClick() }
-    val described = if (hasMenu) Modifier.semantics { stateDescription = state } else Modifier
+    // FAB:en är vyns primära handling (D-3).
+    val described = Modifier.semantics { primaryAction = true }.then(if (hasMenu) Modifier.semantics { stateDescription = state } else Modifier)
     val icon = @Composable { Icon(painterResource(action.icon), contentDescription = action.label) }
     val depth = AppTheme.depth
     Box(Modifier.onGloballyPositioned { bounds = Rect(it.positionOnScreen(), it.size.toSize()) }) {

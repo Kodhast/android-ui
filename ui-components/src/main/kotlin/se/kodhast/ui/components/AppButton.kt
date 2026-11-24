@@ -37,8 +37,15 @@ import se.kodhast.ui.theme.PROGRESS_STROKE
 import se.kodhast.ui.theme.Spacing
 import se.kodhast.ui.theme.Tone
 
+/**
+ * Knappens betoning. Standard i [AppButton] är [Secondary] (tonad); den fyllda [Primary] väljs uttryckligen och
+ * bara för vyns primära handling – högst en synlig per vy (skill `android:designregler`, D-3).
+ */
 enum class ButtonVariant {
+    /** Fylld: vyns primära handling, högst en per vy. */
     Primary,
+
+    /** Tonad: standard. */
     Secondary,
 
     /** Konturerad: ett jämbördigt alternativ bredvid en fylld knapp (Fonder). */
@@ -83,8 +90,9 @@ object AppButtonDefaults {
 val LocalAppButtonStyle = staticCompositionLocalOf { AppButtonStyle() }
 
 /**
- * Den enda knappen (skill shared-ui-components). [loading] visar en snurra i stället för
- * ikonen och gör knappen inaktiv – samma "arbetar"-läge överallt. [compact] ger en lägre knapp
+ * Den enda knappen (skill shared-ui-components). [variant] är standard tonad ([ButtonVariant.Secondary]);
+ * vyns primära handling sätter [ButtonVariant.Primary] uttryckligen och märks med [PrimaryAction].
+ * [loading] visar en snurra i stället för ikonen och gör knappen inaktiv – samma "arbetar"-läge överallt. [compact] ger en lägre knapp
  * för rubrikraden (t.ex. "Spara" i `EntityEditScreen`); tryckytan är ändå minst 48 dp.
  * [contentDescription] läses av TalkBack i stället för etiketten – för en knapp som upprepas med samma
  * korta etikett ("Följ") och ska säga vad den gäller; `null` läser etiketten. [style] är appens
@@ -97,7 +105,7 @@ fun AppButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    variant: ButtonVariant = ButtonVariant.Primary,
+    variant: ButtonVariant = ButtonVariant.Secondary,
     @DrawableRes icon: Int? = null,
     enabled: Boolean = true,
     loading: Boolean = false,
@@ -119,7 +127,8 @@ private fun ButtonBase(
     style: AppButtonStyle,
     modifier: Modifier = Modifier
 ) {
-    val described = contentDescription?.let { modifier.semantics { this.contentDescription = it } } ?: modifier
+    val primary = if (variant in FILLED) Modifier.semantics { primaryAction = true } else Modifier
+    val described = (contentDescription?.let { modifier.semantics { this.contentDescription = it } } ?: modifier).then(primary)
     val minHeight = if (compact) AppButtonDefaults.CompactHeight else style.minHeight
     val active = enabled && !loading
     val content: @Composable RowScope.() -> Unit = { ButtonContent(text, icon, loading) }
@@ -166,7 +175,7 @@ private fun ButtonBase(
             .depth(AppTheme.shapes.pill, interactionSource, raised = active && variant in RAISED, active = active, strength = strength)
             .heightIn(min = minHeight)
         val description = contentDescription?.let { Modifier.semantics { this.contentDescription = it } } ?: Modifier
-        DepthTouchTarget(modifier) { target -> button(target.then(description).then(decorated)) }
+        DepthTouchTarget(modifier) { target -> button(target.then(description).then(primary).then(decorated)) }
     }
 }
 

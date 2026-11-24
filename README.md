@@ -5,7 +5,7 @@ eventuellt Fonder): ett tema-API och de delade komponenterna, så att samma elem
 beter sig likadant i alla appar och bara finns på ett ställe. Varje app behåller sina egna
 färger och typsnitt och skickar in dem i temat; formerna är samma i alla appar.
 
-**Version:** 3.14.0 · Material 3 `1.5.0` (Expressive) · Compose BOM `2026.11.01` ·
+**Version:** 4.0.0 · Material 3 `1.5.0` (Expressive) · Compose BOM `2026.11.01` ·
 Kotlin `2.4.21` · AGP `9.5.2` · compileSdk 37.1 · minSdk 30.
 
 ## Moduler
@@ -40,8 +40,8 @@ dependencyResolutionManagement {
 }
 ```
 
-och i versionskatalogen/byggfilen `implementation("se.kodhast.ui:ui-components:3.14.0")` och
-`testImplementation("se.kodhast.ui:ui-testing:3.14.0")`.
+och i versionskatalogen/byggfilen `implementation("se.kodhast.ui:ui-components:4.0.0")` och
+`testImplementation("se.kodhast.ui:ui-testing:4.0.0")`.
 
 - **CI i appen:** `GITHUB_TOKEN` räcker när paketet gett apprepot läsåtkomst
   (paketets inställningar → *Manage Actions access*) och jobbet har `permissions: packages: read`.
@@ -453,6 +453,7 @@ som är unikt för skärmen. Kontrakten prövar ramens beteende genom appens sk�
 | `runListScreenContract(environment, item, itemText, emptyTitle, addLabel: String?, emptyActions = emptyList(), errorTitle, screen)` | laddar; tomt läge med lägg till-knapp (eller ingen knapp med `addLabel = null`) och skärmens egna knappar (`emptyActions`); fel med rubriken (`errorTitle`) med felets text och "Försök igen"; innehåll med lägg till ovanför listan |
 | `runEditScreenContract(environment, editor, makeInvalid?, makeValid, invalidMessage?, saveLabel, screen)` | "Spara" aktiv först när giltigt och ändrat; fältfel efter ändring; "Släng ändringar?" vid bakåtpilen och systemets bakåt; sparfel som snackbar (kvitterat); lyckad sparning stänger (kvitterat); bakåt utan ändringar stänger direkt |
 | `runDetailScreenContract(environment, value, valueText, editable = true, tab = false, screen)` | laddar utan Redigera; läsfel med "Försök igen"; något som inte finns utan "Försök igen"; innehåll med Redigera och tillbakapil (ingen pil i flikläge) |
+| `assertSinglePrimaryAction()` | D-3 (skill `android:designregler`): högst en primär handling – fylld `AppButton` (`Primary`, `Destructive`) eller FAB:en – synlig per fönster; en dialog, ett ark eller en meny räknas för sig. Körs i varje läge i kontrakten ovan; en skärm utan ram anropar den i sina egna tester |
 
 Appen skriver sin miljö en gång i testkoden:
 
@@ -479,7 +480,7 @@ inte använder ramen rätt.
 | `AccountRow` | Kontot överst i inställningarna: `AccountAvatar`, `name` och `email` under (utan e-post "Inloggad med Google"; utan namn står e-posten som titel), `photoUrl`; ingen tonad bakgrund | Flyttad från ReseApoteket och Dagboken (#54); Dagbokens tonade rad och extra rad "Inloggad med Google" försvinner (Mats beslut) |
 | `AddSplitButton` | "Lägg till ▾" – huvudåtgärd och pil med fler val; `style` (standard `LocalAppButtonStyle`) ger höjd och tonad färg som den sekundära `AppButton` | Menyn är en lucka: `menu = items.asSplitMenu()` (ReseApoteket) i stället för Dagbokens `menuItems` |
 | `AppBottomSheet` | Ark med rubrik; innehållet rullar alltid. `error` (`UiError`), `dirty` ("Släng ändringar?" vid bakåt, svep och tryck utanför), `canDismiss`, `hide`, `footer` (knappraden står fast i botten), `subtitle` (en rad under rubriken) | Dagbokens parametrar; ReseApotekets rullning gäller också med `footer`; `subtitle` från ReseApoteket (#75) |
-| `AppButton` | Den enda knappen: Primary, Secondary, Outlined, Text, Destructive, DestructiveText (Radera sist bland en rads åtgärder, 3.9.0); `loading` (snurra, eller Kodhäst-prickarna med `AppBrandStyle.dotLoading`), `compact`, `contentDescription`. Appens knappstil `AppButtonStyle(minHeight, morph, secondaryTone)` sätts en gång med `LocalAppButtonStyle` (eller parametern `style`); `AppButtonDefaults.MinHeight` 56 dp / `CompactHeight` 40 dp | Fonder: `AppButtonStyle(minHeight = 40.dp, morph = true, secondaryTone = Tone.Primary)`; standard bevarar ReseApoteket och Dagboken |
+| `AppButton` | Den enda knappen, standard tonad (`Secondary`); den fyllda `Primary` sätts uttryckligen för vyns primära handling och märks med semantiken `PrimaryAction` (D-3, 4.0.0). Varianter: Primary, Secondary, Outlined, Text, Destructive, DestructiveText (Radera sist bland en rads åtgärder, 3.9.0); `loading` (snurra, eller Kodhäst-prickarna med `AppBrandStyle.dotLoading`), `compact`, `contentDescription`. Appens knappstil `AppButtonStyle(minHeight, morph, secondaryTone)` sätts en gång med `LocalAppButtonStyle` (eller parametern `style`); `AppButtonDefaults.MinHeight` 56 dp / `CompactHeight` 40 dp | Fonder: `AppButtonStyle(minHeight = 40.dp, morph = true, secondaryTone = Tone.Primary)`; standard bevarar ReseApoteket och Dagboken |
 | `AppCalendar` | Månadskalendern: `month`, `onMonthChange`, `marked` (punkt), `selectedDate` (fylld primärfärg i `shapes.row`), `onDateClick`, `today` (punkt i `secondary` med ring i `progressDone.outline`), `dimFuture` (framtiden nedtonad och ovalbar, pilen till nästa månad stängd). TalkBack läser datum, "idag" och "har poster". `DayMarkerDot` och `dayDescription` är samma markering och uppläsning för en datumremsa | Flyttad från Dagbokens `DagbokenCalendar` och `DayMarker` (#68); ser ut som förut, men med `dimFuture` stängs nu också pilen till månaden efter idag |
 | `AppCard` | Kortet: `tone`, `contentColor` (standard `null`: ärver omgivande `LocalContentColor`; Dagboken `onSurface`), `onClick` (hela kortet en nod). Appens kortstil `AppCardStyle(border, padding, segmentGap, contentSpacing)` med `LocalAppCardStyle` (eller `style`); ett tonat kort har ingen kontur | ReseApotekets `ApotekCard` heter nu `AppCard`. Fonder: kontur 1 dp `outlineVariant`, `padding = Spacing.l`, `contentSpacing = 0.dp`; Filled/Error är Fonders egna toner |
 | `AppDivider` | Avdelare mellan rader i ett kort | – |
@@ -644,6 +645,7 @@ efter, innan någon app bytt. Byt direkt från 1.x till 3.0.0. Det som bryter, o
 
 | Version | Ändring |
 |---|---|
+| 4.0.0 | **Brytande:** `AppButton`:s standardvariant är `Secondary` (tonad) i stället för `Primary` (Mats beslut 2026-11-24, #128; skill `android:designregler`, D-3). **Appen måste** sätta `variant = ButtonVariant.Primary` på den knapp som ska vara vyns primära – annars blir den tonad. Ny semantik `PrimaryAction` på fyllda knappar (`Primary`, `Destructive`) och huvudknappen i `AppFloatingToolbar`; nytt prov `assertSinglePrimaryAction()` i `ui-testing`, som körs i varje läge i list-, redigerings- och detaljkontrakten (en skärm med två fyllda knappar eller FAB plus fylld knapp fäller nu kontraktet). Bibliotekets egna knappar behåller sitt utseende (`Primary` uttryckligen i ramarna, inloggningen, stegaren och `NoticeBanner`), utom Hämta i `AboutCard`, som blir tonad. `EmptyAction.variant` är fortfarande `Primary`. Omtagen skärmdump: `AboutCard_ny_version` |
 | 3.14.0 | Ny version finns (#125, variant C): `UpdateChecker`/`AppUpdate`/`isNewerVersion` i `ui-common` (GitHubs `releases/latest`, utan nyckel och utan nya beroenden), `rememberAppUpdate`, `AppUpdateNotice` och `LocalAppUpdate` i `ui-components`. Med `LocalAppUpdate` satt: en prick i `primary` efter versionsnumret i `AppHeader` (namnet och versionen öppnar Om-vyn, inte ihopfällt), "Ny version X finns" under Om-raden i `AccountMenu` och raden med Hämta i `AboutCard`. `UriHandler.tryOpenUri` delas med `UpdateRequiredScreen`. Utan den är allt som förut; inga befintliga skärmdumpar omtagna, nya: `AppHeader_ny_version`, `AccountMenu_ny_version`, `AboutCard_ny_version` |
 | 3.13.0 | `SwipeToDelete(delete: DeleteAction)` med frågan inbyggd (svep eller kortets Radera → `DeleteConfirmDialog`, läget sparat över rotation). Samma sju rader stod för hand i `Foldout`, Fonders Pågående byte, ReseApotekets personsida och Dagbokens postkort (granskningen 2026-11-22); `Foldout(delete)` använder den nu. Inget synligt ändrat. |
 | 3.12.0 | Tidsväljarens rullhjul i appens typsnitt (#123, Mats: "typsnitt följer inte appen", "ser hoptryckt ut"): Material 3 ritade talen med display-stilarna, som apparna inte sätter (Roboto, 57 sp i 52 dp höga rader). Nya stilar `AppTypography.timeWheel` (32 sp) och `timeWheelSelected` (45 sp, Medium), standard ur brödtexten med tabulära siffror; `TimePickerPopup` använder dem. Rubriken "Välj tid" i `headline` som `ConfirmDialog`, med luft ner till hjulen. Omtagna: `TimePickerPopup_oppen`, `TimePickerPopup_djup` |

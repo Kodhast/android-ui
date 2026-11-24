@@ -116,7 +116,7 @@ class BrandBehaviorTest {
     @Test
     fun `knappen som laddar visar prickar med dotLoading och är inaktiv`() {
         var clicks = 0
-        show(AppBrandStyle(dotLoading = true)) { AppButton("Sparar …", onClick = { clicks++ }, loading = true) }
+        show(AppBrandStyle(dotLoading = true)) { AppButton("Sparar …", onClick = { clicks++ }, loading = true, variant = ButtonVariant.Primary) }
         rule.onNode(
             SemanticsMatcher.expectValue(SemanticsProperties.ProgressBarRangeInfo, ProgressBarRangeInfo.Indeterminate),
             useUnmergedTree = true

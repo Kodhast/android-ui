@@ -58,7 +58,7 @@ class ComponentBehaviorTest {
     @Test
     fun `knappen anropar onClick`() {
         var clicks = 0
-        show { AppButton("Spara", onClick = { clicks++ }) }
+        show { AppButton("Spara", onClick = { clicks++ }, variant = ButtonVariant.Primary) }
         rule.onNodeWithText("Spara").performClick()
         assertEquals(1, clicks)
     }
@@ -66,14 +66,14 @@ class ComponentBehaviorTest {
     @Test
     fun `knappen som laddar är inaktiv och anropar inte onClick`() {
         var clicks = 0
-        show { AppButton("Loggar in …", onClick = { clicks++ }, loading = true) }
+        show { AppButton("Loggar in …", onClick = { clicks++ }, loading = true, variant = ButtonVariant.Primary) }
         rule.onNodeWithText("Loggar in …").assertIsNotEnabled().performClick()
         assertEquals(0, clicks)
     }
 
     @Test
     fun `den kompakta knappen har ändå 48 dp tryckyta`() {
-        show { AppButton("Spara", {}, compact = true) }
+        show { AppButton("Spara", {}, compact = true, variant = ButtonVariant.Primary) }
         rule.onNodeWithText("Spara").assertTouchHeightIsEqualTo(48.dp)
     }
 
@@ -161,7 +161,7 @@ class ComponentBehaviorTest {
         show {
             ChipRow(wrap = wrap) {
                 var clicks by remember { mutableIntStateOf(0) }
-                AppButton("Klick $clicks", { clicks++ })
+                AppButton("Klick $clicks", { clicks++ }, variant = ButtonVariant.Primary)
             }
         }
         rule.onNodeWithText("Klick 0").performClick()

@@ -259,7 +259,7 @@ private fun EmptyActions(empty: EmptyContent, add: AddAction?, footer: (@Composa
         }
         EmptyActionButtons(
             empty.actions,
-            add?.let { { AppButton(it.label, it.onClick, Modifier.fillMaxWidth().testTag(ENTITY_LIST_ADD_TAG), icon = R.drawable.ic_add) } }
+            add?.let { { AppButton(it.label, it.onClick, Modifier.fillMaxWidth().testTag(ENTITY_LIST_ADD_TAG), icon = R.drawable.ic_add, variant = ButtonVariant.Primary) } }
         )
         footer?.invoke()
     }

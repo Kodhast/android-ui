@@ -86,9 +86,9 @@ fun RowScope.StepNavigation(
         }
     ) {
         when {
-            done -> AppButton(doneText, {}, Modifier.clearAndSetSemantics {}, icon = R.drawable.ic_check)
+            done -> AppButton(doneText, {}, Modifier.clearAndSetSemantics {}, icon = R.drawable.ic_check, variant = ButtonVariant.Primary)
             pager.currentPage < pager.pageCount - 1 -> AppButton(stringResource(R.string.next), { go(pager.currentPage + 1) }, variant = ButtonVariant.Secondary)
-            else -> AppButton(stringResource(R.string.save), onSave, enabled = saveEnabled, loading = saving)
+            else -> AppButton(stringResource(R.string.save), onSave, enabled = saveEnabled, loading = saving, variant = ButtonVariant.Primary)
         }
     }
 }

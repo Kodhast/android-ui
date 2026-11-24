@@ -139,7 +139,7 @@ class FieldBehaviorTest {
     @Test
     fun `felet ersätter hjälptexten under gruppen och läses som fel`() {
         var error by mutableStateOf<String?>(null)
-        show { LabeledGroup("Form", helper = "Välj det som står på förpackningen", error = error) { AppButton("Tablett", {}) } }
+        show { LabeledGroup("Form", helper = "Välj det som står på förpackningen", error = error) { AppButton("Tablett", {}, variant = ButtonVariant.Primary) } }
         rule.onNodeWithText("Välj det som står på förpackningen").assertExists()
         error = "Välj en form"
         rule.onNodeWithText("Välj det som står på förpackningen").assertDoesNotExist()
@@ -148,7 +148,7 @@ class FieldBehaviorTest {
 
     @Test
     fun `hjälptexten kan stå ovanför innehållet`() {
-        show { LabeledGroup("Känslor", helper = "Börja i mitten", helperAbove = true) { AppButton("Glad", {}) } }
+        show { LabeledGroup("Känslor", helper = "Börja i mitten", helperAbove = true) { AppButton("Glad", {}, variant = ButtonVariant.Primary) } }
         val helper = rule.onNodeWithText("Börja i mitten").fetchSemanticsNode().positionInRoot.y
         val content = rule.onNodeWithText("Glad").fetchSemanticsNode().positionInRoot.y
         assertEquals(true, helper < content)

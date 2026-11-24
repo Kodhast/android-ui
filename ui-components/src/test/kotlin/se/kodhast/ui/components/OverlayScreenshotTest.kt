@@ -49,7 +49,7 @@ class OverlayScreenshotTest {
         Background {
             AppBottomSheet("Ändra mängd", onDismiss = {}) {
                 QuantityStepper(9, {}, "Antal tabletter")
-                AppButton("Spara", {})
+                AppButton("Spara", {}, variant = ButtonVariant.Primary)
             }
         }
     }
@@ -63,7 +63,7 @@ class OverlayScreenshotTest {
                 error = sampleOffline(),
                 footer = {
                     AppButton("Avbryt", {}, variant = ButtonVariant.Text)
-                    AppButton("Spara", {})
+                    AppButton("Spara", {}, variant = ButtonVariant.Primary)
                 }
             ) {
                 repeat(30) { Text("Rad $it", style = AppTheme.typography.body) }

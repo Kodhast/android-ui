@@ -55,13 +55,13 @@ class ComponentScreenshotTest {
     @Test
     fun `AppButton - varianter och lägen`() = captureLightAndDark("AppButton_varianter") {
         SampleSheet {
-            AppButton("Logga in", {}, Modifier.fillMaxWidth(), icon = R.drawable.ic_add)
-            AppButton("Loggar in …", {}, Modifier.fillMaxWidth(), loading = true)
+            AppButton("Logga in", {}, Modifier.fillMaxWidth(), icon = R.drawable.ic_add, variant = ButtonVariant.Primary)
+            AppButton("Loggar in …", {}, Modifier.fillMaxWidth(), loading = true, variant = ButtonVariant.Primary)
             AppButton("Lägg till", {}, variant = ButtonVariant.Secondary)
             AppButton("Avbryt", {}, variant = ButtonVariant.Text)
-            AppButton("Spara", {}, enabled = false)
+            AppButton("Spara", {}, enabled = false, variant = ButtonVariant.Primary)
             AppButton("Radera", {}, variant = ButtonVariant.Destructive)
-            AppButton("Spara", {}, compact = true)
+            AppButton("Spara", {}, compact = true, variant = ButtonVariant.Primary)
         }
     }
 
@@ -128,7 +128,7 @@ class ComponentScreenshotTest {
     fun `AppTopBar - storlekar`() = captureLightAndDark("AppTopBar_storlekar") {
         SampleSheet {
             AppTopBar("Resor", subtitle = "3 kommande") { AppIconButton(R.drawable.ic_add, "Lägg till", {}) }
-            AppTopBar("Solkräm", size = TopBarSize.Small, onBack = {}) { AppButton("Spara", {}, compact = true) }
+            AppTopBar("Solkräm", size = TopBarSize.Small, onBack = {}) { AppButton("Spara", {}, compact = true, variant = ButtonVariant.Primary) }
         }
     }
 

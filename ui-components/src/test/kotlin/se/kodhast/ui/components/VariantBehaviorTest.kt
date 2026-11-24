@@ -83,7 +83,7 @@ class VariantBehaviorTest {
     @Test
     fun `knappen läser sin beskrivning i stället för etiketten`() {
         var clicks = 0
-        show { AppButton("Följ", { clicks++ }, contentDescription = "Följ Global Index") }
+        show { AppButton("Följ", { clicks++ }, contentDescription = "Följ Global Index", variant = ButtonVariant.Primary) }
         rule.onNodeWithContentDescription("Följ Global Index").assertHasClickAction().performClick()
         assertEquals(1, clicks)
     }
@@ -92,12 +92,12 @@ class VariantBehaviorTest {
     fun `knappens höjd följer appens knappstil, och compact går före`() {
         show {
             Column {
-                AppButton("Standard", {})
-                AppButton("Kompakt", {}, compact = true)
+                AppButton("Standard", {}, variant = ButtonVariant.Primary)
+                AppButton("Kompakt", {}, compact = true, variant = ButtonVariant.Primary)
                 CompositionLocalProvider(LocalAppButtonStyle provides AppButtonStyle(minHeight = AppButtonDefaults.CompactHeight)) {
-                    AppButton("Appens", {})
+                    AppButton("Appens", {}, variant = ButtonVariant.Primary)
                 }
-                AppButton("Egen", {}, style = AppButtonStyle(minHeight = AppButtonDefaults.CompactHeight))
+                AppButton("Egen", {}, style = AppButtonStyle(minHeight = AppButtonDefaults.CompactHeight), variant = ButtonVariant.Primary)
             }
         }
         assertEquals(AppButtonDefaults.MinHeight, height("Standard"))
@@ -140,8 +140,8 @@ class VariantBehaviorTest {
     fun `med formmorf blir knappen fyrkantigare när den trycks ned, annars behåller den pillformen`() {
         show {
             Column {
-                AppButton("Morf", {}, style = AppButtonStyle(morph = true))
-                AppButton("Pill", {})
+                AppButton("Morf", {}, style = AppButtonStyle(morph = true), variant = ButtonVariant.Primary)
+                AppButton("Pill", {}, variant = ButtonVariant.Primary)
             }
         }
         val corner = 4.dp
