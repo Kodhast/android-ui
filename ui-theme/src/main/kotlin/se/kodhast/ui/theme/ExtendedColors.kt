@@ -29,7 +29,6 @@ data class ToneColors(val container: Color, val content: Color)
  * - [toolbar] / [onToolbar]: den flytande verktygsraden.
  * - [tones]: färgerna per [Tone]; måste innehålla [Tone.Primary].
  * - [accents]: appens dekorativa färgserie (personfärger, valbara färger) – t.ex. konfettin.
- * - [online]: pluppen på kontoavataren när appen har internet; `null` (standard) = `colorScheme.primary`.
  * - [track]: spåret i framstegsraden (`AppProgress`); `null` (standard) = `colorScheme.primaryContainer`.
  * - [progressDone]: framstegsradens fyllnad när allt är klart; `null` (standard) = `colorScheme.primary` utan kontur.
  */
@@ -41,7 +40,6 @@ data class ExtendedColors(
     val onToolbar: Color,
     val tones: Map<Tone, ToneColors>,
     val accents: List<Color>,
-    val online: Color? = null,
     val track: Color? = null,
     val progressDone: ProgressDoneColors? = null
 ) {

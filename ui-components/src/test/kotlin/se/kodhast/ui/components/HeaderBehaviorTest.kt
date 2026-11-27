@@ -40,6 +40,7 @@ import androidx.compose.ui.test.swipeUp
 import androidx.compose.ui.unit.dp
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlinx.collections.immutable.persistentListOf
@@ -56,6 +57,7 @@ import se.kodhast.ui.components.testing.PHOTO_COLOR
 import se.kodhast.ui.components.testing.TestTheme
 import se.kodhast.ui.components.testing.assertSameColor
 import se.kodhast.ui.components.testing.pixelAt
+import se.kodhast.ui.theme.OnlineColor
 
 /** Kodhäst-sidhuvudet (android-ui #42): vila och ihopfällt, prickarna, avataren, inloggningen och ramarnas flikläge. */
 @RunWith(RobolectricTestRunner::class)
@@ -197,14 +199,24 @@ class HeaderBehaviorTest {
     }
 
     @Test
-    fun `pluppen har appens färg för online, annars primary`() {
+    fun `pluppen är samma gröna i alla appar, inte appens primary`() {
         var primary = Color.Unspecified
+        var background = Color.Unspecified
         show {
             primary = MaterialTheme.colorScheme.primary
+            background = MaterialTheme.colorScheme.background
             AccountAvatar("Anna Berg", onClick = {}, online = true)
         }
         // Pluppen är 12 dp nere till höger i 36 dp-cirkeln; mitten ligger 6 dp in från cirkelns hörn.
-        assertSameColor(primary, rule.onNodeWithTag(ACCOUNT_ONLINE_TAG, useUnmergedTree = true).pixelAt(rule.density, 6.dp, 6.dp))
+        val dot = rule.onNodeWithTag(ACCOUNT_ONLINE_TAG, useUnmergedTree = true).pixelAt(rule.density, 6.dp, 6.dp)
+        assertSameColor(OnlineColor.on(background), dot)
+        assertNotEquals(primary, OnlineColor.on(background), "testtemats primary får inte råka vara den gröna")
+    }
+
+    @Test
+    fun `den gröna är ljus på mörk yta och mörk på ljus`() {
+        assertEquals(OnlineColor.light, OnlineColor.on(Color(0xFFF6F5F2)))
+        assertEquals(OnlineColor.dark, OnlineColor.on(Color(0xFF121413)))
     }
 
     @Test

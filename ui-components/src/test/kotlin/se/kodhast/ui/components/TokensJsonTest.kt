@@ -5,6 +5,7 @@ import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import java.io.File
@@ -14,13 +15,14 @@ import org.junit.Test
 import se.kodhast.ui.theme.AppDepth
 import se.kodhast.ui.theme.AppShapes
 import se.kodhast.ui.theme.IconSize
+import se.kodhast.ui.theme.OnlineColor
 import se.kodhast.ui.theme.PROGRESS_STROKE
 import se.kodhast.ui.theme.Spacing
 import se.kodhast.ui.theme.TRACK_HEIGHT
 
 /**
  * Håller `tokens.json` i roten aktuell. Filen är källan till talen för webbiblioteket (Kodhast/web-ui):
- * mått i dp (= CSS-px), skrivna ur temat och sidhuvudet. Faller testet är filen inaktuell – skriv om den med
+ * mått i dp (= CSS-px), skrivna ur temat och sidhuvudet, och pluppens gröna. Faller testet är filen inaktuell – skriv om den med
  * `UPDATE_TOKENS=1 ./gradlew :ui-components:testDebugUnitTest --tests '*TokensJsonTest'` och checka in den.
  */
 class TokensJsonTest {
@@ -74,7 +76,8 @@ class TokensJsonTest {
                 "collapsed" to num(COLLAPSED),
                 "appIcon" to num(APP_ICON),
                 "collapsedAppIcon" to num(COLLAPSED_APP_ICON)
-            )
+            ),
+            "color" to mapOf("onlineLight" to hex(OnlineColor.light), "onlineDark" to hex(OnlineColor.dark))
         )
         return sections.joinToString(prefix = "{\n", separator = ",\n", postfix = "\n}\n") { (name, values) ->
             "  \"$name\": {\n" + values.entries.joinToString(",\n") { "    \"${it.key}\": ${it.value}" } + "\n  }"
@@ -82,6 +85,9 @@ class TokensJsonTest {
     }
 
     private fun num(dp: Dp): String = dp.value.let { if (it % 1f == 0f) it.toInt().toString() else it.toString() }
+
+    /** En färg som "#RRGGBB" – bara pluppens gröna ([OnlineColor]); övriga färger är appens. */
+    private fun hex(color: Color): String = "\"#%06X\"".format(color.toArgb() and 0xFFFFFF)
 
     /** Hörnradien i dp; helt rundad (CircleShape) är "full", och ett rundat bara upptill är `[tl, tr, br, bl]`. */
     private fun radius(shape: Shape): String {

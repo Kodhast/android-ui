@@ -27,6 +27,7 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import se.kodhast.ui.theme.AppTheme
+import se.kodhast.ui.theme.OnlineColor
 
 /**
  * Kontots avatar uppe till höger på varje flik ([AppHeader], via [LocalTopBarAccount]): öppnar kontot
@@ -37,7 +38,7 @@ import se.kodhast.ui.theme.AppTheme
  * Går fotot inte att visa syns initialerna. Cirkeln är 36 dp i en tryckyta på 48 dp, och TalkBack läser
  * "Konto och inställningar" som en knapp.
  *
- * [online] = `true` ger en grön plupp nere till höger (färgen `ExtendedColors.online`, med en ring i
+ * [online] = `true` ger en grön plupp nere till höger ([OnlineColor], samma i alla appar, med en ring i
  * sidhuvudets aktuella bakgrund) och TalkBack läser "Ansluten"; `false` ingen plupp och "Utan anslutning";
  * `null` (standard) ingen plupp och inget anslutningsläge. Utan [onClick] är avataren bara en bild (t.ex.
  * på ett kontokort där namnet står bredvid) och läses inte upp.
@@ -79,12 +80,13 @@ fun AccountAvatar(
                 photo?.invoke()
             }
             if (online == true) {
+                val ring = LocalAvatarRing.current ?: colors.background
                 Box(
                     Modifier
                         .align(Alignment.BottomEnd)
                         .size(DOT)
-                        .background(AppTheme.extendedColors.online ?: colors.primary, circle)
-                        .border(RING, LocalAvatarRing.current ?: colors.background, circle)
+                        .background(OnlineColor.on(ring), circle)
+                        .border(RING, ring, circle)
                         .testTag(ACCOUNT_ONLINE_TAG)
                 )
             }
