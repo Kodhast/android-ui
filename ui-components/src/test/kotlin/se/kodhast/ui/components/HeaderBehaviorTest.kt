@@ -158,6 +158,7 @@ class HeaderBehaviorTest {
         node.performClick()
         assertEquals(1, clicks)
         assertEquals(0, rule.onAllNodesWithTag(ACCOUNT_ONLINE_TAG, useUnmergedTree = true).fetchSemanticsNodes().size)
+        assertEquals(0, rule.onAllNodesWithTag(ACCOUNT_OFFLINE_TAG, useUnmergedTree = true).fetchSemanticsNodes().size)
     }
 
     @Test
@@ -192,9 +193,19 @@ class HeaderBehaviorTest {
     }
 
     @Test
-    fun `utan anslutning ingen plupp och Utan anslutning för TalkBack`() {
-        show { AccountAvatar("Anna Berg", onClick = {}, online = false) }
+    fun `utan anslutning en grå ihålig ring i stället för pluppen och Utan anslutning för TalkBack`() {
+        var outline = Color.Unspecified
+        var background = Color.Unspecified
+        show {
+            outline = MaterialTheme.colorScheme.outline
+            background = MaterialTheme.colorScheme.background
+            AccountAvatar("Anna Berg", onClick = {}, online = false)
+        }
         assertEquals(0, rule.onAllNodesWithTag(ACCOUNT_ONLINE_TAG, useUnmergedTree = true).fetchSemanticsNodes().size)
+        val ring = rule.onNodeWithTag(ACCOUNT_OFFLINE_TAG, useUnmergedTree = true)
+        // 12 dp: 2 dp yta, 2 dp grå ring, 4 dp hål med ytan i mitten.
+        assertSameColor(outline, ring.pixelAt(rule.density, 3.dp, 6.dp), "ringen")
+        assertSameColor(background, ring.pixelAt(rule.density, 6.dp, 6.dp), "hålet")
         rule.onNodeWithContentDescription("Konto och inställningar").assert(SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, "Utan anslutning"))
     }
 

@@ -5,7 +5,7 @@ eventuellt Fonder): ett tema-API och de delade komponenterna, så att samma elem
 beter sig likadant i alla appar och bara finns på ett ställe. Varje app behåller sina egna
 färger och typsnitt och skickar in dem i temat; formerna är samma i alla appar.
 
-**Version:** 5.0.0 · Material 3 `1.5.0` (Expressive) · Compose BOM `2026.11.01` ·
+**Version:** 5.1.0 · Material 3 `1.5.0` (Expressive) · Compose BOM `2026.11.01` ·
 Kotlin `2.4.21` · AGP `9.5.2` · compileSdk 37.1 · minSdk 30.
 
 ## Moduler
@@ -40,8 +40,8 @@ dependencyResolutionManagement {
 }
 ```
 
-och i versionskatalogen/byggfilen `implementation("se.kodhast.ui:ui-components:5.0.0")` och
-`testImplementation("se.kodhast.ui:ui-testing:5.0.0")`.
+och i versionskatalogen/byggfilen `implementation("se.kodhast.ui:ui-components:5.1.0")` och
+`testImplementation("se.kodhast.ui:ui-testing:5.1.0")`.
 
 - **CI i appen:** `GITHUB_TOKEN` räcker när paketet gett apprepot läsåtkomst
   (paketets inställningar → *Manage Actions access*) och jobbet har `permissions: packages: read`.
@@ -89,7 +89,7 @@ TRACK_HEIGHT, PROGRESS_STROKE // spårets höjd 8 dp, snurrans linje 2,5 dp
 - **Accentfärger:** `ExtendedColors.accents` är appens dekorativa färgserie (personfärger,
   valbara färger) – används av `Confetti`.
 - **Ansluten:** pluppen på `AccountAvatar(online = true)` är samma gröna i alla appar, `OnlineColor` i `ui-theme`
-  (ljus eller mörk efter ytan avataren står på) – ingen appinställning (5.0.0). Bibliotekets enda egna färg.
+  (ljus eller mörk efter ytan avataren står på) – ingen appinställning (5.0.0). Bibliotekets enda egna färg. Utan anslutning (`online = false`) en grå ihålig ring i `outline`; utloggad ingen plupp (5.1.0).
 - **Framstegsraden:** `ExtendedColors.track` är spåret i `AppProgress` (standard `null` =
   `colorScheme.primaryContainer`) och `ExtendedColors.progressDone` fyllnaden när allt är klart,
   `ProgressDoneColors(fill, outline)` (standard `null` = `colorScheme.primary` utan kontur; Dagboken sätter
@@ -473,7 +473,7 @@ inte använder ramen rätt.
 | Komponent | Vad | Skillnad mot apparnas tidigare version |
 |---|---|---|
 | `AboutCard` | Om-kortet: `appName`, "Version …" (`version`) och `MakerMark` under texten; `extra` är appens egna rader i samma kort. Med `update` (standard `LocalAppUpdate`) raden "Ny version X finns" och **Hämta**, som öppnar APK:n (`onDownload` ersätter det) | Flyttad från ReseApoteket och Dagboken (#54) |
-| `AccountAvatar` | Kontots avatar: `name` (initialer, "Anna Berg" → "AB"; utan namn en person-ikon), `onClick` (`null` = bara en bild utan semantik), `online` (`true` grön plupp i `OnlineColor` och "Ansluten", `false` "Utan anslutning", `null` inget läge), `photoUrl` (profilfotot ovanpå initialerna, laddat och cachat på disk med Coil), `photo` (egen slot, går före `photoUrl`). 36 dp i 48 dp tryckyta, "Konto och inställningar" | Flyttad från Dagboken (#42); `photoUrl` och cachen flyttade från Dagboken (#46) |
+| `AccountAvatar` | Kontots avatar: `name` (initialer, "Anna Berg" → "AB"; utan namn en person-ikon), `onClick` (`null` = bara en bild utan semantik), `online` (`true` grön plupp i `OnlineColor` och "Ansluten", `false` grå ihålig ring i `outline` och "Utan anslutning", `null` ingen plupp och inget läge; `AccountMenuAvatar` visar den bara inloggad), `photoUrl` (profilfotot ovanpå initialerna, laddat och cachat på disk med Coil), `photo` (egen slot, går före `photoUrl`). 36 dp i 48 dp tryckyta, "Konto och inställningar" | Flyttad från Dagboken (#42); `photoUrl` och cachen flyttade från Dagboken (#46) |
 | `AccountMenu` | Menyn under avataren (#102, variant B), fast ordning: kontoraden (`AccountRow`, bara med `account: AccountInfo?`), Inställningar (`onOpenSettings`), Komponentgalleri (`onOpenGallery`, bara när satt), Om `appName` (`onOpenAbout`), en linje och Logga ut (frågar som `SignOutRow`, `onSignOut`) eller utloggad Logga in med Google (`onSignIn`, `null` = ingen rad; `signInNote` undertext). `expanded`/`onDismiss`, förankrad i omgivande `Box`; tryck utanför och bakåt stänger. | Ny (3.8.0); ersätter Dagbokens `AccountSheet` och RA:s avatar som öppnar inställningarna |
 | `AccountMenuAvatar` | `AccountAvatar` och `AccountMenu` tillsammans: ett tryck på avataren fäller ut menyn; `online` går till avataren, resten till menyn. Läggs i `AppNavHost(account = …)` | Ny (3.8.0) |
 | `AccountRow` | Kontot överst i inställningarna: `AccountAvatar`, `name` och `email` under (utan e-post "Inloggad med Google"; utan namn står e-posten som titel), `photoUrl`; ingen tonad bakgrund | Flyttad från ReseApoteket och Dagboken (#54); Dagbokens tonade rad och extra rad "Inloggad med Google" försvinner (Mats beslut) |
@@ -644,6 +644,7 @@ efter, innan någon app bytt. Byt direkt från 1.x till 3.0.0. Det som bryter, o
 
 | Version | Ändring |
 |---|---|
+| 5.1.0 | Pluppen på avataren betyder inloggad och ansluten (Mats 2026-11-27): `AccountAvatar(online = false)` ger en grå ihålig ring (`colorScheme.outline`, ytan syns i mitten) i stället för ingen plupp, och `AccountMenuAvatar` visar plupp eller ring bara när `account` är satt – utloggad är det personikonen utan plupp och utan anslutningsläge för TalkBack. Omtagna skärmdumpar: avatarens lägen och foto |
 | 5.0.0 | **Brytande:** `ExtendedColors.online` är borttagen. Pluppen på `AccountAvatar(online = true)` är samma gröna i alla appar, `OnlineColor` i `ui-theme` (#1E8E3E på ljus yta, #6DD58C på mörk), i stället för appens färg eller `primary` (Mats 2026-11-27). Bibliotekets enda egna färg (undantag i `ui-allowlist.txt`); den står också i `tokens.json` (`color.onlineLight`/`onlineDark`) för web-ui. **Appen måste** ta bort `online = …` ur sina `ExtendedColors` (ReseApoteket och Dagboken). Omtagna skärmdumpar: avataren med pluppen |
 | 4.0.0 | **Brytande:** `AppButton`:s standardvariant är `Secondary` (tonad) i stället för `Primary` (Mats beslut 2026-11-24, #128; skill `android:designregler`, D-3). **Appen måste** sätta `variant = ButtonVariant.Primary` på den knapp som ska vara vyns primära – annars blir den tonad. Ny semantik `PrimaryAction` på fyllda knappar (`Primary`, `Destructive`) och huvudknappen i `AppFloatingToolbar`; nytt prov `assertSinglePrimaryAction()` i `ui-testing`, som körs i varje läge i list-, redigerings- och detaljkontrakten (en skärm med två fyllda knappar eller FAB plus fylld knapp fäller nu kontraktet). Bibliotekets egna knappar behåller sitt utseende (`Primary` uttryckligen i ramarna, inloggningen, stegaren och `NoticeBanner`), utom Hämta i `AboutCard`, som blir tonad. `EmptyAction.variant` är fortfarande `Primary`. Omtagen skärmdump: `AboutCard_ny_version` |
 | 3.14.0 | Ny version finns (#125, variant C): `UpdateChecker`/`AppUpdate`/`isNewerVersion` i `ui-common` (GitHubs `releases/latest`, utan nyckel och utan nya beroenden), `rememberAppUpdate`, `AppUpdateNotice` och `LocalAppUpdate` i `ui-components`. Med `LocalAppUpdate` satt: en prick i `primary` efter versionsnumret i `AppHeader` (namnet och versionen öppnar Om-vyn, inte ihopfällt), "Ny version X finns" under Om-raden i `AccountMenu` och raden med Hämta i `AboutCard`. `UriHandler.tryOpenUri` delas med `UpdateRequiredScreen`. Utan den är allt som förut; inga befintliga skärmdumpar omtagna, nya: `AppHeader_ny_version`, `AccountMenu_ny_version`, `AboutCard_ny_version` |
