@@ -75,8 +75,8 @@ fun AccountMenu(
 
 /**
  * Avataren i sidhuvudet med [AccountMenu] under: ett tryck fäller ut menyn. Läggs i `AppNavHost(account = …)`
- * eller [AppHeader]s `account`. [online] är pluppen på avataren ([AccountAvatar]); övriga parametrar går
- * till [AccountMenu].
+ * eller [AppHeader]s `account`. [online] är pluppen på avataren ([AccountAvatar]) och visas bara inloggad
+ * ([account] satt); utloggad är det personikonen utan plupp. Övriga parametrar går till [AccountMenu].
  */
 @Composable
 fun AccountMenuAvatar(
@@ -94,7 +94,13 @@ fun AccountMenuAvatar(
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
     Box(modifier) {
-        AccountAvatar(account?.name ?: account?.email, onClick = { expanded = true }, online = online, photoUrl = account?.photoUrl)
+        // Utloggad: personikonen utan plupp, oavsett anslutning.
+        AccountAvatar(
+            account?.name ?: account?.email,
+            onClick = { expanded = true },
+            online = online.takeIf { account != null },
+            photoUrl = account?.photoUrl
+        )
         AccountMenu(
             expanded = expanded,
             onDismiss = { expanded = false },

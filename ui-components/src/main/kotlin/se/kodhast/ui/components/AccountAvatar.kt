@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -39,8 +40,10 @@ import se.kodhast.ui.theme.OnlineColor
  * "Konto och inställningar" som en knapp.
  *
  * [online] = `true` ger en grön plupp nere till höger ([OnlineColor], samma i alla appar, med en ring i
- * sidhuvudets aktuella bakgrund) och TalkBack läser "Ansluten"; `false` ingen plupp och "Utan anslutning";
- * `null` (standard) ingen plupp och inget anslutningsläge. Utan [onClick] är avataren bara en bild (t.ex.
+ * sidhuvudets aktuella bakgrund) och TalkBack läser "Ansluten"; `false` en grå ihålig ring på samma plats
+ * (`colorScheme.outline`) och "Utan anslutning"; `null` (standard) ingen plupp och inget anslutningsläge – det
+ * som ska gälla utloggad (Mats 2026-11-27: grön = inloggad och ansluten, grå ring = inloggad utan anslutning,
+ * utloggad = personikonen utan plupp). Utan [onClick] är avataren bara en bild (t.ex.
  * på ett kontokort där namnet står bredvid) och läses inte upp.
  */
 @Composable
@@ -79,9 +82,9 @@ fun AccountAvatar(
                 }
                 photo?.invoke()
             }
-            if (online == true) {
-                val ring = LocalAvatarRing.current ?: colors.background
-                Box(
+            val ring = LocalAvatarRing.current ?: colors.background
+            when (online) {
+                true -> Box(
                     Modifier
                         .align(Alignment.BottomEnd)
                         .size(DOT)
@@ -89,6 +92,19 @@ fun AccountAvatar(
                         .border(RING, ring, circle)
                         .testTag(ACCOUNT_ONLINE_TAG)
                 )
+
+                // Ihålig: ytan avataren står på syns i mitten, så att läget skiljs i form och inte bara i färg.
+                false -> Box(
+                    Modifier
+                        .align(Alignment.BottomEnd)
+                        .size(DOT)
+                        .testTag(ACCOUNT_OFFLINE_TAG)
+                        .background(ring, circle)
+                        .padding(RING)
+                        .border(RING, colors.outline, circle)
+                )
+
+                null -> Unit
             }
         }
     }
@@ -114,6 +130,9 @@ internal val LocalAvatarRing = compositionLocalOf<Color?> { null }
 
 /** Pluppen för [AccountAvatar] med `online = true`, för tester. */
 internal const val ACCOUNT_ONLINE_TAG = "account-online"
+
+/** Den ihåliga ringen för [AccountAvatar] med `online = false`, för tester. */
+internal const val ACCOUNT_OFFLINE_TAG = "account-offline"
 
 /** Den synliga cirkeln; tryckytan runt den är [TOUCH_TARGET]. */
 private val AVATAR = 36.dp

@@ -2,10 +2,17 @@ package se.kodhast.ui.components
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.espresso.Espresso
@@ -36,7 +43,7 @@ class AccountMenuBehaviorTest {
     private var signOuts = 0
 
     @Composable
-    private fun Avatar(account: AccountInfo?, gallery: Boolean = true, signIn: Boolean = true, signInNote: String? = null) = AccountMenuAvatar(
+    private fun Avatar(account: AccountInfo?, gallery: Boolean = true, signIn: Boolean = true, signInNote: String? = null, online: Boolean? = null) = AccountMenuAvatar(
         account = account,
         appName = "Dagboken",
         onOpenSettings = { settings++ },
@@ -44,8 +51,22 @@ class AccountMenuBehaviorTest {
         onSignIn = if (signIn) ({ signIns++ }) else null,
         onSignOut = { signOuts++ },
         signInNote = signInNote,
+        online = online,
         onOpenGallery = if (gallery) ({ this.gallery++ }) else null
     )
+
+    @Test
+    fun `pluppen syns bara inloggad – utloggad personikonen utan plupp och utan anslutningsläge`() {
+        var signedIn by mutableStateOf(true)
+        show { Avatar(if (signedIn) anna else null, online = true) }
+        rule.onNodeWithTag(ACCOUNT_ONLINE_TAG, useUnmergedTree = true).assertExists()
+        signedIn = false
+        rule.waitForIdle()
+        assertEquals(0, rule.onAllNodesWithTag(ACCOUNT_ONLINE_TAG, useUnmergedTree = true).fetchSemanticsNodes().size)
+        assertEquals(0, rule.onAllNodesWithTag(ACCOUNT_OFFLINE_TAG, useUnmergedTree = true).fetchSemanticsNodes().size)
+        val node = rule.onNodeWithContentDescription("Konto och inställningar").fetchSemanticsNode()
+        assertEquals(null, node.config.getOrNull(SemanticsProperties.StateDescription))
+    }
 
     private fun open() = rule.onNodeWithContentDescription("Konto och inställningar").performClick()
 
